@@ -135,8 +135,9 @@ def test_nobody_signed_in_and_strangers_see_nothing(db):
 def test_viewers_cannot_write_directly(db):
     Session, pid = db
     with Session() as s:
-        with permissions.rls_scope(s, member(s, pid, "Sana")):
-            with pytest.raises(Exception, match="permission denied"):
+        sana = member(s, pid, "Sana")
+        with pytest.raises(Exception, match="permission denied"):
+            with permissions.rls_scope(s, sana):
                 s.execute(text("update claims set label = 'verified'"))
         s.rollback()
 

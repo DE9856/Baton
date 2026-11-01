@@ -1,7 +1,7 @@
 """The evidence model (Round 1 plan, section 6.3), as SQLAlchemy tables.
 
-The plan's target is Supabase Postgres with Row-Level Security. This build runs on SQLite through the same models
-until credentials exist (see docs/CHANGES_FROM_PLAN.md); `db/supabase_schema.sql` holds the Postgres schema and policies.
+The target is Supabase Postgres with Row-Level Security. The same models run on SQLite for local use
+when none is configured; `rls.sql` holds the policies applied on Postgres. See docs/CHANGES_FROM_PLAN.md.
 """
 from __future__ import annotations
 

@@ -86,6 +86,25 @@ def test_cards_sharing_a_claim_merge_and_same_card_status_joins():
     assert {c.id for c in groups[0].side_a} == {4, 6}
 
 
+def test_repeated_statements_do_not_crowd_out_a_real_conflict():
+    import numpy as np
+
+    from baton.verify import conflicts as cf
+
+    class SameVector:
+        def embed(self, texts):
+            return np.ones((len(texts), 1))
+
+    class AlwaysContradicts:
+        def score(self, pairs):
+            return [SimpleNamespace(contradiction=1.0, entailment=0.0) for _ in pairs]
+
+    repeats = [cc(i, "Thanks everyone for the good work.", "thanks") for i in range(100)]  # 4,950 pairs with no facet
+    real = [cc(200, "The launch is due by 2026-11-20.", "launch", "deadline"), cc(201, "The launch is pushed to 5 Dec.", "launch", "deadline")]
+    cards = cf.find_cards([*repeats, *real], AlwaysContradicts(), SameVector())
+    assert [(c.a.id, c.b.id) for c in cards] in ([(200, 201)], [(201, 200)])
+
+
 # --- staleness -----------------------------------------------------------------------------------------------------
 
 def test_stale_rule():

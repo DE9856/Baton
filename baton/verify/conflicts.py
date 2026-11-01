@@ -50,6 +50,7 @@ class ConflictClaim:
     quote: str = ""
     context: str = ""  # record title or other text that names what the claim is about
     uid: str = ""
+    cache: dict = field(default_factory=dict, repr=False, compare=False)
 
 
 @dataclass
@@ -80,10 +81,21 @@ def _tokens(text: str, ignore: set[str]) -> set[str]:
 
 
 def _about(c: ConflictClaim, ignore: set[str]) -> set[str]:
-    return _tokens(f"{c.subject} {c.statement} {c.context}", ignore)
+    return _memo(c, "about", lambda: _tokens(f"{c.subject} {c.statement} {c.context}", set())) - ignore
+
+
+def _memo(c: ConflictClaim, key: str, compute):
+    """Each pair needs these per claim, and a large chat has hundreds of thousands of pairs."""
+    if key not in c.cache:
+        c.cache[key] = compute()
+    return c.cache[key]
 
 
 def _days(c: ConflictClaim) -> set[tuple[int, int]]:
+    return _memo(c, "days", lambda: _read_days(c))
+
+
+def _read_days(c: ConflictClaim) -> set[tuple[int, int]]:
     anchor = c.as_of.date() if c.as_of else None
     # The statement first. A date elsewhere in a quote is often an aside ("see the 12 Sep notes").
     found = find_dates(c.statement, anchor)
@@ -93,6 +105,10 @@ def _days(c: ConflictClaim) -> set[tuple[int, int]]:
 
 
 def _polarity(c: ConflictClaim) -> str | None:
+    return _memo(c, "polarity", lambda: _read_polarity(c))
+
+
+def _read_polarity(c: ConflictClaim) -> str | None:
     text = f"{c.statement} {c.value} {c.quote}"
     if _NOT_DONE.search(text):
         return "not_done"
@@ -157,7 +173,7 @@ def _text(c: ConflictClaim) -> str:
 
 
 def candidate_pairs(claims: list[ConflictClaim], embedder, min_cosine: float = CANDIDATE_MIN_COSINE,
-                    cap: int = CANDIDATE_CAP, only_involving: set[int] | None = None) -> list[tuple[int, int]]:
+                    only_involving: set[int] | None = None) -> list[tuple[int, int]]:
     """Related claim pairs by cosine similarity; word overlap is the fallback without an embedder."""
     n = len(claims)
     if n < 2:
@@ -179,7 +195,7 @@ def candidate_pairs(claims: list[ConflictClaim], embedder, min_cosine: float = C
     if only_involving is not None:
         pairs = [(sc, i, j) for sc, i, j in pairs if claims[i].id in only_involving or claims[j].id in only_involving]
     pairs.sort(reverse=True)
-    return [(i, j) for _, i, j in pairs[:cap]]
+    return [(i, j) for _, i, j in pairs]
 
 
 def find_cards(claims: list[ConflictClaim], nli, embedder, roster=None, only_involving: set[int] | None = None,
@@ -195,6 +211,8 @@ def find_cards(claims: list[ConflictClaim], nli, embedder, roster=None, only_inv
             survivors.append((claims[i], claims[j], facet))
     if not survivors:
         return []
+    # The cap applies here, to what NLI must check. Applied earlier, repeated statements would crowd out real conflicts.
+    survivors = survivors[:CANDIDATE_CAP]
     forward = nli.score([(_text(a), _text(b)) for a, b, _ in survivors])
     backward = nli.score([(_text(b), _text(a)) for a, b, _ in survivors])
     cards = []
