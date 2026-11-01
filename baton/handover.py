@@ -127,7 +127,7 @@ def compose(version, viewer: Member | None) -> Handover:
 
     h.missing = [q for q in snap["missing"] if viewer is not None and q["audience"] in (viewer.clearances or [])]
     # A question that is still open appears once, as Missing, with the person to ask.
-    missing_text = " ".join(q["text"].rstrip("\u2026") for q in h.missing).lower()
+    missing_text = " ".join(q["text"].rstrip("\u2026") for q in h.missing).lower()  # shortened questions end with an ellipsis
     by_section["questions"] = [i for i in by_section["questions"] if i["statement"].lower()[:100] not in missing_text]
     return h
 

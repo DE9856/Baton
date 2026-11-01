@@ -107,6 +107,25 @@ def test_json_parsers_reject_garbage(fn):
         fn(json.dumps({"unexpected": True}))
 
 
+def test_utf16_exports_are_readable():
+    from baton.parsers import decode_text
+
+    text = "01/08/26, 19:02 - Arjun: hello there"
+    assert parse_whatsapp(decode_text(text.encode("utf-16"))).units[0].text == "hello there"
+    assert decode_text(b"\xef\xbb\xbfplain") == "plain"
+    with pytest.raises(ParseError, match="not UTF-8"):
+        decode_text("caf\u00e9".encode("latin-1"))
+
+
+def test_a_very_long_chat_parses_quickly():
+    import time
+
+    lines = "\n".join(f"[01/08/26, 19:{i % 60:02d}:00] Person{i % 7}: message number {i} about the project" for i in range(50_000))
+    started = time.time()
+    assert len(parse_whatsapp(lines).units) == 50_000
+    assert time.time() - started < 10
+
+
 def test_notes_rejects_empty():
     with pytest.raises(ParseError):
         parse_notes("   \n ", "N1")

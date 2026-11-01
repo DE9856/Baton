@@ -10,12 +10,14 @@ import re
 from dataclasses import dataclass, field
 from datetime import date, datetime
 
+import numpy as np
 from rapidfuzz import fuzz
 
 from .dates import find_dates
 
 CANDIDATE_MIN_COSINE = 0.35
-CANDIDATE_CAP = 400
+CANDIDATE_CAP = 2000
+WORD_OVERLAP_LIMIT = 800
 CONTRADICTION_THRESHOLD = 0.5
 
 _STOP = {"the", "a", "an", "is", "are", "was", "were", "be", "been", "to", "of", "for", "on", "in", "at", "by", "and",
@@ -23,7 +25,7 @@ _STOP = {"the", "a", "an", "is", "are", "was", "were", "be", "been", "to", "of",
          "had", "after", "before", "only", "so", "as", "we", "our", "they", "their", "not", "no", "never", "new", "due",
          "date", "deadline", "target", "status", "owner", "card", "list", "issue", "pr", "done", "completed", "progress",
          "todo", "still", "actually", "being", "then", "now", "up", "set", "get", "does", "do", "did", "than", "about",
-         "responsible", "working", "college", "work", "there", "right", "fix", "fixed", "bug",
+         "responsible", "working", "college", "work", "there", "right", "fix", "fixed", "bug", "said", "says", "comment", "agreed",
          # A shared month says nothing about whether two claims concern the same thing.
          "jan", "january", "feb", "february", "mar", "march", "apr", "april", "may", "jun", "june", "jul", "july",
          "aug", "august", "sep", "sept", "september", "oct", "october", "nov", "november", "dec", "december"}
@@ -116,9 +118,9 @@ def _person(value: str, roster: list[list[str]]) -> int | None:
     return None
 
 
-def facet_check(a: ConflictClaim, b: ConflictClaim, roster: list[list[str]] | None = None) -> str | None:
+def facet_check(a: ConflictClaim, b: ConflictClaim, roster: list[list[str]] | None = None, common: set[str] | None = None) -> str | None:
     roster = roster or []
-    ignore: set[str] = set()
+    ignore: set[str] = set(common or ())
     for aliases in roster:
         for alias in aliases:
             ignore |= {t.lower() for t in re.split(r"[\s_-]+", alias)}
@@ -141,6 +143,11 @@ def facet_check(a: ConflictClaim, b: ConflictClaim, roster: list[list[str]] | No
 _SCHEDULE = re.compile(r"\b(due|deadline|target|pushed|moved|postponed|rescheduled|extended|by|until|on)\b", re.I)
 
 
+def project_name_words(name: str) -> set[str]:
+    """Two claims both mentioning the project's name are not thereby about the same thing."""
+    return _tokens(name, set())
+
+
 def _is_schedule(c: ConflictClaim) -> bool:
     return c.type in ("deadline", "status") or bool(_SCHEDULE.search(c.statement))
 
@@ -150,33 +157,40 @@ def _text(c: ConflictClaim) -> str:
 
 
 def candidate_pairs(claims: list[ConflictClaim], embedder, min_cosine: float = CANDIDATE_MIN_COSINE,
-                    cap: int = CANDIDATE_CAP) -> list[tuple[int, int]]:
+                    cap: int = CANDIDATE_CAP, only_involving: set[int] | None = None) -> list[tuple[int, int]]:
     """Related claim pairs by cosine similarity; word overlap is the fallback without an embedder."""
     n = len(claims)
+    if n < 2:
+        return []
     pairs: list[tuple[float, int, int]] = []
-    vectors = embedder.embed([_text(c) for c in claims]) if embedder and claims else None
-    for i in range(n):
-        for j in range(i + 1, n):
-            if claims[i].uid and claims[i].uid == claims[j].uid:
-                continue
-            if vectors is not None:
-                score = float(vectors[i] @ vectors[j])
-            else:
+    vectors = embedder.embed([_text(c) for c in claims]) if embedder else None
+    if vectors is not None:
+        # A matrix product handles thousands of claims in a moment, where a Python loop would take minutes.
+        sims = np.triu(vectors @ vectors.T, k=1)
+        for i, j in zip(*np.nonzero(sims >= min_cosine)):
+            pairs.append((float(sims[i, j]), int(i), int(j)))
+    else:
+        for i in range(min(n, WORD_OVERLAP_LIMIT)):
+            for j in range(i + 1, min(n, WORD_OVERLAP_LIMIT)):
                 score = fuzz.token_set_ratio(_text(claims[i]), _text(claims[j])) / 100
-            if score >= min_cosine:
-                pairs.append((score, i, j))
+                if score >= min_cosine:
+                    pairs.append((score, i, j))
+    pairs = [(sc, i, j) for sc, i, j in pairs if not (claims[i].uid and claims[i].uid == claims[j].uid)]
+    if only_involving is not None:
+        pairs = [(sc, i, j) for sc, i, j in pairs if claims[i].id in only_involving or claims[j].id in only_involving]
     pairs.sort(reverse=True)
     return [(i, j) for _, i, j in pairs[:cap]]
 
 
-def find_cards(claims: list[ConflictClaim], nli, embedder, roster=None) -> list[Card]:
+def find_cards(claims: list[ConflictClaim], nli, embedder, roster=None, only_involving: set[int] | None = None,
+               project_words: set[str] | None = None) -> list[Card]:
     """A card must pass both the facet check and NLI contradiction (in either direction).
 
     The facet check is free and deterministic, so it filters first, and NLI runs only on what survives.
     """
     survivors = []
-    for i, j in candidate_pairs(claims, embedder):
-        facet = facet_check(claims[i], claims[j], roster)
+    for i, j in candidate_pairs(claims, embedder, only_involving=only_involving):
+        facet = facet_check(claims[i], claims[j], roster, project_words)
         if facet:
             survivors.append((claims[i], claims[j], facet))
     if not survivors:

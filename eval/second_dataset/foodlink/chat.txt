@@ -1,0 +1,20 @@
+02/01/27, 9:12 am - Tanvi: Happy new year all. Driver app v3 work starts this week
+02/01/27, 9:15 am - Joseph: nice
+05/01/27, 8:40 pm - Tanvi: we picked Twilio for the driver SMS alerts, WhatsApp API approval was taking forever
+05/01/27, 8:44 pm - Imran: ok cool
+11/01/27, 11:02 am - Joseph: GPS pings kept failing in Dharavi again yesterday, 2nd week running. Reboot the phone and it comes back
+11/01/27, 11:05 am - Tanvi: yaar ye phir se ho gaya, koi permanent fix nahi hai abhi
+18/01/27, 7:30 pm - Tanvi: Hosting is on Fly.io now, moved off the old VPS on Sunday
+22/01/27, 6:00 pm - Imran: Kitchen dashboard mera hai, I'll have it ready by 28 Feb
+27/01/27, 10:10 am - Tanvi: nightly DB dump is running to the S3 bucket, set it up today
+03/02/27, 4:45 pm - Tanvi: Twilio auth token for staging: sk_test_51Hx8FoodLinkDemoToken9Qz don't forward this
+09/02/27, 9:00 pm - Joseph: Driver onboarding form still pending, waiting for the legal text from Fatima
+14/02/27, 12:20 pm - Tanvi: Reminder that the SMS sender ID registration expires on 25 Mar. It's under my name on the Twilio account
+16/02/27, 8:15 pm - Joseph: mera number de do drivers ko agar emergency ho, 91234 56780
+20/02/27, 5:30 pm - Tanvi: deployment is just me running a script from my laptop, will document it some day
+24/02/27, 11:00 am - Joseph: Checked the S3 bucket. Last dump is from 2 Feb, the nightly job has been dead for weeks
+24/02/27, 11:04 am - Tanvi: oh no. that's on me, I'll look at it before I go
+26/02/27, 3:15 pm - Imran: Kitchen dashboard will slip, new date is 15 Mar since the API changed
+27/02/27, 6:40 pm - Tanvi: I'm off on 20 Mar, joining the Pune office. Imran takes over as tech lead
+27/02/27, 6:42 pm - Joseph: all the best
+28/02/27, 10:00 am - Joseph: should we delete driver location history after 90 days? nobody has decided this

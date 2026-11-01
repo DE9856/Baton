@@ -11,7 +11,9 @@ RUN pip install --no-cache-dir torch==2.5.1 --index-url https://download.pytorch
 # Models are baked into the image, so a sleeping Space wakes without downloading them again.
 RUN python -c "from transformers import AutoModel, AutoModelForSequenceClassification as C, AutoTokenizer as T; \
 n='cross-encoder/nli-deberta-v3-base'; C.from_pretrained(n); T.from_pretrained(n); \
-m='sentence-transformers/all-MiniLM-L6-v2'; AutoModel.from_pretrained(m); T.from_pretrained(m)"
+m='sentence-transformers/all-MiniLM-L6-v2'; AutoModel.from_pretrained(m); T.from_pretrained(m); \
+from transformers import WhisperForConditionalGeneration as W, WhisperProcessor as P; \
+w='openai/whisper-tiny'; W.from_pretrained(w); P.from_pretrained(w)"
 
 COPY baton ./baton
 

@@ -28,6 +28,8 @@ _ASSIGNED = re.compile(
     r"\s*(?:to\b|is\b|=|:)\s*[\"'`]?([^\s\"'`,;]+)",
     re.I,
 )
+# A password word followed directly by something shaped like a password: "billing-password Kitchen!4471".
+_BARE_PASSWORD = re.compile(r"\b(?:password|passwd|pwd|passcode)\s+(?=[^\s]*[\d!@#$%^&*])([^\s,;]{6,})", re.I)
 _MASK = re.compile(r"\[secret \*{4}[^\]]{0,4}\]")
 # Words that may follow "token:" or "password is" without being a credential.
 _NOT_A_VALUE = {"the", "a", "an", "in", "on", "our", "my", "your", "this", "that", "it", "shared", "stored",
@@ -74,7 +76,16 @@ def mask_secrets(text: str) -> tuple[str, list[str]]:
         found.append("assigned_credential")
         return m.group(0).replace(value, "[secret ****]")  # a password keeps no visible tail at all
 
-    return _ASSIGNED.sub(assigned, out), found
+    out = _ASSIGNED.sub(assigned, out)
+
+    def bare(m: re.Match) -> str:
+        value = m.group(1).rstrip(".")
+        if value.startswith("[secret"):
+            return m.group(0)
+        found.append("assigned_credential")
+        return m.group(0).replace(value, "[secret ****]")
+
+    return _BARE_PASSWORD.sub(bare, out), found
 
 
 def secret_values(text: str) -> set[str]:
@@ -86,6 +97,10 @@ def secret_values(text: str) -> set[str]:
     for m in _ASSIGNED.finditer(text):
         value = m.group(1).rstrip(".")
         if value.lower() not in _NOT_A_VALUE and not value.startswith("[secret") and _VALUE_SHAPE.search(value) and len(value) >= 6:
+            values.add(value)
+    for m in _BARE_PASSWORD.finditer(text):
+        value = m.group(1).rstrip(".")
+        if not value.startswith("[secret"):
             values.add(value)
     return values
 

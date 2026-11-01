@@ -1,0 +1,19 @@
+{
+  "repo": "foodlink/tracker",
+  "items": [
+    {"number": 12, "type": "issue", "title": "Driver GPS drops in low signal areas", "user": {"login": "joe-p"}, "state": "open",
+     "created_at": "2027-01-11T06:00:00Z", "html_url": "https://github.com/foodlink/tracker/issues/12",
+     "body": "Location updates stop in Dharavi and Govandi. Root cause not found. Rebooting the phone restores it.",
+     "comments_data": [{"user": {"login": "tanvi-r"}, "created_at": "2027-01-20T10:00:00Z", "body": "Could be Android battery optimisation. Not confirmed."}]},
+    {"number": 15, "type": "pull_request", "title": "Move hosting to Fly.io", "user": {"login": "tanvi-r"}, "state": "closed", "merged": true,
+     "created_at": "2027-01-16T10:00:00Z", "merged_at": "2027-01-17T10:00:00Z", "html_url": "https://github.com/foodlink/tracker/pull/15",
+     "body": "Moves the API from the old VPS to Fly.io because the VPS provider is shutting down in April.", "comments_data": []},
+    {"number": 19, "type": "pull_request", "title": "Kitchen dashboard", "user": {"login": "imransh"}, "state": "open", "merged": false, "labels": ["blocked"],
+     "created_at": "2027-02-10T10:00:00Z", "html_url": "https://github.com/foodlink/tracker/pull/19",
+     "body": "Adds the kitchen dashboard.",
+     "comments_data": [{"user": {"login": "imransh"}, "created_at": "2027-02-26T09:30:00Z", "body": "Blocked: the inventory API changed its response format. New target is 15 Mar."}]},
+    {"number": 21, "type": "issue", "title": "Driver onboarding needs a consent form", "user": {"login": "joe-p"}, "state": "open",
+     "created_at": "2027-02-09T15:00:00Z", "html_url": "https://github.com/foodlink/tracker/issues/21",
+     "body": "The legal team must approve the consent text before onboarding can ship. Contact: Advocate Meher Bano (meher.bano@foodlink.example).", "comments_data": []}
+  ]
+}

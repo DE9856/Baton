@@ -35,3 +35,16 @@ class ParseResult:
 
 class ParseError(ValueError):
     """The file cannot be read as this source type. The message is shown to the user."""
+
+
+def decode_text(data: bytes) -> str:
+    """Exports are UTF-8, sometimes with a BOM. Some Windows tools write UTF-16, which always starts with a BOM."""
+    if data[:2] in (b"\xff\xfe", b"\xfe\xff"):
+        try:
+            return data.decode("utf-16")
+        except UnicodeDecodeError:
+            pass
+    try:
+        return data.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise ParseError("This file is not UTF-8 text. Please upload the original export.") from None

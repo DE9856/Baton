@@ -5,12 +5,18 @@ until credentials exist (see docs/CHANGES_FROM_PLAN.md); `db/supabase_schema.sql
 """
 from __future__ import annotations
 
+import logging
 import os
+import uuid
 from datetime import date, datetime
 from pathlib import Path
 
-from sqlalchemy import JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text, create_engine, event
+from sqlalchemy import (JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, LargeBinary, String, Text, create_engine, event,
+                        inspect, text)
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
+
+
+log = logging.getLogger(__name__)
 
 
 class Base(DeclarativeBase):
@@ -22,6 +28,8 @@ class Project(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(200))
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+    # A sandbox belongs to the browser that made it: no account, and nobody else can open it.
+    is_sandbox: Mapped[bool] = mapped_column(Boolean, default=False)
     role_title: Mapped[str] = mapped_column(String(100), default="Tech lead")
     as_of: Mapped[date] = mapped_column(Date)
     last_day: Mapped[date] = mapped_column(Date)
@@ -41,6 +49,9 @@ class Member(Base):
     name: Mapped[str] = mapped_column(String(120))
     title: Mapped[str] = mapped_column(String(120), default="")
     role: Mapped[str] = mapped_column(String(20), default="teammate")  # leaver | successor | reviewer | teammate
+    email: Mapped[str] = mapped_column(String(200), default="", index=True)
+    # The identity row-level security checks. A real sign-in replaces this placeholder with the account's id.
+    user_id: Mapped[str] = mapped_column(String(36), default=lambda: str(uuid.uuid4()), index=True)
     aliases: Mapped[list] = mapped_column(JSON, default=list)
     clearances: Mapped[list] = mapped_column(JSON, default=list)
     project: Mapped[Project] = relationship(back_populates="members")
@@ -56,6 +67,8 @@ class Source(Base):
     audience: Mapped[str] = mapped_column(String(60))
     authorised_by: Mapped[str] = mapped_column(String(120))
     consent_note: Mapped[str] = mapped_column(Text, default="")
+    origin_url: Mapped[str] = mapped_column(String(300), default="")  # a GitHub repository can be re-synced
+    last_synced_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     skipped: Mapped[list] = mapped_column(JSON, default=list)
     notes: Mapped[list] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
@@ -76,6 +89,7 @@ class EvidenceUnit(Base):
     link: Mapped[str] = mapped_column(String(500), default="")
     kind: Mapped[str] = mapped_column(String(20), default="text")
     sensitivity: Mapped[list] = mapped_column(JSON, default=list)
+    retired: Mapped[bool] = mapped_column(Boolean, default=False)  # no longer in the source after a re-sync
     source: Mapped[Source] = relationship(back_populates="units")
 
 
@@ -108,6 +122,9 @@ class Claim(Base):
     answered_by: Mapped[str] = mapped_column(String(120), default="")
     answered_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     check_flag: Mapped[str] = mapped_column(Text, default="")  # advisory "check this" note on testimony
+    leaver_check: Mapped[str] = mapped_column(String(12), default="")  # "" | confirmed | disputed
+    leaver_note: Mapped[str] = mapped_column(Text, default="")
+    voice_note_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     evidence: Mapped[list["ClaimEvidence"]] = relationship(back_populates="claim", cascade="all, delete-orphan")
 
 
@@ -159,6 +176,36 @@ class GapQuestion(Base):
     answered_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     testimony_claim_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     origin_section: Mapped[str] = mapped_column(String(40), default="")
+
+
+class AccessRequest(Base):
+    """A person asks to see more instead of hitting a dead end. It reveals only that a restricted source exists."""
+
+    __tablename__ = "access_requests"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
+    member_id: Mapped[int] = mapped_column(Integer)
+    audience: Mapped[str] = mapped_column(String(60))
+    reason: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(10), default="open")  # open | granted | denied
+    decided_by: Mapped[str] = mapped_column(String(120), default="")
+    at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+
+
+class VoiceNote(Base):
+    """A spoken answer, kept as evidence behind testimony, under the same audience as the question."""
+
+    __tablename__ = "voice_notes"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
+    question_id: Mapped[int] = mapped_column(Integer, index=True)
+    member_id: Mapped[int] = mapped_column(Integer)
+    audience: Mapped[str] = mapped_column(String(60))
+    sensitive: Mapped[bool] = mapped_column(Boolean, default=False)
+    mime: Mapped[str] = mapped_column(String(60))
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+    transcript: Mapped[str] = mapped_column(Text, default="")
+    at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
 
 class Version(Base):
@@ -233,7 +280,14 @@ def default_url() -> str:
 
 def make_engine(url: str | None = None):
     url = url or default_url()
-    kwargs = {"connect_args": {"check_same_thread": False, "timeout": 30}} if url.startswith("sqlite") else {}
+    # Supabase hands out postgresql:// URLs; SQLAlchemy needs to be told which driver to use.
+    for prefix in ("postgresql://", "postgres://"):
+        if url.startswith(prefix):
+            url = "postgresql+psycopg://" + url[len(prefix):]
+    if url.startswith("sqlite"):
+        kwargs = {"connect_args": {"check_same_thread": False, "timeout": 30}}
+    else:
+        kwargs = {"pool_pre_ping": True, "pool_size": 5, "max_overflow": 5}
     engine = create_engine(url, **kwargs)
     if url.startswith("sqlite"):
         @event.listens_for(engine, "connect")
@@ -243,7 +297,45 @@ def make_engine(url: str | None = None):
             cur.execute("PRAGMA foreign_keys=ON")
             cur.close()
     Base.metadata.create_all(engine)
+    _add_missing_columns(engine)
+    if engine.dialect.name == "postgresql":
+        _apply_rls(engine)
     return engine
+
+
+def _add_missing_columns(engine) -> None:
+    """A small forward migration: new nullable or defaulted columns are added to an older database."""
+    inspector = inspect(engine)
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            existing = {c["name"] for c in inspector.get_columns(table.name)}
+            for column in table.columns:
+                if column.name in existing:
+                    continue
+                ddl = column.type.compile(engine.dialect)
+                default = "false" if isinstance(column.type, Boolean) else "''" if isinstance(column.type, (String, Text)) else None
+                if default is not None and column.default is not None:
+                    conn.execute(text(f"alter table {table.name} add column {column.name} {ddl} not null default {default}"))
+                else:
+                    conn.execute(text(f"alter table {table.name} add column {column.name} {ddl}"))
+                log.info("Added column %s.%s", table.name, column.name)
+
+
+def _apply_rls(engine) -> None:
+    sql = (Path(__file__).parent / "rls.sql").read_text("utf-8")
+    with engine.begin() as conn:
+        # Supabase provides these. A plain Postgres gets small equivalents so the same policies can be tested.
+        if not conn.execute(text("select 1 from pg_roles where rolname = 'authenticated'")).first():
+            conn.execute(text("create role authenticated nologin"))
+        conn.execute(text("create schema if not exists auth"))
+        conn.execute(text("grant usage on schema auth, public to authenticated"))
+        has_uid = conn.execute(text("select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace "
+                                    "where n.nspname = 'auth' and p.proname = 'uid'")).first()
+        if not has_uid:
+            conn.execute(text("create function auth.uid() returns uuid language sql stable as "
+                              "$$ select nullif(nullif(current_setting('request.jwt.claims', true), '')::json ->> 'sub', '')::uuid $$"))
+        conn.connection.driver_connection.execute(sql)  # no parameters, so the driver leaves % in the SQL alone
+    engine.baton_rls = True
 
 
 def make_sessionmaker(engine) -> sessionmaker[Session]:

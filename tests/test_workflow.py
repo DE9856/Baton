@@ -10,7 +10,7 @@ from sqlalchemy import select
 from baton.db import AuditEvent, Claim, Conflict, GapQuestion, Member, Version
 from baton.web.app import create_app
 
-from .conftest import CANARIES, NEVER_SHOWN, demo_project_id, view_as
+from .conftest import CANARIES, NEVER_SHOWN, demo_project_id, fresh_db_url, view_as
 
 pytestmark = pytest.mark.model
 
@@ -20,8 +20,7 @@ PAGES = ["connect", "ledger", "review", "interview", "handover", "export.md", "a
 @pytest.fixture(scope="module")
 def world(tmp_path_factory, real_nli, real_embedder):
     """One demo project taken through review once. Tests below read from it or extend it."""
-    path = tmp_path_factory.mktemp("db") / "w.sqlite3"
-    app = create_app(f"sqlite:///{path}", nli=real_nli, embedder=real_embedder, inline_jobs=True)
+    app = create_app(fresh_db_url(tmp_path_factory.mktemp("db")), nli=real_nli, embedder=real_embedder, inline_jobs=True)
     with TestClient(app) as client:
         pid = demo_project_id(client)
         view_as(client, pid, "Sana")
@@ -156,6 +155,7 @@ def test_07_successor_gets_the_plan_with_receipts_and_labels(world):
     # Reviewer-only labels never reach the successor as a live label on a line.
     for hidden in ('l-needs_review', 'l-withheld', 'l-outdated'):
         assert hidden not in t, hidden
+    assert "object at 0x" not in t  # a template variable must never print a Python object
     # 100% of shown lines carry a receipt or are attributed testimony.
     assert 'class="receipts"' in t
 

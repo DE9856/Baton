@@ -20,7 +20,7 @@
 
 {% if projects %}
 <section>
-  <h2>Projects</h2>
+  <h2>Your projects</h2>
   <table><thead><tr><th>Project</th><th>Role</th><th>Last day</th></tr></thead><tbody>
   {% for p in projects %}
   <tr><td><a href="/p/{{ p.id }}">{{ p.name }}</a></td><td>{{ p.role_title }}</td><td>{{ p.last_day.strftime('%d %b %Y') }}</td></tr>

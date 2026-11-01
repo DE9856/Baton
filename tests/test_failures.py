@@ -16,7 +16,7 @@ from baton.extract.llm import CLAIM_SCHEMA, ClaudeExtractor, OllamaExtractor, pa
 from baton.pipeline import run_pipeline
 from baton.web.app import create_app
 
-from .conftest import DownNLI, WordOverlapNLI
+from .conftest import DownNLI, WordOverlapNLI, fresh_db_url
 
 CHAT = ("[01/08/26, 19:05:43] Asha: Decision: we're going with Postgres because it is cheap\n"
         "[02/08/26, 10:00:00] Ben: the deploy key is AIzaSyD4-AnotherKey_abcdefghijklmnopqr1\n"
@@ -146,7 +146,7 @@ class FlakyExtractor(Extractor):
 
 
 def test_one_failed_chunk_is_labelled_incomplete_not_hidden(tmp_path):
-    app = create_app(f"sqlite:///{tmp_path / 'a.sqlite3'}", nli=WordOverlapNLI(), embedder=False, inline_jobs=True,
+    app = create_app(fresh_db_url(tmp_path), nli=WordOverlapNLI(), embedder=False, inline_jobs=True,
                      extractor_factory=lambda p: FlakyExtractor())
     with TestClient(app) as c:
         pid = new_project(c)
@@ -163,17 +163,22 @@ class Crashing(Extractor):
 
 
 def test_unexpected_crash_fails_cleanly_without_internal_detail(tmp_path):
-    app = create_app(f"sqlite:///{tmp_path / 'b.sqlite3'}", nli=WordOverlapNLI(), embedder=False, inline_jobs=True,
+    app = create_app(fresh_db_url(tmp_path), nli=WordOverlapNLI(), embedder=False, inline_jobs=True,
                      extractor_factory=lambda p: Crashing())
     with TestClient(app) as c:
         pid = new_project(c)
         upload(c, pid, "whatsapp", "c.txt", CHAT.encode())
         t = c.post(f"/p/{pid}/run").text
         assert "The run failed" in t and "RuntimeError" in t and "boom" not in t
+        from baton import review
+
+        with app.state.Sessions() as s:
+            assert not s.scalars(select(Claim).where(Claim.project_id == pid)).all()  # no half-built ledger
+            assert any("last run failed" in b for b in review.blockers(s, s.get(Project, pid)))
 
 
 def test_when_the_checking_model_is_down_nothing_is_verified(tmp_path):
-    Session = make_sessionmaker(make_engine(f"sqlite:///{tmp_path / 'c.sqlite3'}"))
+    Session = make_sessionmaker(make_engine(fresh_db_url(tmp_path)))
     with Session() as s:
         p = load_demo(s)
         s.commit()
@@ -185,7 +190,7 @@ def test_when_the_checking_model_is_down_nothing_is_verified(tmp_path):
 
 
 def test_restart_marks_interrupted_jobs_failed(tmp_path):
-    url = f"sqlite:///{tmp_path / 'd.sqlite3'}"
+    url = fresh_db_url(tmp_path)
     app = create_app(url, nli=WordOverlapNLI(), embedder=False, inline_jobs=True)
     with TestClient(app) as c:
         pid = new_project(c)

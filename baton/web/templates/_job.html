@@ -6,7 +6,7 @@
     <small class="muted">The first run also loads the checking models, which takes a minute or so.</small>
     <noscript><a href="">Refresh to update</a></noscript>
   {% elif job.state == 'failed' %}
-    <strong>The run failed.</strong> {{ job.error }} Nothing was lost; you can run it again.
+    <strong>The run failed.</strong> {{ job.error }} Answers and approved versions are kept. Please run it again.
   {% else %}
     <strong>Run finished.</strong>
     {{ job.stats.claims }} claims proposed, {{ job.stats.grounded }} with a real quote, {{ job.stats.conflicts }} conflicts, {{ job.stats.questions.leaver }} questions for the person leaving.

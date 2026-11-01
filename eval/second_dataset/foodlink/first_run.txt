@@ -1,0 +1,5 @@
+First run, 1 Nov 2026, keyword rules, before any change for this dataset:
+Claims: 26, grounded 26, verified 26, needs review 0. Conflict cards: 0. Questions for the leaver: 7.
+Successor: facts 9/13, missed backup_dead, gps_rootcause, handover_people, vps_reason. Conflicts 0/3. Leaked: none.
+Reviewer: leaked Kitchen!4471 (masking missed billing-password Kitchen!4471; this was then fixed).
+Secrets in the stored snapshot: Kitchen!4471 (same bug).

@@ -3,7 +3,7 @@
   --ink: #101a2c;
   --muted: #5a6577;
   --line: #dde3ea;
-  --teal: #0f8f7e;
+  --teal: #0a7566;
   --teal-bg: #e7f6f3;
   --amber: #8a5a00;
   --amber-bg: #fdf3dc;
@@ -15,10 +15,10 @@
   --pico-primary: var(--teal);
   --pico-primary-background: var(--teal);
   --pico-primary-border: var(--teal);
-  --pico-primary-hover: #0b7566;
-  --pico-primary-hover-background: #0b7566;
-  --pico-primary-hover-border: #0b7566;
-  --pico-primary-underline: rgba(15, 143, 126, 0.45);
+  --pico-primary-hover: #075c50;
+  --pico-primary-hover-background: #075c50;
+  --pico-primary-hover-border: #075c50;
+  --pico-primary-underline: rgba(10, 117, 102, 0.45);
   --pico-color: var(--ink);
 }
 body { color: var(--ink); background: #fbfcfd; }
@@ -162,6 +162,28 @@ form { margin-bottom: 0; }
 .tl-cliff { background: #ffe3d6; color: #9c3a0c; border-radius: 4px; padding: .3rem .5rem; margin: .5rem 0 !important; }
 .tl-cliff b { color: #9c3a0c; }
 
+.account { display: flex; gap: .5rem; align-items: center; color: #c9d3e0; }
+.account a { color: #fff; }
+.account form { margin: 0; }
+.account button { color: #fff; border-color: #6d7a8e; }
+.viewer-name { color: #c9d3e0; font-size: .88rem; }
+.inline-email { margin: 0; padding: .2rem .5rem; height: auto; font-size: .85rem; max-width: 14rem; }
+.accessbox { margin: .4rem 0 .8rem; }
+.living { margin: 1rem 0; }
+.living h2 { margin-top: 0; }
+.syncrow { padding: .4rem 0; border-bottom: 1px dashed var(--line); }
+.askbar { display: flex; gap: .4rem; margin: .7rem 0; }
+.askbar input { margin: 0; }
+.askbar button { margin: 0; white-space: nowrap; }
+.changed { background: var(--teal-bg); border-radius: 8px; padding: .6rem 1rem; margin: .7rem 0; }
+.changed h2 { margin: 0 0 .3rem; font-size: 1.05rem; }
+.changed ul { margin: 0; }
+.voice { align-items: center; }
+.fileattach { display: inline-flex; gap: .4rem; align-items: center; margin: 0; }
+.fileattach input { margin: 0; padding: .1rem; max-width: 15rem; font-size: .8rem; height: auto; border: 0; background: none; }
+.fileattach input::file-selector-button { padding: .15rem .5rem; margin: 0 .4rem 0 0; font-size: .78rem; background: #fff; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; }
+.draft { margin: .4rem 0; }
+audio { display: block; width: 100%; max-width: 26rem; height: 2.2rem; margin: .3rem 0; }
 .foot { color: var(--muted); padding-top: 2rem; padding-bottom: 2rem; }
 
 @media (max-width: 600px) {

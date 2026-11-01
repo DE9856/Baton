@@ -24,10 +24,26 @@
       </div>
       {% endif %}
     </form>
+    {% set note = notes.get(q.id) %}
+    {% if note %}
+    <div class="draft">
+      <small class="muted">Your recording{% if note.transcript %} and a draft of what you said. It counts only when you save it{% endif %}.</small>
+      {% if note.data %}<audio controls preload="none" src="/p/{{ project.id }}/voice/{{ note.id }}" aria-label="Your recording"></audio>{% endif %}
+    </div>
+    {% endif %}
     <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/answer" class="actions">
       <label class="sr" for="a{{ q.id }}">Your answer</label>
-      <textarea id="a{{ q.id }}" name="text" rows="2" maxlength="2000" placeholder="Answer in your own words"></textarea>
+      {% if note and note.data %}<input type="hidden" name="voice_note_id" value="{{ note.id }}">{% endif %}
+      <textarea id="a{{ q.id }}" name="text" rows="2" maxlength="2000" placeholder="Answer in your own words">{{ note.transcript if note else '' }}</textarea>
       <button type="submit" class="small">Save answer</button>
+    </form>
+    <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/voice" enctype="multipart/form-data" class="actions voice" data-voice-form>
+      <button type="button" class="small secondary outline" data-record hidden>Record a voice answer</button>
+      <label class="fileattach"><small>Or attach a recording:</small>
+        <input type="file" name="file" accept="audio/*" onchange="this.form.submit()" aria-label="Attach a voice recording">
+      </label>
+      <noscript><button type="submit" class="small secondary outline">Upload</button></noscript>
+      <small class="muted" data-voice-status role="status"></small>
     </form>
     <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/reassign" class="actions">
       <label for="r{{ q.id }}"><small>Not me:</small></label>
@@ -42,10 +58,37 @@
   {% endif %}
 </article>
 {% endfor %}
+<script src="/static/voice.js" defer></script>
 {% else %}
 <p class="lead">No questions for {{ viewer.name if viewer else 'you' }}.
 {% if viewer and viewer.role == 'teammate' %}If someone passes you a question, it will appear here.{% endif %}
 {% if viewer and viewer.role == 'successor' %}Your place to start is the <a href="/p/{{ project.id }}/handover">handover</a>.{% endif %}
 {% if viewer and viewer.role == 'reviewer' %}Your questions are in the <a href="/p/{{ project.id }}/review#questions">review console</a>.{% endif %}</p>
+{% endif %}
+
+{% if about_you %}
+<section id="about">
+  <h2>What the sources say about you</h2>
+  <p class="muted"><small>Please check these. If one is wrong, say why, and it goes back to the reviewer.</small></p>
+  <details><summary>Show {{ about_you|length }} claims</summary>
+  {% for c in about_you %}
+  <article class="claim compact">
+    <div class="claimhead">
+      {% if c.leaver_check == 'confirmed' %}<span class="chip l-confirmed">You confirmed this</span>
+      {% elif c.leaver_check == 'disputed' %}<span class="chip l-conflict">You disputed this</span>{% endif %}
+      <code class="code">{{ c.code }}</code>
+    </div>
+    <p class="stmt">{{ c.statement }}</p>
+    {% if not c.leaver_check %}
+    <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/check" class="actions">
+      <button name="action" value="confirm" type="submit" class="small secondary outline">That's right</button>
+      <input name="note" maxlength="300" placeholder="What's wrong with it?" aria-label="What is wrong with this claim">
+      <button name="action" value="dispute" type="submit" class="small secondary outline">That's wrong</button>
+    </form>
+    {% endif %}
+  </article>
+  {% endfor %}
+  </details>
+</section>
 {% endif %}
 {% endblock %}

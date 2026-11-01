@@ -1,0 +1,18 @@
+{
+  "project": "FoodLink delivery tracker (synthetic)",
+  "role_title": "Tech lead",
+  "as_of": "2027-03-01",
+  "last_day": "2027-03-20",
+  "people": [
+    {"name": "Tanvi Rao", "title": "Developer, leaving", "role": "leaver", "aliases": ["Tanvi", "tanvi-r"], "clearances": ["public", "tech-team"]},
+    {"name": "Imran Sheikh", "title": "Taking over", "role": "successor", "aliases": ["Imran", "imransh"], "clearances": ["public", "tech-team"]},
+    {"name": "Fatima Noor", "title": "NGO director, reviewer", "role": "reviewer", "aliases": ["Fatima"], "clearances": ["public", "tech-team", "core-committee"]},
+    {"name": "Joseph Paul", "title": "Volunteer developer", "role": "teammate", "aliases": ["Joseph", "joe-p"], "clearances": ["public", "tech-team"]}
+  ],
+  "sources": [
+    {"code": "WA", "type": "whatsapp", "path": "chat.txt", "audience": "tech-team", "title": "WhatsApp: FoodLink volunteers"},
+    {"code": "GH", "type": "github", "path": "github.json", "audience": "public", "title": "GitHub: foodlink/tracker"},
+    {"code": "TR", "type": "trello", "path": "trello.json", "audience": "tech-team", "title": "Trello: FoodLink"},
+    {"code": "N1", "type": "notes", "path": "board_minutes.md", "audience": "core-committee", "title": "Notes: trustees, Feb 2027"}
+  ]
+}

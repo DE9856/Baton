@@ -14,6 +14,7 @@
     <a class="brand" href="/">Baton</a>
     {% if project %}
     <span class="pname">{{ project.name }}</span>
+    {% if has_picker %}
     <form class="viewer-form" method="post" action="/p/{{ project.id }}/viewer">
       <label for="viewer-select">Viewing as</label>
       <input type="hidden" name="back" value="{{ request.url.path }}">
@@ -24,6 +25,19 @@
       </select>
       <noscript><button type="submit">Switch</button></noscript>
     </form>
+    {% elif viewer %}
+    <span class="viewer-form viewer-name">{{ viewer.name }} ({{ viewer.role }})</span>
+    {% endif %}
+    {% endif %}
+    {% if auth_enabled %}
+    <div class="account">
+      {% if user %}
+      <small>{{ user.email }}</small>
+      <form method="post" action="/signout"><button type="submit" class="small secondary outline">Sign out</button></form>
+      {% else %}
+      <a href="/signin">Sign in</a>
+      {% endif %}
+    </div>
     {% endif %}
   </div>
 </header>
@@ -34,10 +48,11 @@
     <li class="{% if step == key %}on{% endif %}">
       <a href="/p/{{ project.id }}/{{ key }}" {% if step == key %}aria-current="page"{% endif %}>
         <span class="num">{{ loop.index }}</span> {{ title }}
-        {% if key == 'interview' and open_q %}<span class="badge">{{ open_q }}</span>{% endif %}
+        {% if key == 'interview' and open_q %}<span class="badge" aria-label="{{ open_q }} open questions">{{ open_q }}</span>{% endif %}
       </a>
     </li>
     {% endfor %}
+    <li class="{% if request.url.path.endswith('/ask') %}on{% endif %}"><a href="/p/{{ project.id }}/ask">Ask Baton</a></li>
   </ol>
   {% if viewer and viewer.role == 'reviewer' %}<a class="audit-link" href="/p/{{ project.id }}/audit">Audit log</a>{% endif %}
 </nav>
@@ -55,7 +70,7 @@
   {% block content %}{% endblock %}
 </main>
 <footer class="container foot">
-  <small>Baton {{ version }}. Team sky-flyers, WCC Forge 48. Sign-in is a demo stand-in: use synthetic or permitted data only. Baton may miss things; check the Missing items with your team.</small>
+  <small>Baton {{ app_version }}. Team sky-flyers, WCC Forge 48. Use synthetic or permitted data only. Baton may miss things; check the Missing items with your team.</small>
 </footer>
 </body>
 </html>

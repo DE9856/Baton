@@ -7,7 +7,7 @@
 {% include "_job.html" %}
 {% if run_stats.extractor %}
 <p class="muted"><small>Claims extracted by: <strong>{{ run_stats.extractor }}</strong>.
-{% if project.is_demo %}Demo mode replays a recorded run of a real LLM, so no API key is needed. All the checks after extraction run live.{% elif 'rules' in run_stats.extractor or 'Basic' in run_stats.extractor %}No AI model is configured, so keyword rules are used. They copy sentences rather than state self-contained claims, and they rarely surface conflicts: on the demo data they led to 0 of 3 being found.{% endif %}</small></p>
+{% if project.is_demo and 'Recorded' in run_stats.extractor %}Demo mode replays a recorded run of a real LLM, so no API key is needed. All the checks after extraction run live.{% elif 'rules' in run_stats.extractor or 'Basic' in run_stats.extractor %}No AI model is configured, so keyword rules are used. They only find sentences that use expected words, so check the sources for anything they missed.{% endif %}</small></p>
 {% endif %}
 
 <div class="tablewrap"><table>
@@ -32,7 +32,22 @@
   {% endfor %}
   </tbody>
 </table></div>
-{% if hidden %}<p class="muted"><small>{{ hidden }} more source(s) exist that you are not cleared to see.</small></p>{% endif %}
+{% if hidden %}
+<div class="accessbox">
+  <p class="muted"><small>{{ hidden }} more source(s) exist that you are not cleared to see.</small></p>
+  {% for a in hidden_audiences %}
+    {% set r = my_requests.get(a) %}
+    {% if r %}<small class="chip">Access to {{ AUDIENCE_LABELS.get(a, a) }}: {{ r.status }}</small>
+    {% else %}
+    <form method="post" action="/p/{{ project.id }}/access" class="actions">
+      <input type="hidden" name="audience" value="{{ a }}">
+      <input name="reason" maxlength="300" placeholder="Why do you need it?" aria-label="Why you need access to {{ AUDIENCE_LABELS.get(a, a) }}">
+      <button type="submit" class="small secondary outline">Request access to {{ AUDIENCE_LABELS.get(a, a) }}</button>
+    </form>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
 
 {% if viewer and viewer.role in ('reviewer', 'leaver') %}
 <form method="post" action="/p/{{ project.id }}/run" class="runbar">
@@ -40,8 +55,40 @@
   {% if job and job.state == 'done' %}<small class="muted">Running again replaces the current claims, conflicts and open questions. Approved versions are kept.</small>{% endif %}
 </form>
 
+{% if project.is_demo %}
+<section class="living">
+  <h2>Keep it current</h2>
+  <p class="muted"><small>See the living handover: this adds four scripted chat messages from after the approval, reads only those, and compares them with what was approved.</small></p>
+  <form method="post" action="/p/{{ project.id }}/simulate-update"><button type="submit" class="secondary" {% if job and job.state in ('queued','running') %}disabled{% endif %}>Simulate new activity</button></form>
+</section>
+{% else %}
+{% if sources %}
+<section class="living">
+  <h2>Keep it current</h2>
+  <p class="muted"><small>Only new records are read. Approved claims stay approved unless new evidence disagrees with them.</small></p>
+  {% for x in sources %}
+  <div class="syncrow">
+    <strong>{{ x.title }}</strong>{% if x.last_synced_at %} <small class="muted">last synced {{ x.last_synced_at.strftime('%d %b %H:%M') }}</small>{% endif %}
+    {% if x.origin_url %}
+    <form method="post" action="/p/{{ project.id }}/sources/{{ x.id }}/resync" class="actions">
+      <input type="password" name="token" autocomplete="off" placeholder="Read-only token, if private" aria-label="Read-only token for {{ x.title }}">
+      <button type="submit" class="small secondary outline">Re-sync from GitHub</button>
+    </form>
+    {% else %}
+    <form method="post" action="/p/{{ project.id }}/sources/{{ x.id }}/update" enctype="multipart/form-data" class="actions">
+      <input type="file" name="file" required aria-label="Newer export of {{ x.title }}">
+      <button type="submit" class="small secondary outline">Upload a newer export</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+{% endif %}
+
 <div class="flash warn" role="note"><strong>Before you upload:</strong> add only exports you are allowed to make, and don't upload confidential workplace material without permission. Baton masks credentials it recognises, but it can miss some.</div>
 
+{% if not project.is_demo %}
 <div class="grid2">
   <article>
     <h2>Upload an export</h2>
@@ -79,6 +126,9 @@
     </form>
   </article>
 </div>
+{% else %}
+<p class="muted"><small>The demo is open to everyone, so it doesn't take uploads. <a href="/new">Start your own handover</a> to add files.</small></p>
+{% endif %}
 {% endif %}
 
 <h2>People</h2>
@@ -94,6 +144,7 @@
       <td>
       {% if viewer and viewer.role == 'reviewer' %}
         <form method="post" action="/p/{{ project.id }}/members/{{ m.id }}" class="inline-checks">
+          {% if not has_picker %}<input type="email" name="email" value="{{ m.email }}" placeholder="Email to sign in with" aria-label="Email for {{ m.name }}" class="inline-email">{% endif %}
           {% for k, v in AUDIENCES %}
           <label class="check"><input type="checkbox" name="clearances" value="{{ k }}" {% if k in m.clearances %}checked{% endif %} {% if k == 'public' %}disabled{% endif %}> {{ v }}</label>
           {% endfor %}

@@ -1,4 +1,4 @@
-"""Extractor selection: Claude when credentials exist, Ollama when requested, keyword rules otherwise."""
+"""Extractor selection: Groq or Claude when a key exists, Ollama when requested, keyword rules otherwise."""
 from __future__ import annotations
 
 import os
@@ -9,6 +9,10 @@ from .local import ReplayExtractor, RuleExtractor
 
 def default_extractor() -> Extractor:
     mode = os.environ.get("BATON_EXTRACTOR", "").lower()
+    if mode == "groq" or (not mode and os.environ.get("GROQ_API_KEY")):
+        from .llm import GroqExtractor
+
+        return GroqExtractor()
     if mode == "ollama":
         from .llm import OllamaExtractor
 

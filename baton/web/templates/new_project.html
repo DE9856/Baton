@@ -5,14 +5,26 @@
 <form method="post" action="/new" class="narrow">
   <label>Project name <input name="name" required maxlength="200" placeholder="e.g. Club website"></label>
   <label>Role being handed over <input name="role_title" value="Tech lead" maxlength="100"></label>
+  {% if not user %}
+  <div class="flash warn" role="note"><strong>No account: this is a private sandbox.</strong> Only this browser can open it, and you can switch between people yourself, so it suits trying Baton with test data.
+  {% if auth_enabled %}<a href="/signin">Sign in</a> to create a real handover where each person signs in.{% endif %}</div>
+  {% endif %}
   <div class="grid">
     <label>Who is leaving? <input name="leaver" required maxlength="120"></label>
     <label>Who takes over? <input name="successor" required maxlength="120"></label>
   </div>
+  {% if user %}
+  <div class="grid">
+    <label>Their email <input type="email" name="leaver_email" required maxlength="200"></label>
+    <label>Their email <input type="email" name="successor_email" required maxlength="200"></label>
+  </div>
+  {% endif %}
   <label>Who reviews the handover?
     <input name="reviewer" required maxlength="120">
     <small>Whoever the team makes responsible, usually the president or the leaver's lead. They are cleared to see every source.</small>
   </label>
+  {% if user %}<label>Reviewer's email <input type="email" name="reviewer_email" required maxlength="200">
+    <small>One of the three must be your own, {{ user.email }}. Each person signs in with their address to get their view.</small></label>{% endif %}
   <label>Last day of the person leaving <input type="date" name="last_day" required min="{{ today }}"></label>
   <label class="check"><input type="checkbox" name="confirm_authorised" value="1" required>
     I'm allowed to use this project's data. I won't upload confidential workplace material without permission.</label>

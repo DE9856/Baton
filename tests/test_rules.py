@@ -16,7 +16,7 @@ from baton.pipeline import run_pipeline
 from baton.verify.conflicts import ConflictClaim, expand_groups, facet_check, is_stale, merge_cards, Card
 from baton.verify.gaps import GapClaim, Question, is_cliff, raise_questions, route_questions
 
-from .conftest import WordOverlapNLI
+from .conftest import WordOverlapNLI, fresh_db_url
 
 ROSTER = [["Arjun", "Arjun Mehta"], ["Kabir", "Kabir Shah"], ["Meera", "Meera Iyer"]]
 
@@ -181,7 +181,7 @@ def test_nobody_signed_in_sees_nothing():
 def test_rerun_keeps_peoples_answers_and_does_not_ask_again(tmp_path):
     from baton import review
 
-    Session = make_sessionmaker(make_engine(f"sqlite:///{tmp_path / 'r.sqlite3'}"))
+    Session = make_sessionmaker(make_engine(fresh_db_url(tmp_path)))
     with Session() as s:
         p = load_demo(s)
         s.commit()

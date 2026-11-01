@@ -14,6 +14,20 @@
   <a class="tile" role="listitem" href="#questions"><b>{{ questions|length }}</b> open questions</a>
   <span class="tile" role="listitem"><b>{{ leaver_open }}/{{ leaver_total }}</b> interview answers awaited</span>
 </div>
+{% if access %}
+<section id="access">
+  <h2>Access requests</h2>
+  {% for r in access %}
+  <article class="claim">
+    <p class="stmt"><strong>{{ member_map[r.member_id].name }}</strong> asks to see <strong>{{ AUDIENCE_LABELS.get(r.audience, r.audience) }}</strong> sources.{% if r.reason %} &ldquo;{{ r.reason }}&rdquo;{% endif %}</p>
+    <form method="post" action="/p/{{ project.id }}/access/{{ r.id }}/decide" class="actions">
+      <button name="decision" value="grant" type="submit" class="small secondary outline">Grant</button>
+      <button name="decision" value="deny" type="submit" class="small secondary outline">Deny</button>
+    </form>
+  </article>
+  {% endfor %}
+</section>
+{% endif %}
 
 <section class="approvebar">
   {% if blockers %}
@@ -65,11 +79,13 @@
       <span class="chip kind">{{ TYPE_TITLES.get(c.type, c.type) }}</span>
       {% if c.cliff %}<span class="chip cliff">Departure cliff</span>{% endif %}
       {% for t in c.sens_tags %}<span class="chip l-withheld">{{ TAG_LABELS.get(t, t) }}</span>{% endfor %}
+      {% if c.leaver_check == 'confirmed' %}<span class="chip l-confirmed">Leaver confirmed</span>{% endif %}
       {% if c.review_state != 'pending' %}<span class="chip">{{ c.review_state|capitalize }} by {{ c.reviewed_by }}</span>{% endif %}
       <code class="code">{{ c.code }}</code>
     </div>
     <p class="stmt">{{ c.statement }}</p>
     {% if c.check_flag %}<div class="flash warn" role="note">{{ c.check_flag }}</div>{% endif %}
+    {% if c.voice_note_id %}<audio controls preload="none" src="/p/{{ project.id }}/voice/{{ c.voice_note_id }}" aria-label="The spoken answer"></audio>{% endif %}
     {{ ui.claim_receipts(c) }}
     {% if c.review_state == 'pending' %}
     <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/decide" class="actions">

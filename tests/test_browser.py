@@ -45,11 +45,16 @@ def server(tmp_path_factory):
 
 
 @pytest.fixture(scope="module")
-def browser():
+def pw():
     with playwright_api.sync_playwright() as p:
-        b = p.chromium.launch()
-        yield b
-        b.close()
+        yield p
+
+
+@pytest.fixture(scope="module")
+def browser(pw):
+    b = pw.chromium.launch()
+    yield b
+    b.close()
 
 
 def shot(page, name):
@@ -62,9 +67,23 @@ def view_as(page, name):
     page.wait_for_load_state("networkidle")
 
 
+AXE = (ROOT / "tests" / "vendor" / "axe.min.js").read_text("utf-8")
+A11Y_CHECKED: list[str] = []
+
+
+def check_accessibility(page, name):
+    """WCAG 2.1 A and AA rules from axe-core. Serious and critical problems fail the walkthrough."""
+    page.evaluate(AXE)
+    result = page.evaluate("axe.run(document, {runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']})")
+    bad = [(v["id"], v["impact"], v["nodes"][0]["html"][:120], len(v["nodes"])) for v in result["violations"] if v["impact"] in ("serious", "critical")]
+    A11Y_CHECKED.append(name)
+    assert not bad, f"{name}: {bad}"
+
+
 def test_first_time_judge_walkthrough(server, browser):
     errors = []
-    context = browser.new_context(viewport={"width": 1280, "height": 900})
+    video_dir = os.environ.get("BATON_VIDEO_DIR")
+    context = browser.new_context(viewport={"width": 1280, "height": 900}, record_video_dir=video_dir, record_video_size={"width": 1280, "height": 900})
     page = context.new_page()
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.on("response", lambda r: errors.append(f"{r.status} {r.url}") if r.status >= 500 else None)
@@ -72,6 +91,7 @@ def test_first_time_judge_walkthrough(server, browser):
     # 1. Landing: one obvious way to begin.
     page.goto(server)
     shot(page, "01_home")
+    check_accessibility(page, "home")
     page.click("text=Load the demo project")
 
     # 2. Connect: the pipeline runs in the background and reports progress through HTMX.
@@ -79,10 +99,12 @@ def test_first_time_judge_walkthrough(server, browser):
     assert page.locator("table >> text=WhatsApp: DevCircle Tech").count() == 1
     assert "core committee" not in page.locator("table").first.inner_text().lower()   # Arjun isn't cleared for it
     shot(page, "02_connect_as_leaver")
+    check_accessibility(page, "connect")
 
     # 3. The leaver answers one-tap and free-text questions.
     page.click("nav.steps >> text=Gap interview")
     shot(page, "03_interview")
+    check_accessibility(page, "interview")
     assert page.locator("article.question").count() >= 6
     domain = page.locator("article.question", has_text="domain")
     domain.get_by_role("button", name="Meera takes it over").click()
@@ -97,6 +119,7 @@ def test_first_time_judge_walkthrough(server, browser):
     view_as(page, "Sana (reviewer)")
     page.click("nav.steps >> text=Review")
     shot(page, "04_review_console")
+    check_accessibility(page, "review")
     assert "Not ready to share yet" in page.content()
     assert page.locator("article.conflict").count() == 3
     while page.get_by_role("button", name="Newer source is correct").count():
@@ -120,6 +143,7 @@ def test_first_time_judge_walkthrough(server, browser):
     page.click("nav.steps >> text=Handover")
     page.wait_for_load_state("networkidle")
     shot(page, "06_handover_meera")
+    check_accessibility(page, "handover")
     body = page.content()
     assert "Start here" in body and "Confirmed by Arjun Mehta" in body and "AIzaSy" not in body and "48,500" not in body
     page.locator("details.receipts summary").first.click()
@@ -128,10 +152,24 @@ def test_first_time_judge_walkthrough(server, browser):
     page.wait_for_load_state("networkidle")
     assert "1 of 10 sections acknowledged" in page.content()
 
+    # Ask Baton: a cited answer, then an honest "not known".
+    page.get_by_label("Ask Baton a question").fill("When is the domain renewal due?")
+    page.get_by_role("button", name="Ask Baton", exact=True).click()
+    page.wait_for_load_state("networkidle")
+    shot(page, "07_ask_answer")
+    check_accessibility(page, "ask")
+    assert "2026-11-20" in page.content()
+    page.get_by_label("Your question").fill("Which payment gateway did we choose?")
+    page.get_by_role("button", name="Ask", exact=True).click()
+    page.wait_for_load_state("networkidle")
+    assert "Not known" in page.content()
+    page.click("nav.steps >> text=Handover")
+    page.wait_for_load_state("networkidle")
+
     # 6. Another role sees less.
     view_as(page, "New member")
     page.wait_for_load_state("networkidle")
-    shot(page, "07_handover_new_member")
+    shot(page, "07b_handover_new_member")
     assert "campusconnect.in" not in page.content()
 
     # 7. Phone width: no sideways page scroll on the two pages used on a phone.
@@ -141,4 +179,72 @@ def test_first_time_judge_walkthrough(server, browser):
     shot(phone, "08_phone_handover")
     assert overflow <= 1, f"page scrolls sideways by {overflow}px"
 
+    # 8. Living handover: new activity reopens what it contradicts, and a second version shows the change.
+    view_as(page, "Sana (reviewer)")
+    page.click("nav.steps >> text=Connect")
+    page.wait_for_load_state("networkidle")
+    page.get_by_role("button", name="Simulate new activity").click()
+    page.wait_for_selector("text=Run finished", timeout=240_000)
+    assert "4 new record(s)" in page.content()
+    page.click("nav.steps >> text=Review")
+    page.wait_for_load_state("networkidle")
+    shot(page, "09_review_after_update")
+    while page.get_by_role("button", name="Newer source is correct").count():
+        page.get_by_role("button", name="Newer source is correct").first.click()
+        page.wait_for_load_state("networkidle")
+    if page.get_by_role("button", name="Approve all").count():
+        page.get_by_role("button", name="Approve all").click()
+        page.wait_for_load_state("networkidle")
+    while page.locator("#decide").get_by_role("button", name="Keep withheld").count():
+        page.locator("#decide").get_by_role("button", name="Keep withheld").first.click()
+        page.wait_for_load_state("networkidle")
+    while page.locator("#decide").get_by_role("button", name="Approve", exact=True).count():
+        page.locator("#decide").get_by_role("button", name="Approve", exact=True).first.click()
+        page.wait_for_load_state("networkidle")
+    page.get_by_role("button", name="Approve and share").click()
+    page.wait_for_load_state("networkidle")
+    assert "Approved version 2" in page.content()
+    view_as(page, "Meera Iyer (successor)")
+    page.click("nav.steps >> text=Handover")
+    page.wait_for_load_state("networkidle")
+    shot(page, "10_handover_v2")
+    assert "What changed in version 2" in page.content()
+    assert "Staging#2026x" not in page.content()
+
+    video = page.video
+    context.close()
+    if video_dir and video:
+        print("video:", video.path())
     assert not errors, errors
+
+
+def test_voice_answer_with_a_real_microphone_stream(server, pw):
+    """Chromium plays a speech file as its microphone, so the whole path runs: record, upload, Whisper, edit, save."""
+    sample = ROOT / "tests" / "data" / "speech_sample.wav"
+    errors = []
+    b = pw.chromium.launch(args=["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", f"--use-file-for-fake-audio-capture={sample}"])
+    context = b.new_context(viewport={"width": 1280, "height": 900})
+    context.grant_permissions(["microphone"])
+    page = context.new_page()
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    page.goto(server)
+    page.click("text=Load the demo project")
+    page.wait_for_selector("text=Run finished", timeout=240_000)
+    page.click("nav.steps >> text=Gap interview")
+    page.wait_for_load_state("networkidle")
+    deploy = page.locator("article.question", has_text="deployed")
+    deploy.get_by_role("button", name="Record a voice answer").click()
+    page.wait_for_timeout(6000)
+    deploy.get_by_role("button", name="Stop and send").click()
+    page.wait_for_selector("text=a draft of what you said", timeout=180_000)
+    deploy = page.locator("article.question", has_text="deployed")
+    draft = deploy.locator("textarea").input_value()
+    assert draft.strip(), "no transcript"
+    assert deploy.locator("audio").count() == 1
+    shot(page, "11_voice_draft")
+    deploy.get_by_role("button", name="Save answer").click()
+    page.wait_for_load_state("networkidle")
+    assert "Saved as your word" in page.content()
+    b.close()
+    assert not errors, errors
+    print("transcript:", draft)

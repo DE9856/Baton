@@ -11,6 +11,8 @@ from baton.verify.sensitive import classify, mask_secrets
     ("token ghp_abcdefghijklmnopqrstuvwxyz0123456789", "ghp_abcdefghijklmnop"),
     ("postgres://admin:s3cretpw@db.example.com/x", "s3cretpw"),
     ("AWS AKIAIOSFODNN7EXAMPLE leaked", "AKIAIOSFODNN7EXAMPLE"),
+    ("The billing login was changed to billing-password Kitchen!4471 by Krishnan.", "Kitchen!4471"),
+    ("the staging password is Staging#2026x, please change it", "Staging#2026x"),
 ])
 def test_secrets_are_masked(text, leak):
     masked, found = mask_secrets(text)

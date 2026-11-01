@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+import uuid
 from pathlib import Path
 
 import pytest
@@ -55,6 +57,21 @@ def real_embedder():
     return get_embedder()
 
 
+def fresh_db_url(path) -> str:
+    """A new empty database. Set BATON_TEST_POSTGRES_URL to run every test on Postgres, with RLS applied."""
+    server = os.environ.get("BATON_TEST_POSTGRES_URL")
+    if not server:
+        return f"sqlite:///{path / 'test.sqlite3'}"
+    import sqlalchemy
+
+    name = f"t_{uuid.uuid4().hex[:12]}"
+    engine = sqlalchemy.create_engine(server.replace("postgresql://", "postgresql+psycopg://", 1), isolation_level="AUTOCOMMIT")
+    with engine.connect() as conn:
+        conn.execute(sqlalchemy.text(f"create database {name}"))
+    engine.dispose()
+    return server.rsplit("/", 1)[0] + f"/{name}"
+
+
 def demo_project_id(client: TestClient) -> int:
     r = client.post("/demo", follow_redirects=False)
     assert r.status_code == 303
@@ -77,6 +94,6 @@ def view_as(client: TestClient, pid: int, name: str) -> None:
 @pytest.fixture
 def fast_client(tmp_path):
     """The app with a word-overlap NLI, no embedder and synchronous jobs."""
-    app = create_app(f"sqlite:///{tmp_path / 't.sqlite3'}", nli=WordOverlapNLI(), embedder=False, inline_jobs=True)
+    app = create_app(fresh_db_url(tmp_path), nli=WordOverlapNLI(), embedder=False, inline_jobs=True)
     with TestClient(app) as c:
         yield c

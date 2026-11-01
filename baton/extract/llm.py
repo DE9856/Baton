@@ -1,4 +1,4 @@
-"""LLM extractors: Claude (hosted, default when a key exists) and Ollama (optional local mode).
+"""LLM extractors: Groq (hosted), Claude (hosted) and Ollama (optional local mode).
 
 Each call sees exactly one chunk of one source and has no tools, so injected text in a source can at most surface
 as a quote the reviewer can see. Model output is treated as a proposal: code verifies it afterwards.
@@ -6,7 +6,9 @@ as a quote the reviewer can see. Model output is treated as a proposal: code ver
 from __future__ import annotations
 
 import json
+import logging
 import os
+import time
 
 import httpx
 
@@ -65,6 +67,14 @@ CLAIM_SCHEMA = {
 }
 
 
+log = logging.getLogger(__name__)
+
+_JSON_SHAPE = """
+
+Return only JSON in this shape, with no other text:
+{"claims": [{"type": "...", "subject": "...", "statement": "...", "value": "...", "record_id": "...", "quote": "..."}]}"""
+
+
 def render_chunk(chunk: list[ChunkUnit], source_type: str) -> str:
     lines = [f"Source type: {source_type}", "<records>"]
     for u in chunk:
@@ -86,6 +96,70 @@ def parse_claims(text: str) -> list[RawClaim]:
         return claims
     except (json.JSONDecodeError, KeyError, TypeError, AttributeError) as e:
         raise ExtractionError(f"The model returned output that does not match the schema ({type(e).__name__}).") from e
+
+
+class GroqExtractor(Extractor):
+    """Groq's OpenAI-compatible API. Free-tier rate limits are normal, so 429 waits instead of failing the chunk."""
+
+    name = "groq"
+    label = "Groq"
+    description = "Claims extracted by a hosted model on Groq."
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    max_attempts = 5
+    max_wait = 65.0
+
+    def __init__(self, model: str | None = None, api_key: str | None = None, client: httpx.Client | None = None, sleep=time.sleep):
+        self.model = model or os.environ.get("BATON_EXTRACT_MODEL") or "llama-3.3-70b-versatile"
+        self.api_key = api_key or os.environ.get("GROQ_API_KEY", "")
+        self.label = f"Groq ({self.model})"
+        self.client = client or httpx.Client(timeout=120)
+        self.sleep = sleep
+        self.use_schema = True
+
+    def _body(self, chunk, source_type) -> dict:
+        response_format = ({"type": "json_schema", "json_schema": {"name": "claims", "schema": CLAIM_SCHEMA}}
+                           if self.use_schema else {"type": "json_object"})
+        return {"model": self.model, "temperature": 0, "max_tokens": 8000, "response_format": response_format,
+                "messages": [{"role": "system", "content": SYSTEM_PROMPT + _JSON_SHAPE},
+                             {"role": "user", "content": render_chunk(chunk, source_type)}]}
+
+    def extract(self, chunk, source_type, source_code):
+        headers = {"Authorization": f"Bearer {self.api_key}"}
+        for attempt in range(1, self.max_attempts + 1):
+            try:
+                r = self.client.post(self.url, headers=headers, json=self._body(chunk, source_type))
+            except httpx.HTTPError as e:
+                if attempt == self.max_attempts:
+                    raise ExtractionError(f"Groq could not be reached ({type(e).__name__}).") from e
+                self.sleep(2 ** attempt)
+                continue
+            if r.status_code == 200:
+                choice = r.json()["choices"][0]
+                if choice.get("finish_reason") == "length":
+                    raise ExtractionError("The model's answer was cut off because this chunk produced too much output.")
+                return parse_claims(choice["message"]["content"] or "")
+            if r.status_code == 400 and self.use_schema:
+                # Not every Groq model takes a JSON schema, and some reject output that misses it. Plain JSON
+                # mode still has to pass parse_claims and every check after it.
+                log.info("Groq model %s refused the JSON schema; retrying in JSON mode", self.model)
+                self.use_schema = False
+                continue
+            if r.status_code in (401, 403):
+                raise ExtractionError("The Groq API key was rejected.")
+            if r.status_code == 404:
+                raise ExtractionError(f"Groq doesn't offer the model {self.model}. Set BATON_EXTRACT_MODEL to one it lists.")
+            if r.status_code == 429 or r.status_code >= 500:
+                if attempt == self.max_attempts:
+                    what = "rate limit was reached" if r.status_code == 429 else f"service returned HTTP {r.status_code}"
+                    raise ExtractionError(f"The Groq {what}, even after retries.")
+                try:
+                    wait = float(r.headers.get("retry-after", 2 ** attempt))
+                except ValueError:
+                    wait = 2.0 ** attempt
+                self.sleep(min(wait, self.max_wait))
+                continue
+            raise ExtractionError(f"Groq returned an error (HTTP {r.status_code}).")
+        raise ExtractionError("Groq did not return a usable answer.")
 
 
 class ClaudeExtractor(Extractor):

@@ -8,7 +8,7 @@ from datetime import datetime
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from .db import Acknowledgement, Claim, Conflict, GapQuestion, Member, Project, Version, audit
+from .db import AccessRequest, Acknowledgement, Claim, Conflict, GapQuestion, Job, Member, Project, Version, VoiceNote, audit
 from .pipeline import bucket_of, max_claim_number
 from .verify.sensitive import classify, mask_secrets
 
@@ -25,7 +25,7 @@ def _next_code(s: Session, project_id: int) -> str:
 
 # --- gap interview ------------------------------------------------------------------------------------------------
 
-def answer_question(s: Session, q: GapQuestion, by: Member, text: str, nli=None) -> Claim:
+def answer_question(s: Session, q: GapQuestion, by: Member, text: str, nli=None, voice_note_id: int | None = None) -> Claim:
     """An answer becomes attributed, dated testimony: Confirmed by person, never Verified."""
     text, found = mask_secrets((text or "").strip())
     if not text:
@@ -44,6 +44,12 @@ def answer_question(s: Session, q: GapQuestion, by: Member, text: str, nli=None)
     s.add(claim)
     s.flush()
     q.status, q.answer, q.answered_by, q.answered_at, q.testimony_claim_id = "answered", text, by.name, datetime.now(), claim.id
+    if voice_note_id:
+        note = s.get(VoiceNote, voice_note_id)
+        if note is None or note.question_id != q.id or note.member_id != by.id:
+            raise ReviewError("That voice note doesn't belong to this answer.")
+        note.sensitive = bool(tags)
+        claim.voice_note_id = note.id
     if related is not None and nli is not None and nli.available and q.kind != "ownership":
         # Advisory only. In testing this flagged some consistent answers too, so it says "check", never "wrong".
         # Ownership answers are exempt: "Meera takes this over" is meant to differ from "Arjun is responsible".
@@ -76,6 +82,49 @@ def reassign_question(s: Session, q: GapQuestion, by: Member, to: Member) -> Non
     q.asked_to_id = to.id
     q.route = "reviewer" if to.role == "reviewer" else ("leaver" if to.role == "leaver" else "teammate")
     audit(s, q.project_id, by.name, "question_reassigned", f"Q{q.id}", f"to {to.name}")
+
+
+def leaver_check(s: Session, claim: Claim, by: Member, action: str, note: str = "") -> None:
+    """The leaver sees and confirms what is said about their work. A dispute sends the claim back to the reviewer."""
+    if by.role != "leaver":
+        raise ReviewError("Only the person leaving can confirm this.")
+    if action == "confirm":
+        claim.leaver_check, claim.leaver_note = "confirmed", ""
+    elif action == "dispute":
+        note = mask_secrets((note or "").strip())[0]
+        if not note:
+            raise ReviewError("Please say what is wrong with it.")
+        claim.leaver_check, claim.leaver_note = "disputed", note
+        claim.check_flag = f"{by.name} disputes this: {note}"
+        if claim.label == "verified":
+            claim.bucket = "decide"
+            claim.review_state = "pending"
+    else:
+        raise ReviewError("Unknown action.")
+    audit(s, claim.project_id, by.name, f"leaver_{action}", claim.code, note[:200])
+
+
+def request_access(s: Session, project: Project, by: Member, audience: str, reason: str) -> None:
+    if audience in (by.clearances or []):
+        raise ReviewError("You can already see that.")
+    exists = s.scalars(select(AccessRequest).where(AccessRequest.project_id == project.id, AccessRequest.member_id == by.id,
+                                                   AccessRequest.audience == audience, AccessRequest.status == "open")).first()
+    if exists:
+        raise ReviewError("You have already asked. The reviewer will decide.")
+    s.add(AccessRequest(project_id=project.id, member_id=by.id, audience=audience, reason=mask_secrets((reason or "").strip())[0][:500]))
+    audit(s, project.id, by.name, "access_requested", audience, (reason or "")[:200])
+
+
+def decide_access(s: Session, req: AccessRequest, by: Member, grant: bool) -> None:
+    if req.status != "open":
+        raise ReviewError("This request has already been decided.")
+    if grant and req.audience not in (by.clearances or []):
+        raise ReviewError("You can only grant access to what you are cleared for yourself.")
+    req.status, req.decided_by = ("granted" if grant else "denied"), by.name
+    member = s.get(Member, req.member_id)
+    if grant and member is not None:
+        member.clearances = sorted({*(member.clearances or []), req.audience})
+    audit(s, req.project_id, by.name, f"access_{req.status}", member.name if member else "", req.audience)
 
 
 # --- review -------------------------------------------------------------------------------------------------------
@@ -167,6 +216,11 @@ def resolve_conflict(s: Session, conflict: Conflict, by: Member, choice: str, no
 def blockers(s: Session, project: Project) -> list[str]:
     """Why a version can't be approved yet. Needs-review claims don't block: they stay hidden unless fixed."""
     out: list[str] = []
+    job = s.scalars(select(Job).where(Job.project_id == project.id).order_by(Job.id.desc())).first()
+    if job is not None and job.state in ("queued", "running"):
+        out.append("The pipeline is still running.")
+    elif job is not None and job.state == "failed":
+        out.append("The last run failed. Run it again before approving.")
     open_conflicts = s.scalar(select(func.count(Conflict.id)).where(Conflict.project_id == project.id, Conflict.resolution == "")) or 0
     if open_conflicts:
         out.append(f"{open_conflicts} conflict(s) still need a decision.")
@@ -226,6 +280,7 @@ def build_snapshot(s: Session, project: Project) -> dict:
         "sensitive": c.sensitive, "due": c.due.isoformat() if c.due else None, "as_of": c.as_of.strftime("%Y-%m-%d") if c.as_of else None,
         "origin": c.origin, "answered_by": c.answered_by, "answered_at": c.answered_at.strftime("%d %b %Y") if c.answered_at else "",
         "cliff": c.cliff, "stale": c.stale, "receipts": [_receipt(e) for e in c.evidence if e.match != "rejected"],
+        "voice_note_id": c.voice_note_id, "leaver_check": c.leaver_check,
     } for c in claims]
     questions = s.scalars(select(GapQuestion).where(GapQuestion.project_id == project.id, GapQuestion.status == "open")).all()
     members = {m.id: m.name for m in s.scalars(select(Member).where(Member.project_id == project.id)).all()}

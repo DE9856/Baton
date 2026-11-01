@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Sign in · Baton{% endblock %}
+{% block content %}
+<h1>Sign in</h1>
+<p class="lead">Sign in with the email your team added you with to see your view of a handover. You don't need an account for the demo.</p>
+<form method="post" action="/signin" class="narrow">
+  <label>Email <input type="email" name="email" required autocomplete="email" maxlength="200"></label>
+  <label>Password <input type="password" name="password" required minlength="8" autocomplete="current-password"></label>
+  <div class="cta">
+    <button type="submit" name="action" value="signin">Sign in</button>
+    <button type="submit" name="action" value="signup" class="secondary outline">Create an account</button>
+  </div>
+</form>
+{% endblock %}

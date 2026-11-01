@@ -12,6 +12,7 @@
     <ul>{% for r in i.receipts %}{{ ui.receipt_row(r) }}{% endfor %}</ul></details>
   {% elif i.answered_by %}
   <small class="muted">{{ i.answered_by }}'s word, {{ i.answered_at }}. Not independently sourced.</small>
+  {% if i.voice_note_id %}<audio controls preload="none" src="/p/{{ project.id }}/voice/{{ i.voice_note_id }}" aria-label="{{ i.answered_by }}'s spoken answer"></audio>{% endif %}
   {% endif %}
 </li>
 {% endmacro %}
@@ -54,6 +55,21 @@
   <span>{{ ui.label('missing') }} Nobody has answered yet; ask the person named.</span>
 </div>
 <p class="muted"><small>You see {{ h.total_items }} items, limited to what your role may see. Baton may miss things. Check the Missing items with your team.</small></p>
+
+<form method="get" action="/p/{{ project.id }}/ask" class="askbar" role="search">
+  <input name="q" required maxlength="500" placeholder="Ask about this handover, for example: who renews the domain?" aria-label="Ask Baton a question">
+  <button type="submit" class="small">Ask Baton</button>
+</form>
+
+{% if changes and (changes.added or changes.removed) %}
+<section id="changes" class="changed">
+  <h2>What changed in version {{ h.version }}</h2>
+  <ul>
+    {% for c in changes.added %}<li class="d-add">New: {{ c.statement }}</li>{% endfor %}
+    {% for c in changes.removed %}<li class="d-del">No longer stated: {{ c.statement }}</li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
 
 {% if h.conflicts %}
 <section id="conflicts">

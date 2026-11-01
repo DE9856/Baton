@@ -2,8 +2,8 @@
 
 - ReplayExtractor plays back claims a real LLM produced earlier over the demo dataset, so the one-click demo works
   without a key. Only the extraction step is replayed; every check after it runs live.
-- RuleExtractor reads uploads with keyword rules when no LLM is configured. Its statements are copied sentences, so
-  they stay checkable, but they are poor input for conflict detection, and the UI says so.
+- RuleExtractor reads uploads with keyword rules when no LLM is configured. Its statements stay close to the source,
+  so they stay checkable, but it finds only sentences that use expected words, and the UI says so.
 """
 from __future__ import annotations
 
@@ -43,6 +43,7 @@ _RULES: list[tuple[str, re.Pattern]] = [
     ("deadline", re.compile(rf"\b(due|deadline|target|by|pushed to|until)\b.*{_DATE_WORD}|{_DATE_WORD}.*\b(due|deadline)\b", re.I)),
     ("decision", re.compile(r"\b(decision|decided|we're going with|we are going with|let's (?:use|go)|moving (?:the|to)|move the|we'll use|stays on|switch to)\b", re.I)),
     ("dependency", re.compile(r"\b(depends? on|still need|blocked|waiting on|requires?|only after)\b", re.I)),
+    ("status", re.compile(r"\b(closed|fixed|merged|finished|deployed|enabled|configured|completed|shipped)\b", re.I)),
     ("owner", re.compile(r"\b(owns?|is handling|responsible for|assigned to|takes? over|will take|\w+ take the)\b", re.I)),
     ("contact", re.compile(r"\b(contact|reach out to|talk to|[\w.]+@[\w.]+)\b", re.I)),
     ("event", re.compile(rf"\b(leaving|unavailable|out from|on leave|away)\b.*{_DATE_WORD}", re.I)),
@@ -51,6 +52,22 @@ _RULES: list[tuple[str, re.Pattern]] = [
 _TRELLO = re.compile(r"Card '(?P<name>.*?)' is in list '(?P<list>.*?)'(?:; due: (?P<due>[\d-]+))?(?:; members: (?P<members>[^;.]*))?")
 _STATUS_WORDS = {"done": "done", "complete": "done", "completed": "done", "closed": "done",
                  "doing": "in_progress", "in progress": "in_progress", "to do": "todo", "todo": "todo", "backlog": "todo"}
+
+
+_FIRST_PERSON = re.compile(r"\b(i|i'm|i'll|i've|my|me|we|we're|we'll|our|us)\b", re.I)
+_RECORD_PREFIX = re.compile(r"^(?:Comment on (?:card '(?P<card>[^']*)'|\w+ #\d+):|(?:Issue|PR) #\d+ '(?P<title>[^']*)' \(state: [^)]*\)(?: \[[^\]]*\])?:)\s*")
+# "Good news from support: the renewal is due" keeps its point; the lead-in goes.
+_LEAD_IN = re.compile(r"^[^:]{0,45}:\s+(?=\S.{14,})")
+_SUBJECT_END = re.compile(r"\b(is|are|was|were|will|would|has|have|had|must|should|can|could|may|needs?|stays?|owns?|due|by|for|on|at|until|after|before|because|so|but|and|to)\b", re.I)
+_LEADING_WORDS = re.compile(r"^(?:the|a|an|our|my|this|that|new|now)\s+", re.I)
+
+
+def _subject_of(statement: str) -> str:
+    """The words before the verb, which usually name the thing: "the domain renewal is now due" gives "domain renewal"."""
+    text = _LEADING_WORDS.sub("", statement.strip())
+    m = _SUBJECT_END.search(text)
+    head = text[:m.start()].strip(" ,.:;") if m and m.start() >= 3 else ""
+    return head[:60] if head else " ".join(text.split()[:5]).strip(" ,.:;")
 
 
 def _status_of(list_name: str) -> str:
@@ -64,9 +81,8 @@ def _sentences(text: str) -> list[str]:
 class RuleExtractor(Extractor):
     name = "rules"
     label = "Basic rules (no AI)"
-    description = ("No AI model is configured, so claims come from keyword rules. They copy sentences rather than state "
-                   "self-contained claims, and on the demo data they led to 0 of 3 conflicts being found. "
-                   "Add ANTHROPIC_API_KEY to use Claude.")
+    description = ("No AI model is configured, so claims come from keyword rules. They only find sentences that use expected "
+                   "words, and they can't rewrite a chat line into a self-contained claim. Add GROQ_API_KEY to use a hosted model.")
     chunk_size = 25
 
     def extract(self, chunk: list[ChunkUnit], source_type: str, source_code: str) -> list[RawClaim]:
@@ -76,8 +92,11 @@ class RuleExtractor(Extractor):
             if card:
                 out.extend(self._card(u, card))
                 continue
-            for sentence in _sentences(u.text):
-                claim = self._sentence(u, sentence)
+            prefix = _RECORD_PREFIX.match(u.text)
+            topic = (prefix.group("card") or prefix.group("title") or "") if prefix else ""
+            body = u.text[prefix.end():] if prefix else u.text
+            for sentence in _sentences(body):
+                claim = self._sentence(u, sentence, topic)
                 if claim:
                     out.append(claim)
         return out
@@ -95,11 +114,14 @@ class RuleExtractor(Extractor):
                                    m["members"].strip(), ev(f"members: {m['members'].strip()}")))
         return claims
 
-    def _sentence(self, u: ChunkUnit, sentence: str) -> RawClaim | None:
+    def _sentence(self, u: ChunkUnit, sentence: str, topic: str = "") -> RawClaim | None:
         if sentence.endswith("?"):
             kind = "open_question"
         else:
             kind = next((k for k, rx in _RULES if rx.search(sentence)), None)
         if kind is None:
             return None
-        return RawClaim(kind, sentence[:60], f"{u.author} said: {sentence}", "", [{"id": u.uid, "quote": sentence}])
+        core = _LEAD_IN.sub("", sentence)
+        # First-person sentences keep the speaker, or "I'll handle it" would say nothing on its own.
+        statement = f"{u.author}: {core}" if _FIRST_PERSON.search(core) else core[0].upper() + core[1:]
+        return RawClaim(kind, topic or _subject_of(core), statement, "", [{"id": u.uid, "quote": sentence}])
