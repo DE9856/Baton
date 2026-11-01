@@ -1,18 +1,28 @@
 {% extends "base.html" %}
 {% import "_macros.html" as ui with context %}
 {% macro line(i) %}
-<li class="line">
+<li class="line lane-{{ i.label }}">
   <div class="claimhead">{{ ui.label(i.label, i.answered_by) }}
     {% if i.cliff %}<span class="chip cliff">Departure cliff</span>{% endif %}
     {% if i.due %}<span class="chip">Due {{ i.due }}</span>{% endif %}
   </div>
-  <p class="stmt">{% if i.subject %}<span class="subj">{{ i.subject }}:</span> {% endif %}{{ i.statement }}</p>
+  <p class="stmt">{% if i|needs_subject %}<span class="subj">{{ i.subject }}:</span> {% endif %}{{ i.statement }}</p>
   {% if i.receipts %}
   <details class="receipts"><summary>Receipt{% if i.receipts|length > 1 %}s ({{ i.receipts|length }} sources){% endif %}</summary>
     <ul>{% for r in i.receipts %}{{ ui.receipt_row(r) }}{% endfor %}</ul></details>
   {% elif i.answered_by %}
   <small class="muted">{{ i.answered_by }}'s word, {{ i.answered_at }}. Not independently sourced.</small>
   {% if i.voice_note_id %}<audio controls preload="none" src="/p/{{ project.id }}/voice/{{ i.voice_note_id }}" aria-label="{{ i.answered_by }}'s spoken answer"></audio>{% endif %}
+  {% endif %}
+</li>
+{% endmacro %}
+{% macro planline(i) %}
+<li class="line plan-line lane-{{ i.label }}">
+  {{ ui.label(i.label, i.answered_by) }}
+  {% if i.due %}<span class="chip">Due {{ i.due }}</span>{% endif %}
+  <p class="stmt">{% if i|needs_subject %}<span class="subj">{{ i.subject }}:</span> {% endif %}{{ i.statement }}</p>
+  {% if i.receipts %}
+  <details class="receipts"><summary>Receipt</summary><ul>{% for r in i.receipts %}{{ ui.receipt_row(r) }}{% endfor %}</ul></details>
   {% endif %}
 </li>
 {% endmacro %}
@@ -36,7 +46,7 @@
 <h1>Handover</h1>
 {% include "_job.html" %}
 <p class="lead">Nothing is shared until a named reviewer approves it, and no version has been approved yet.</p>
-{% if viewer and viewer.role == 'reviewer' %}<a role="button" href="/p/{{ project.id }}/review">Go to the review console</a>
+{% if viewer and viewer.role == 'reviewer' %}<a role="button" class="pass" href="/p/{{ project.id }}/review">Go to the review console</a>
 {% else %}<p class="muted">To continue the demo, choose the reviewer in the &ldquo;Viewing as&rdquo; menu at the top.</p>{% endif %}
 {% else %}
 <div class="hhead">
@@ -50,9 +60,9 @@
   </div>
 </div>
 <div class="legend" role="note">
-  <span>{{ ui.label('verified') }} Proven by a checked source quote.</span>
-  <span>{{ ui.label('confirmed') }} A named person's word, not independently sourced.</span>
-  <span>{{ ui.label('missing') }} Nobody has answered yet; ask the person named.</span>
+  <span class="line lane-verified legend-item">{{ ui.label('verified') }} Proven by a checked source quote.</span>
+  <span class="line lane-confirmed legend-item">{{ ui.label('confirmed') }} A named person's word, not independently sourced.</span>
+  <span class="line lane-missing legend-item">{{ ui.label('missing') }} Nobody has answered yet; ask the person named.</span>
 </div>
 <p class="muted"><small>You see {{ h.total_items }} items, limited to what your role may see. Baton may miss things. Check the Missing items with your team.</small></p>
 
@@ -101,7 +111,7 @@
   {% if key == 'plan' %}
     {% for name, rows in h.plan.items() %}{% if rows %}
     <h3>{{ name }}</h3>
-    <ul class="lines">{% for i in rows %}{{ line(i) }}{% endfor %}</ul>
+    <ul class="lines">{% for i in rows %}{{ planline(i) }}{% endfor %}</ul>
     {% endif %}{% endfor %}
   {% elif key == 'timeline' %}
     <ol class="timeline">
@@ -119,7 +129,7 @@
     {% if h.missing %}
     <ul class="lines">
       {% for q in h.missing %}
-      <li class="line"><div class="claimhead">{{ ui.label('missing') }}<span class="chip">Ask {{ q.ask }}</span></div><p class="stmt">{{ q.text }}</p></li>
+      <li class="line lane-missing"><div class="claimhead">{{ ui.label('missing') }}<span class="chip">Ask {{ q.ask }}</span></div><p class="stmt">{{ q.text }}</p></li>
       {% endfor %}
     </ul>
     {% endif %}

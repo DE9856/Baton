@@ -29,7 +29,7 @@ from ..db import (AccessRequest, Acknowledgement, AuditEvent, Claim, Conflict, E
                   Version, VoiceNote, audit, make_engine, make_sessionmaker)
 from ..demo.loader import load_demo
 from ..extract import TYPE_TITLES, ExtractionError, Extractor, ReplayExtractor, default_extractor
-from ..handover import SECTION_TITLES, SECTIONS, compose, conflict_line, to_markdown
+from ..handover import SECTION_TITLES, SECTIONS, compose, conflict_line, needs_subject, to_markdown
 from ..parsers import ParseError, decode_text, docx_to_text, fetch_repo, parse_github, parse_notes, parse_trello, parse_whatsapp
 from ..pipeline import add_source, clear_machine_output, run_incremental, run_pipeline
 from ..review import ReviewError
@@ -58,6 +58,7 @@ def create_app(database_url: str | None = None, extractor_factory=None, nli=None
     templates.env.globals.update(LABELS=LABELS, TYPE_TITLES=TYPE_TITLES, SECTIONS=SECTIONS, SECTION_TITLES=SECTION_TITLES,
                                  AUDIENCES=AUDIENCES, AUDIENCE_LABELS=permissions.AUDIENCE_LABELS, TAG_LABELS=TAG_LABELS,
                                  STEPS=STEPS, conflict_line=conflict_line, app_version=__version__)
+    templates.env.filters["needs_subject"] = needs_subject
     engine = make_engine(database_url)
     Sessions = make_sessionmaker(engine)
     app.state.Sessions = Sessions

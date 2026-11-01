@@ -10,7 +10,7 @@
   {% for key, n in counts.items() %}<a href="?label={{ key }}" class="chip l-{{ key }} {% if active == key %}sel{% endif %}">{{ LABELS.get(key, key) }} ({{ n }})</a>{% endfor %}
 </nav>
 {% for c in claims %}
-<article class="claim" id="{{ c.code }}">
+<article class="claim lane-{{ c.label }}" id="{{ c.code }}">
   <div class="claimhead">
     {{ ui.label(c.label, c.answered_by) }}
     <span class="chip kind">{{ TYPE_TITLES.get(c.type, c.type) }}</span>

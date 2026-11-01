@@ -220,6 +220,18 @@ def test_rerun_keeps_peoples_answers_and_does_not_ask_again(tmp_path):
         assert len(codes) == len(set(codes))
 
 
+@pytest.mark.parametrize("subject,statement,shown", [
+    ("Hackfest poster + UI kit", "The Hackfest poster + UI kit is due by 2026-11-05.", False),
+    ("Target for CAS integration", "New target is 10 Jan.", True),
+    ("How it works", "Push to main; Render auto-deploys.", True),
+    ("", "Anything at all.", False),
+])
+def test_a_line_names_its_subject_only_when_the_statement_does_not(subject, statement, shown):
+    from baton.handover import needs_subject
+
+    assert needs_subject({"subject": subject, "statement": statement}) is shown
+
+
 def test_handover_lists_an_open_question_once():
     claim = {"code": "C1", "type": "open_question", "subject": "", "statement": "Should we keep the data?", "label": "verified",
              "audience": "public", "sensitive": False, "due": None, "as_of": "2026-10-01", "origin": "extracted", "answered_by": "",

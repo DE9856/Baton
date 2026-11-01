@@ -13,7 +13,7 @@
 </form>
 {% if answer %}
   {% if answer.abstained %}
-  <article class="claim" role="status">
+  <article class="claim lane-missing" role="status">
     <div class="claimhead"><span class="chip l-missing">Not known</span></div>
     <p class="stmt">{{ answer.reason }}</p>
     <form method="post" action="/p/{{ project.id }}/ask/route" class="actions">
@@ -25,9 +25,9 @@
   <h2>What the approved handover says</h2>
   <ul class="lines">
     {% for i in answer.items %}
-    <li class="line">
+    <li class="line lane-{{ i.label }}">
       <div class="claimhead">{{ ui.label(i.label, i.answered_by) }}{% if i.due %}<span class="chip">Due {{ i.due }}</span>{% endif %}</div>
-      <p class="stmt">{% if i.subject %}<span class="subj">{{ i.subject }}:</span> {% endif %}{{ i.statement }}</p>
+      <p class="stmt">{% if i|needs_subject %}<span class="subj">{{ i.subject }}:</span> {% endif %}{{ i.statement }}</p>
       {% if i.receipts %}
       <details class="receipts" open><summary>Receipt{% if i.receipts|length > 1 %}s ({{ i.receipts|length }} sources){% endif %}</summary>
         <ul>{% for r in i.receipts %}{{ ui.receipt_row(r) }}{% endfor %}</ul></details>

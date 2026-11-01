@@ -4,7 +4,12 @@
 <h1>Gap interview</h1>
 {% include "_job.html" %}
 {% if questions %}
-<p class="lead">{{ viewer.name }}, the sources couldn't answer these. They're the only questions we have for you{% if open_count %}: {{ open_count }} left, about {{ (open_count * 1.5)|round|int }} minutes{% else %}, and you've finished them{% endif %}. Your answers are saved under your name and date, and shown as your word, never as verified fact.</p>
+<p class="lead">{{ viewer.name }}, the sources couldn't answer these, so they're the only questions we have for you. Answers are saved under your name and date, and shown as your word, never as verified fact.</p>
+<div class="interview-progress">
+  <span>{{ questions|length - open_count }} of {{ questions|length }} answered</span>
+  <progress value="{{ questions|length - open_count }}" max="{{ questions|length }}" aria-label="Questions answered"></progress>
+  {% if open_count %}<small class="muted">About {{ (open_count * 1.5)|round|int }} minutes left</small>{% endif %}
+</div>
 {% for q in questions %}
 <article class="question {% if q.status != 'open' %}done{% endif %}" id="q{{ q.id }}">
   <div class="claimhead"><span class="chip kind">{{ {'ownership':'Ownership after you leave','coverage':'Undocumented process','credential':'Credential','rationale':'Missing reason','unclear':'Your successor asks'}.get(q.kind, q.kind) }}</span>
@@ -39,19 +44,24 @@
     </form>
     <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/voice" enctype="multipart/form-data" class="actions voice" data-voice-form>
       <button type="button" class="small secondary outline" data-record hidden>Record a voice answer</button>
-      <label class="fileattach"><small>Or attach a recording:</small>
-        <input type="file" name="file" accept="audio/*" onchange="this.form.submit()" aria-label="Attach a voice recording">
-      </label>
-      <noscript><button type="submit" class="small secondary outline">Upload</button></noscript>
       <small class="muted" data-voice-status role="status"></small>
     </form>
-    <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/reassign" class="actions">
-      <label for="r{{ q.id }}"><small>Not me:</small></label>
-      <select id="r{{ q.id }}" name="to">
-        {% for m in people if q.audience in m.clearances %}<option value="{{ m.id }}">{{ m.name }}</option>{% endfor %}
-      </select>
-      <button type="submit" class="small secondary outline">Pass it on</button>
-    </form>
+    <details class="more">
+      <summary>Not you? Or attach a recording</summary>
+      <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/reassign" class="actions">
+        <label for="r{{ q.id }}"><small>Pass it to</small></label>
+        <select id="r{{ q.id }}" name="to">
+          {% for m in people if q.audience in m.clearances %}<option value="{{ m.id }}">{{ m.name }}</option>{% endfor %}
+        </select>
+        <button type="submit" class="small secondary outline">Pass it on</button>
+      </form>
+      <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/voice" enctype="multipart/form-data" class="actions">
+        <label class="fileattach"><small>Recording</small>
+          <input type="file" name="file" accept="audio/*" onchange="this.form.submit()" aria-label="Attach a voice recording">
+        </label>
+        <noscript><button type="submit" class="small secondary outline">Upload</button></noscript>
+      </form>
+    </details>
   {% else %}
     <blockquote>{{ q.answer }}</blockquote>
     <small class="muted">{{ q.answered_by }}, {{ q.answered_at.strftime('%d %b %Y') if q.answered_at else '' }}</small>

@@ -51,7 +51,7 @@ Written for, but not yet run against: Supabase (Postgres and Auth), Hugging Face
 
 FastAPI, Starlette, Uvicorn, Jinja2, python-multipart, itsdangerous, SQLAlchemy, psycopg, python-dotenv, PyAV (with its bundled FFmpeg libraries), RapidFuzz, NumPy, python-docx, httpx, anthropic, PyTorch, Transformers, sentencepiece, protobuf, tiktoken, huggingface_hub, pytest, Playwright and axe-core (vendored in `tests/vendor/`, MPL 2.0, test only), under their own licences. Exact versions are in `requirements.txt` and `requirements-dev.txt`.
 
-Vendored in `baton/web/static/`: Pico.css 2.0.6 and htmx 2.0.4 (both MIT). The Docker base image is `python:3.11-slim`; RLS tests use `postgres:16-alpine`.
+Vendored in `baton/web/static/`: Pico.css 2.0.6 and htmx 2.0.4 (both MIT), and the fonts Barlow Condensed and Atkinson Hyperlegible, including its mono cut (SIL Open Font License). The Docker base image is `python:3.11-slim`; RLS tests use `postgres:16-alpine`.
 
 No project template or boilerplate was used.
 

@@ -5,6 +5,7 @@ than generated prose, so nothing here can state more than the approved claims do
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
@@ -130,6 +131,15 @@ def compose(version, viewer: Member | None) -> Handover:
     missing_text = " ".join(q["text"].rstrip("\u2026") for q in h.missing).lower()  # shortened questions end with an ellipsis
     by_section["questions"] = [i for i in by_section["questions"] if i["statement"].lower()[:100] not in missing_text]
     return h
+
+
+def needs_subject(item: dict) -> bool:
+    """A line names its subject only if the statement doesn't already say it."""
+    subject, statement = (item.get("subject") or "").lower(), (item.get("statement") or "").lower()
+    words = [w for w in re.findall(r"[a-z0-9#]+", subject) if len(w) > 2 and w not in ("the", "for", "and", "with")] or subject.split()
+    if not words:
+        return False
+    return sum(w in statement for w in words) / len(words) < 0.75
 
 
 def to_markdown(h: Handover, project_name: str, viewer: Member | None) -> str:

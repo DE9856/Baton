@@ -1,31 +1,54 @@
 {% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
 {% block content %}
 <section class="hero">
-  <h1>Hand over the project, not just the files.</h1>
-  <p class="lead">Baton turns a departing member's project trail into a handover the next person can trust. It proves what the sources can prove, asks the person leaving only about what they can't, and shows each person only what they may see.</p>
-  <div class="cta">
-    <form method="post" action="/demo"><button type="submit">Load the demo project</button></form>
-    <a role="button" class="secondary outline" href="/new">Start your own handover</a>
+  <div>
+    <h1>Hand over the project, not just the files.</h1>
+    <p class="lead">Baton proves what your project's records can prove, asks the person leaving only about what they can't, and shows each person only what they may see.</p>
+    <div class="cta">
+      <form method="post" action="/demo"><button type="submit" class="pass">Load the demo project</button></form>
+      <a role="button" class="secondary outline" href="/new">Start your own handover</a>
+    </div>
+    <p class="muted"><small>The demo is a made-up student club project with 91 records, and planted conflicts, gaps and secrets.</small></p>
   </div>
-  <p class="muted"><small>The demo uses a synthetic student-club project: 91 made-up records with planted conflicts, gaps and secrets.</small></p>
+  <aside class="example" aria-label="Three lines from the demo handover">
+    <h2>Every line tells you how far to trust it</h2>
+    <ul class="lines">
+      <li class="line lane-verified">
+        <div class="claimhead">{{ ui.label('verified') }}</div>
+        <p class="stmt">The renewal of the domain campusconnect.in is due by 2026-11-20.</p>
+        <ul class="receipts-static">
+          <li class="receipt"><div class="rmeta"><strong>Trello: CampusConnect v2</strong>, 12 Oct 2026</div><blockquote>due: 2026-11-20</blockquote></li>
+        </ul>
+      </li>
+      <li class="line lane-confirmed">
+        <div class="claimhead">{{ ui.label('confirmed', 'Arjun') }}</div>
+        <p class="stmt">Meera takes the domain over after my last day.</p>
+      </li>
+      <li class="line lane-missing">
+        <div class="claimhead">{{ ui.label('missing') }}<span class="chip">Ask Arjun</span></div>
+        <p class="stmt">How is the project deployed, step by step?</p>
+      </li>
+    </ul>
+  </aside>
 </section>
 
-<section class="flow" aria-label="How it works">
-  <article><h3>1. Connect</h3><p>Exports any member can make: GitHub, WhatsApp, Trello, meeting notes.</p></article>
-  <article><h3>2. Reconstruct</h3><p>AI proposes small claims, each with a word-for-word quote.</p></article>
-  <article><h3>3. Verify</h3><p>Code checks every quote and finds conflicts, gaps and secrets.</p></article>
-  <article><h3>4. Review</h3><p>The leaver answers about 10 questions. A reviewer approves.</p></article>
-  <article><h3>5. Hand over</h3><p>The successor gets a role-scoped plan with a receipt on each line.</p></article>
-</section>
+<ol class="legs" aria-label="How a handover works">
+  <li><b><span>1</span>Connect</b><p>Add exports any member can make: GitHub, WhatsApp, Trello, meeting notes.</p></li>
+  <li><b><span>2</span>Reconstruct and verify</b><p>AI proposes small claims. Code checks each quote and finds conflicts, gaps and secrets.</p></li>
+  <li><b><span>3</span>Gap interview</b><p>The person leaving answers about 10 questions, by tapping, typing or speaking.</p></li>
+  <li><b><span>4</span>Review</b><p>A reviewer resolves conflicts, decides the risky items and approves.</p></li>
+  <li><b><span>5</span>Handover</b><p>The next person gets a plan for their role, with a receipt behind each line.</p></li>
+</ol>
 
 {% if projects %}
 <section>
   <h2>Your projects</h2>
-  <table><thead><tr><th>Project</th><th>Role</th><th>Last day</th></tr></thead><tbody>
+  <div class="tablewrap"><table><thead><tr><th>Project</th><th>Role</th><th>Last day</th></tr></thead><tbody>
   {% for p in projects %}
   <tr><td><a href="/p/{{ p.id }}">{{ p.name }}</a></td><td>{{ p.role_title }}</td><td>{{ p.last_day.strftime('%d %b %Y') }}</td></tr>
   {% endfor %}
-  </tbody></table>
+  </tbody></table></div>
 </section>
 {% endif %}
 {% endblock %}

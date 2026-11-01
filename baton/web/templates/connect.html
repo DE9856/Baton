@@ -51,7 +51,7 @@
 
 {% if viewer and viewer.role in ('reviewer', 'leaver') %}
 <form method="post" action="/p/{{ project.id }}/run" class="runbar">
-  <button type="submit" {% if not sources or (job and job.state in ('queued','running')) %}disabled{% endif %}>{% if job %}Run again{% else %}Build the claim ledger{% endif %}</button>
+  <button type="submit" class="{{ 'secondary outline' if job else 'pass' }}" {% if not sources or (job and job.state in ('queued','running')) %}disabled{% endif %}>{% if job %}Run again{% else %}Build the claim ledger{% endif %}</button>
   {% if job and job.state == 'done' %}<small class="muted">Running again replaces the current claims, conflicts and open questions. Approved versions are kept.</small>{% endif %}
 </form>
 

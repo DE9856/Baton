@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="/static/pico.min.css">
 <link rel="stylesheet" href="/static/baton.css">
 <script src="/static/htmx.min.js" defer></script>
+<link rel="preload" href="/static/fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 </head>
 <body>
 <header class="topbar">
@@ -42,20 +43,38 @@
   </div>
 </header>
 {% if project %}
-<nav class="steps container" aria-label="Workflow steps">
-  <ol>
-    {% for key, title in STEPS %}
-    <li class="{% if step == key %}on{% endif %}">
-      <a href="/p/{{ project.id }}/{{ key }}" {% if step == key %}aria-current="page"{% endif %}>
-        <span class="num">{{ loop.index }}</span> {{ title }}
-        {% if key == 'interview' and open_q %}<span class="badge" aria-label="{{ open_q }} open questions">{{ open_q }}</span>{% endif %}
-      </a>
-    </li>
-    {% endfor %}
-    <li class="{% if request.url.path.endswith('/ask') %}on{% endif %}"><a href="/p/{{ project.id }}/ask">Ask Baton</a></li>
-  </ol>
-  {% if viewer and viewer.role == 'reviewer' %}<a class="audit-link" href="/p/{{ project.id }}/audit">Audit log</a>{% endif %}
+{% set baton = {"i": none} %}
+<nav class="steps" aria-label="Workflow steps">
+  <div class="container track-in">
+    <ol>
+      {% for key, title in STEPS %}
+      <li class="{% if step == key %}on{% endif %}">
+        <a href="/p/{{ project.id }}/{{ key }}" {% if step == key %}aria-current="page"{% endif %}>
+          <span class="num">{{ loop.index }}</span>{{ title }}{% if key == 'interview' and open_q %}<span class="badge" aria-label="{{ open_q }} open questions">{{ open_q }}</span>{% endif %}
+        </a>
+      </li>
+      {% if step == key %}{% set _ = baton.update({'i': loop.index0}) %}{% endif %}
+      {% endfor %}
+      {% if baton.i is not none %}<span class="baton" id="baton" data-i="{{ baton.i }}" style="--i:{{ baton.i }}" aria-hidden="true"></span>{% endif %}
+    </ol>
+    <div class="track-side">
+      <a href="/p/{{ project.id }}/ask" {% if request.url.path.endswith('/ask') %}aria-current="page"{% endif %}>Ask Baton</a>
+      {% if viewer and viewer.role == 'reviewer' %}<a href="/p/{{ project.id }}/audit" {% if request.url.path.endswith('/audit') %}aria-current="page"{% endif %}>Audit log</a>{% endif %}
+    </div>
+  </div>
 </nav>
+<script>
+/* The one motion on the page: the baton travels from the last leg you were on to this one. */
+(function () {
+  var b = document.getElementById("baton");
+  if (!b) return;
+  var key = "baton-leg", now = b.dataset.i, last = null;
+  try { last = sessionStorage.getItem(key); sessionStorage.setItem(key, now); } catch (e) { return; }
+  if (last === null || last === now || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  b.style.setProperty("--i", last);
+  requestAnimationFrame(function () { requestAnimationFrame(function () { b.classList.add("moving"); b.style.setProperty("--i", now); }); });
+})();
+</script>
 {% endif %}
 <main class="container">
   {% for m in messages %}<div class="flash {{ m.kind }}" role="status">{{ m.text }}</div>{% endfor %}

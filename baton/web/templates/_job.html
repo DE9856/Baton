@@ -12,7 +12,7 @@
     {{ job.stats.claims }} claims proposed, {{ job.stats.grounded }} with a real quote, {{ job.stats.conflicts }} conflicts, {{ job.stats.questions.leaver }} questions for the person leaving.
     {% if job.stats.incomplete %}<div class="flash error">This result is incomplete: {{ job.stats.failed_chunks|length }} part(s) of the sources could not be read by the AI model ({{ job.stats.extraction_errors|first }}). Those records produced no claims. Run again to retry.</div>{% endif %}
     {% if job.stats.nli_available == false %}<div class="flash error">The checking model could not be loaded, so every claim stays in Needs review.</div>{% endif %}
-    <a href="/p/{{ project.id }}" role="button" class="small">Continue</a>
+    <a href="/p/{{ project.id }}" role="button" class="small pass">Continue</a>
   {% endif %}
 </div>
 {% endif %}

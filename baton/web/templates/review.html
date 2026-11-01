@@ -29,13 +29,13 @@
 </section>
 {% endif %}
 
-<section class="approvebar">
+<section class="approvebar {% if not blockers %}ready{% endif %}">
   {% if blockers %}
     <p><strong>Not ready to share yet.</strong></p>
     <ul>{% for b in blockers %}<li>{{ b }}</li>{% endfor %}</ul>
   {% else %}
     <p><strong>Ready.</strong> Approving creates an immutable version and shares the handover. Needs-review claims stay hidden unless you fix them, and unanswered questions appear as Missing.</p>
-    <form method="post" action="/p/{{ project.id }}/approve"><button type="submit">Approve and share version {{ (versions[0].number + 1) if versions else 1 }}</button></form>
+    <form method="post" action="/p/{{ project.id }}/approve"><button type="submit" class="pass">Approve and share version {{ (versions[0].number + 1) if versions else 1 }}</button></form>
   {% endif %}
 </section>
 
@@ -73,7 +73,7 @@
   <h2>Decide one by one</h2>
   <p class="muted"><small>Sensitive items, departure-cliff items, answers from the interview and possibly outdated items.</small></p>
   {% for c in decide %}
-  <article class="claim {% if c.review_state != 'pending' %}done{% endif %}">
+  <article class="claim lane-{{ c.label }} {% if c.review_state != 'pending' %}done{% endif %}">
     <div class="claimhead">
       {{ ui.label(c.label, c.answered_by) }}
       <span class="chip kind">{{ TYPE_TITLES.get(c.type, c.type) }}</span>
@@ -120,7 +120,7 @@
   <h2>Open questions routed to you</h2>
   <p class="muted"><small>Anything left here appears in the handover as Missing, with your name as the person to ask.</small></p>
   {% for q in questions %}
-  <article class="claim">
+  <article class="claim lane-missing">
     <div class="claimhead"><span class="chip l-missing">{{ 'Triage' if q.route == 'triage' else 'For you' }}</span><span class="chip kind">{{ q.kind|replace('_',' ') }}</span></div>
     <p class="stmt">{{ q.text }}</p>
     <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/answer" class="actions">
@@ -138,7 +138,7 @@
   <p class="muted"><small>The automatic check didn't confirm these, so the successor won't see them unless you approve or rewrite them. Approving makes a claim your word, not Verified.</small></p>
   <details><summary>Show {{ needs|length }} claims</summary>
   {% for c in needs %}
-  <article class="claim {% if c.review_state != 'pending' %}done{% endif %}">
+  <article class="claim lane-{{ c.label }} {% if c.review_state != 'pending' %}done{% endif %}">
     <div class="claimhead">{{ ui.label(c.label, c.answered_by) }}<span class="chip kind">{{ TYPE_TITLES.get(c.type, c.type) }}</span><code class="code">{{ c.code }}</code>
       {% if c.review_state != 'pending' %}<span class="chip">{{ c.review_state|capitalize }} by {{ c.reviewed_by }}</span>{% endif %}</div>
     <p class="stmt">{{ c.statement }}</p>
@@ -170,7 +170,7 @@
   {% else %}<p class="chip l-verified">All approved</p>{% endif %}
   <details><summary>Show {{ one_pass|length }} claims</summary>
   {% for c in one_pass %}
-  <article class="claim compact">
+  <article class="claim lane-verified compact">
     <div class="claimhead"><span class="chip kind">{{ TYPE_TITLES.get(c.type, c.type) }}</span><code class="code">{{ c.code }}</code></div>
     <p class="stmt">{{ c.statement }}</p>
     {{ ui.claim_receipts(c) }}
