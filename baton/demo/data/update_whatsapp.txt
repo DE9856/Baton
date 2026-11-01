@@ -1,0 +1,4 @@
+[02/11/26, 10:15:00] Arjun: Good news from GoDaddy support: the domain renewal is now due 5 Dec, they extended it
+[03/11/26, 18:40:00] Kabir: Before I go offline: the staging password is Staging#2026x, please change it
+[04/11/26, 09:05:00] Riya: Decision: we're going with Figma for the new UI kit because the whole team already has access
+[05/11/26, 20:30:00] Meera: The reports dashboard is blocked until the HoD sends the department list

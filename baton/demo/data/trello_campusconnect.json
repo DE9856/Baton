@@ -1,0 +1,30 @@
+{
+  "name": "CampusConnect v2",
+  "url": "https://trello.com/b/demo123/campusconnect-v2",
+  "members": [
+    {"id": "m1", "fullName": "Arjun Mehta", "username": "arjunmehta"},
+    {"id": "m2", "fullName": "Kabir Shah", "username": "kabirshah"},
+    {"id": "m3", "fullName": "Meera Iyer", "username": "meeraiyer"},
+    {"id": "m4", "fullName": "Riya Thomas", "username": "riyathomas"}
+  ],
+  "lists": [
+    {"id": "l1", "name": "To Do"},
+    {"id": "l2", "name": "In Progress"},
+    {"id": "l3", "name": "Done"}
+  ],
+  "cards": [
+    {"id": "c1", "name": "SSO login with college portal (CAS)", "desc": "Mandated by college IT. Contact Vikram Rao.", "idList": "l2", "due": "2026-12-15T18:00:00Z", "idMembers": ["m1"], "dateLastActivity": "2026-10-02T11:30:00Z", "shortUrl": "https://trello.com/c/c1"},
+    {"id": "c2", "name": "Supabase migration", "desc": "Move backend off Firebase.", "idList": "l3", "due": "2026-10-10T18:00:00Z", "idMembers": ["m2"], "dateLastActivity": "2026-10-10T09:05:00Z", "shortUrl": "https://trello.com/c/c2"},
+    {"id": "c3", "name": "Reports dashboard for HoDs", "desc": "Attendance reports per department.", "idList": "l2", "due": "2026-11-25T18:00:00Z", "idMembers": ["m3"], "dateLastActivity": "2026-10-17T12:00:00Z", "shortUrl": "https://trello.com/c/c3"},
+    {"id": "c4", "name": "Fix login redirect bug", "desc": "", "idList": "l2", "due": null, "idMembers": ["m1"], "dateLastActivity": "2026-08-20T17:15:00Z", "shortUrl": "https://trello.com/c/c4"},
+    {"id": "c5", "name": "Renew domain campusconnect.in", "desc": "Registrar: GoDaddy.", "idList": "l1", "due": "2026-11-20T18:00:00Z", "idMembers": ["m1"], "dateLastActivity": "2026-10-12T12:35:00Z", "shortUrl": "https://trello.com/c/c5"},
+    {"id": "c6", "name": "Hackfest poster + UI kit", "desc": "", "idList": "l2", "due": "2026-11-05T18:00:00Z", "idMembers": ["m4"], "dateLastActivity": "2026-10-08T16:00:00Z", "shortUrl": "https://trello.com/c/c6"},
+    {"id": "c7", "name": "Push notifications", "desc": "See PR #42.", "idList": "l2", "due": null, "idMembers": ["m2"], "dateLastActivity": "2026-10-20T13:35:00Z", "shortUrl": "https://trello.com/c/c7"},
+    {"id": "c8", "name": "Sponsor logo on splash screen", "desc": "Required by the sponsor agreement.", "idList": "l1", "due": "2026-11-30T18:00:00Z", "idMembers": ["m1"], "dateLastActivity": "2026-10-03T15:00:00Z", "shortUrl": "https://trello.com/c/c8"},
+    {"id": "c9", "name": "Set up DB backups", "desc": "Weekly backups on Supabase.", "idList": "l3", "due": null, "idMembers": ["m2"], "dateLastActivity": "2026-09-25T06:00:00Z", "shortUrl": "https://trello.com/c/c9"}
+  ],
+  "actions": [
+    {"type": "commentCard", "date": "2026-10-02T11:30:00Z", "memberCreator": {"fullName": "Arjun Mehta"}, "data": {"card": {"id": "c1", "name": "SSO login with college portal (CAS)"}, "text": "Target 15 Dec agreed with IT."}},
+    {"type": "commentCard", "date": "2026-09-25T06:00:00Z", "memberCreator": {"fullName": "Kabir Shah"}, "data": {"card": {"id": "c9", "name": "Set up DB backups"}, "text": "Weekly backup cron configured."}}
+  ]
+}

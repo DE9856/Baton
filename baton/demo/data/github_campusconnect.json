@@ -1,0 +1,64 @@
+{
+  "repo": "devcircle/campusconnect",
+  "items": [
+    {
+      "number": 28, "type": "issue", "title": "Firebase read quota exceeded during fest",
+      "user": {"login": "arjun-m"}, "state": "closed", "created_at": "2026-08-29T18:40:00Z", "closed_at": "2026-10-10T09:00:00Z",
+      "html_url": "https://github.com/devcircle/campusconnect/issues/28",
+      "body": "Attendance scanning stopped for about 40 minutes on fest day because the Firebase free tier read quota was exceeded at 11:00.",
+      "comments_data": [
+        {"user": {"login": "kabirs"}, "created_at": "2026-08-30T04:10:00Z", "body": "Free tier is 50k reads/day and fest day blew through it before noon. We need a database that can handle spikes."}
+      ]
+    },
+    {
+      "number": 29, "type": "issue", "title": "Login redirect loop after Google Sign-In",
+      "user": {"login": "riya-t"}, "state": "closed", "created_at": "2026-08-18T10:00:00Z", "closed_at": "2026-09-30T11:25:00Z",
+      "html_url": "https://github.com/devcircle/campusconnect/issues/29",
+      "body": "After signing in with Google, some users are sent back to the login page in a loop.",
+      "comments_data": []
+    },
+    {
+      "number": 31, "type": "pull_request", "title": "Migrate backend from Firebase to Supabase",
+      "user": {"login": "kabirs"}, "state": "closed", "merged": true, "created_at": "2026-09-14T15:00:00Z", "merged_at": "2026-10-10T09:00:00Z",
+      "html_url": "https://github.com/devcircle/campusconnect/pull/31",
+      "body": "Moves auth data, events and attendance tables to Supabase Postgres. Push notifications stay on Firebase Cloud Messaging because Supabase has no push service. Closes #28.",
+      "comments_data": [
+        {"user": {"login": "arjun-m"}, "created_at": "2026-10-10T08:55:00Z", "body": "Approving. Reason for the move is in #28 and the 12 Sep tech sync notes: quota limits, and we need SQL for the HoD attendance reports."}
+      ]
+    },
+    {
+      "number": 33, "type": "pull_request", "title": "Fix login redirect loop",
+      "user": {"login": "kabirs"}, "state": "closed", "merged": true, "created_at": "2026-09-28T12:00:00Z", "merged_at": "2026-09-30T11:25:00Z",
+      "html_url": "https://github.com/devcircle/campusconnect/pull/33",
+      "body": "Fixes the redirect loop by clearing the stale session cookie before redirect. Closes #29.",
+      "comments_data": []
+    },
+    {
+      "number": 38, "type": "issue", "title": "QR scan fails on iOS Safari",
+      "user": {"login": "riya-t"}, "state": "open", "created_at": "2026-09-05T09:30:00Z",
+      "html_url": "https://github.com/devcircle/campusconnect/issues/38",
+      "body": "On iPhones using Safari the QR scanner shows a black screen and attendance cannot be marked.",
+      "comments_data": [
+        {"user": {"login": "kabirs"}, "created_at": "2026-09-21T14:15:00Z", "body": "Happened again at the workshop, third time this month. Workaround: clear Safari cache or use Chrome. Root cause unknown, I suspect camera permission caching."}
+      ]
+    },
+    {
+      "number": 42, "type": "pull_request", "title": "Push notifications for event reminders",
+      "user": {"login": "kabirs"}, "state": "open", "merged": false, "labels": ["blocked"], "created_at": "2026-10-20T13:30:00Z",
+      "html_url": "https://github.com/devcircle/campusconnect/pull/42",
+      "body": "Adds event reminder notifications through Firebase Cloud Messaging.",
+      "comments_data": [
+        {"user": {"login": "kabirs"}, "created_at": "2026-10-21T16:00:00Z", "body": "Blocked: FCM is rate limiting our bulk test sends. Need to batch the sends before this can merge."}
+      ]
+    },
+    {
+      "number": 45, "type": "issue", "title": "Integrate college SSO (CAS)",
+      "user": {"login": "arjun-m"}, "state": "open", "created_at": "2026-10-02T11:20:00Z",
+      "html_url": "https://github.com/devcircle/campusconnect/issues/45",
+      "body": "College IT mandates CAS single sign-on for all student apps from next semester, replacing Google Sign-In. Contact: Vikram Rao (vikram.rao@college.edu). Target: 15 Dec.",
+      "comments_data": [
+        {"user": {"login": "arjun-m"}, "created_at": "2026-10-28T10:55:00Z", "body": "IT will issue CAS credentials only after their security audit. New target is 10 Jan."}
+      ]
+    }
+  ]
+}
