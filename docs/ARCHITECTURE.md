@@ -23,7 +23,7 @@ One Python service: FastAPI, server-rendered Jinja2 pages, HTMX for progress, Pi
 
 ## Data flow, step by step
 
-The app has three kinds of project: a demo (synthetic, open to all, with a role picker), a sandbox (private to the browser that made it, with a role picker), and a member project (each person signs in; no picker).
+The app has three kinds of project: a demo (synthetic, open to all, where each person signs in with their name and the shared password `pass`), a sandbox (private to the browser that made it, same simple sign-in), and a member project (each person signs in with their own Supabase account).
 
 1. **Connect** (`baton/parsers/`). Each parser returns evidence units plus a skip report, so nothing is dropped silently. WhatsApp date order is detected from the data: values above 12 first, then whichever order keeps the chat chronological. Each source records its audience, who authorised it and a consent note. People are matched across sources by alias.
 2. **Mask at ingestion** (`verify/sensitive.py`). Credentials are masked before anything is stored or sent to a model, so a secret can't leak from the database or a prompt. The raw upload is never kept.

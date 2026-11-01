@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Sign in · Baton{% endblock %}
+{% block content %}
+<h1>Sign in to {{ project.name }}</h1>
+<div class="logingrid">
+  <form method="post" action="/p/{{ project.id }}/login" class="narrow">
+    <input type="hidden" name="next" value="{{ next_path }}">
+    <label for="user-id">User ID</label>
+    <input id="user-id" name="user_id" required autofocus autocomplete="off" maxlength="120">
+    <label for="password">Password</label>
+    <input id="password" type="password" name="password" required autocomplete="off">
+    <button type="submit" class="pass">Sign in</button>
+  </form>
+  <div>
+    <h2>Who you can sign in as</h2>
+    <p class="muted">Your user ID is your name. The password for everyone is <strong>pass</strong>.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>User ID</th><th>Who they are</th></tr></thead>
+      <tbody>
+      {% for m in people %}
+      <tr><td>{{ m.name }}</td><td>{{ m.title or m.role }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+</div>
+{% endblock %}

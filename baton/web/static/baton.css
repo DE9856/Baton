@@ -77,7 +77,9 @@ th { font-family: var(--display); font-weight: 600; font-size: 1.05rem; color: v
 .brand:hover { color: #fff; text-decoration: none; }
 .topbar :focus-visible { outline-color: var(--baton); }
 .pname { color: #d3dcef; font-size: .95rem; }
-.viewer-form { margin: 0 0 0 auto; display: flex; align-items: center; gap: .5rem; }
+.viewer-form { margin: 0 0 0 auto; display: flex; align-items: center; gap: .6rem; }
+.viewer-form form { margin: 0; }
+.viewer-form button { color: #fff; border-color: #8393b8; }
 .viewer-form label { color: #d3dcef; font-size: .88rem; margin: 0; white-space: nowrap; }
 .viewer-form select { margin: 0; padding: .2rem 2rem .2rem .6rem; font-size: .92rem; height: auto; min-width: 12rem; }
 .viewer-name { color: #d3dcef; font-size: .92rem; }
@@ -128,13 +130,14 @@ label.check { display: flex; gap: .5rem; align-items: flex-start; font-size: .96
 label.check input { margin: .25rem 0 0; flex: none; }
 
 /* ---- Home ---- */
-.hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 2.5rem; align-items: center; padding: 2.2rem 0 1.5rem; }
-.hero h1 { font-size: clamp(3rem, 7.4vw, 5.6rem); line-height: .94; margin-bottom: 1rem; }
+.hero { padding: 2.6rem 0 1.8rem; }
+.hero h1 { font-size: clamp(3.2rem, 9vw, 7rem); line-height: .94; margin-bottom: 1.1rem; max-width: 15ch; }
 .cta { display: flex; gap: .7rem; flex-wrap: wrap; align-items: center; margin: 1.2rem 0 .4rem; }
 .cta form { margin: 0; }
 .cta button, .cta a { margin: 0; width: auto; }
-.example h2 { margin: 0 0 .2rem; font-size: 1.3rem; font-weight: 600; }
-.example .lines { margin-bottom: .3rem; }
+.logingrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2.5rem; margin-top: 1rem; align-items: start; }
+.logingrid h2 { margin-top: 0; }
+.logingrid button { width: auto; }
 .legs { list-style: none; display: grid; grid-template-columns: repeat(5, 1fr); padding: 0; margin: 1rem 0 0; border-top: 2px solid var(--ink); }
 .legs li { list-style: none; margin: 0; padding: .6rem .9rem .6rem 0; border-right: 2px dashed var(--line); }
 .legs li + li { padding-left: .9rem; }
@@ -324,7 +327,7 @@ a.tile:hover b { color: var(--track); }
 .foot { color: var(--muted); padding-top: 2.5rem; padding-bottom: 2rem; }
 
 @media (max-width: 760px) {
-  .hero { grid-template-columns: 1fr; gap: 1.5rem; padding-top: 1.2rem; }
+  .hero { padding-top: 1.2rem; }
   .hero h1 { font-size: clamp(2.6rem, 13vw, 4rem); }
   .legs { grid-template-columns: 1fr; }
   .legs li, .legs li + li { border-right: 0; border-bottom: 1px solid var(--line); padding: .5rem 0; }

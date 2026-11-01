@@ -63,7 +63,14 @@ def shot(page, name):
 
 
 def view_as(page, name):
-    page.select_option("#viewer-select", label=name)
+    """Switch user if someone is signed in, then sign in with this person's name and the demo password."""
+    switch = page.get_by_role("button", name="Switch user")
+    if switch.count():
+        switch.click()
+        page.wait_for_load_state("networkidle")
+    page.fill("#user-id", name)
+    page.fill("#password", "pass")
+    page.get_by_role("button", name="Sign in", exact=True).click()
     page.wait_for_load_state("networkidle")
 
 
@@ -94,7 +101,14 @@ def test_first_time_judge_walkthrough(server, browser):
     check_accessibility(page, "home")
     page.click("text=Load the demo project")
 
+    # Each person has their own sign-in. Nothing opens until someone signs in.
+    page.wait_for_selector("#user-id")
+    shot(page, "01b_sign_in")
+    check_accessibility(page, "sign in")
+    view_as(page, "Arjun")
+
     # 2. Connect: the pipeline runs in the background and reports progress through HTMX.
+    page.click("nav.steps >> text=Connect")
     page.wait_for_selector("text=Run finished", timeout=240_000)
     assert page.locator("table >> text=WhatsApp: DevCircle Tech").count() == 1
     assert "core committee" not in page.locator("table").first.inner_text().lower()   # Arjun isn't cleared for it
@@ -116,7 +130,7 @@ def test_first_time_judge_walkthrough(server, browser):
     page.wait_for_load_state("networkidle")
 
     # 4. The reviewer: can't share yet, then reviews by exception.
-    view_as(page, "Sana (reviewer)")
+    view_as(page, "Sana")
     page.click("nav.steps >> text=Review")
     shot(page, "04_review_console")
     check_accessibility(page, "review")
@@ -139,7 +153,7 @@ def test_first_time_judge_walkthrough(server, browser):
     assert "Approved version 1" in page.content()
 
     # 5. The successor sees the plan; receipts open; a section can be acknowledged.
-    view_as(page, "Meera Iyer (successor)")
+    view_as(page, "Meera Iyer")
     page.click("nav.steps >> text=Handover")
     page.wait_for_load_state("networkidle")
     shot(page, "06_handover_meera")
@@ -180,7 +194,7 @@ def test_first_time_judge_walkthrough(server, browser):
     assert overflow <= 1, f"page scrolls sideways by {overflow}px"
 
     # 8. Living handover: new activity reopens what it contradicts, and a second version shows the change.
-    view_as(page, "Sana (reviewer)")
+    view_as(page, "Sana")
     page.click("nav.steps >> text=Connect")
     page.wait_for_load_state("networkidle")
     page.get_by_role("button", name="Simulate new activity").click()
@@ -204,7 +218,7 @@ def test_first_time_judge_walkthrough(server, browser):
     page.get_by_role("button", name="Approve and share").click()
     page.wait_for_load_state("networkidle")
     assert "Approved version 2" in page.content()
-    view_as(page, "Meera Iyer (successor)")
+    view_as(page, "Meera Iyer")
     page.click("nav.steps >> text=Handover")
     page.wait_for_load_state("networkidle")
     shot(page, "10_handover_v2")
@@ -229,6 +243,8 @@ def test_voice_answer_with_a_real_microphone_stream(server, pw):
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.goto(server)
     page.click("text=Load the demo project")
+    view_as(page, "Arjun")
+    page.click("nav.steps >> text=Connect")
     page.wait_for_selector("text=Run finished", timeout=240_000)
     page.click("nav.steps >> text=Gap interview")
     page.wait_for_load_state("networkidle")

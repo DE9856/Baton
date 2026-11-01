@@ -27,7 +27,7 @@ To go live on Supabase, Groq, GitHub and Hugging Face, follow [docs/DEPLOY.md](d
 
 ### A five-minute walkthrough
 
-The purple bar on each page says what to do next. Use **Viewing as** at the top right to change person.
+Each person has their own sign-in: the **user ID is their name** and the **password is `pass`**. The bar at the top of each page says what to do next, and **Switch user** changes person.
 
 1. **Arjun (leaving).** Open **Gap interview**. Answer by tapping, typing or recording your voice, or pass a question on. Check "What the sources say about you".
 2. **Sana (reviewer).** Open **Review**. Resolve the 3 conflicts, approve routine claims in one pass, decide the risky items, then approve the version.

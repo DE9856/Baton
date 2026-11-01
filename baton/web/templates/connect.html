@@ -144,7 +144,7 @@
       <td>
       {% if viewer and viewer.role == 'reviewer' %}
         <form method="post" action="/p/{{ project.id }}/members/{{ m.id }}" class="inline-checks">
-          {% if not has_picker %}<input type="email" name="email" value="{{ m.email }}" placeholder="Email to sign in with" aria-label="Email for {{ m.name }}" class="inline-email">{% endif %}
+          {% if not local_login %}<input type="email" name="email" value="{{ m.email }}" placeholder="Email to sign in with" aria-label="Email for {{ m.name }}" class="inline-email">{% endif %}
           {% for k, v in AUDIENCES %}
           <label class="check"><input type="checkbox" name="clearances" value="{{ k }}" {% if k in m.clearances %}checked{% endif %} {% if k == 'public' %}disabled{% endif %}> {{ v }}</label>
           {% endfor %}

@@ -19,6 +19,13 @@ def main(base: str) -> None:
         r = c.post("/demo")
         pid = re.search(r"/p/(\d+)/", str(r.url)).group(1)
         started = time.time()
+
+        def sign_in(name: str) -> None:
+            c.post(f"/p/{pid}/logout")
+            r = c.post(f"/p/{pid}/login", data={"user_id": name, "password": "pass"})
+            assert f"{name} (" in r.text, f"could not sign in as {name}"
+
+        sign_in("Sana")
         while True:
             t = c.get(f"/p/{pid}/job").text
             if "Run finished" in t:
@@ -27,14 +34,6 @@ def main(base: str) -> None:
             assert time.time() - started < 900, "pipeline timed out"
             time.sleep(3)
         print(f"Pipeline finished in {time.time() - started:.0f} s:", re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", t)).strip()[:150])
-
-        def members() -> dict[str, str]:
-            page = c.get(f"/p/{pid}/connect").text
-            return {re.sub(r" \(.*", "", name).strip(): value for value, name in re.findall(r'<option value="(\d+)"[^>]*>([^<]+)</option>', page)
-                    if not value.startswith("0")}
-
-        people = members()
-        c.post(f"/p/{pid}/viewer", data={"member_id": people["Sana"]})
         c.post(f"/p/{pid}/review/one-pass")
         page = c.get(f"/p/{pid}/review").text
         for cf in re.findall(r"/conflicts/(\d+)/resolve", page):
@@ -48,7 +47,7 @@ def main(base: str) -> None:
                 c.post(f"/p/{pid}/claims/{m.group(1)}/decide", data={"action": action})
         assert "Approved version 1" in c.post(f"/p/{pid}/approve").text, "approval failed"
         for name in ("Meera Iyer", "New member"):
-            c.post(f"/p/{pid}/viewer", data={"member_id": people[name]})
+            sign_in(name)
             body = c.get(f"/p/{pid}/handover").text + c.get(f"/p/{pid}/export.md").text
             leaks = [x for x in CANARIES if x.lower() in body.lower()]
             assert not leaks, f"{name} saw {leaks}"

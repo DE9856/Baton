@@ -16,7 +16,7 @@ The plan promises a test with 5 club members. **It has not been run.** This is t
 | 2 | "Now you're Sana, the president. Get the handover approved and shared." | Version 1 approved | ≤ 30 min |
 | 3 | "Now you're Meera, taking over. What's the first thing due? Who owns the domain now? Is there a backup?" | All three right, using receipts | Note the time |
 | 4 | "Ask the app something it can't know." | Understands "Not known" | Note |
-| 5 | "Show me something Meera can't see, and why." | Uses "Viewing as" to compare | Note |
+| 5 | "Show me something Meera can't see, and why." | Uses Switch user to compare | Note |
 
 ## Timed comparison (plan §9.1)
 

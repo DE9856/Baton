@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% import "_macros.html" as ui with context %}
 {% block content %}
 <section class="hero">
   <div>
@@ -9,28 +8,7 @@
       <form method="post" action="/demo"><button type="submit" class="pass">Load the demo project</button></form>
       <a role="button" class="secondary outline" href="/new">Start your own handover</a>
     </div>
-    <p class="muted"><small>The demo is a made-up student club project with 91 records, and planted conflicts, gaps and secrets.</small></p>
   </div>
-  <aside class="example" aria-label="Three lines from the demo handover">
-    <h2>Every line tells you how far to trust it</h2>
-    <ul class="lines">
-      <li class="line lane-verified">
-        <div class="claimhead">{{ ui.label('verified') }}</div>
-        <p class="stmt">The renewal of the domain campusconnect.in is due by 2026-11-20.</p>
-        <ul class="receipts-static">
-          <li class="receipt"><div class="rmeta"><strong>Trello: CampusConnect v2</strong>, 12 Oct 2026</div><blockquote>due: 2026-11-20</blockquote></li>
-        </ul>
-      </li>
-      <li class="line lane-confirmed">
-        <div class="claimhead">{{ ui.label('confirmed', 'Arjun') }}</div>
-        <p class="stmt">Meera takes the domain over after my last day.</p>
-      </li>
-      <li class="line lane-missing">
-        <div class="claimhead">{{ ui.label('missing') }}<span class="chip">Ask Arjun</span></div>
-        <p class="stmt">How is the project deployed, step by step?</p>
-      </li>
-    </ul>
-  </aside>
 </section>
 
 <ol class="legs" aria-label="How a handover works">

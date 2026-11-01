@@ -16,7 +16,7 @@ from baton.extract.llm import CLAIM_SCHEMA, ClaudeExtractor, OllamaExtractor, pa
 from baton.pipeline import run_pipeline
 from baton.web.app import create_app
 
-from .conftest import DownNLI, WordOverlapNLI, fresh_db_url
+from .conftest import DownNLI, WordOverlapNLI, fresh_db_url, view_as
 
 CHAT = ("[01/08/26, 19:05:43] Asha: Decision: we're going with Postgres because it is cheap\n"
         "[02/08/26, 10:00:00] Ben: the deploy key is AIzaSyD4-AnotherKey_abcdefghijklmnopqr1\n"
@@ -80,10 +80,7 @@ def test_upload_requires_authorisation_checkbox(fast_client):
 
 def test_upload_needs_the_right_role(fast_client):
     pid = new_project(fast_client)
-    with fast_client.app.state.Sessions() as s:
-        p = s.get(Project, pid)
-        successor = p.successor_id
-    fast_client.post(f"/p/{pid}/viewer", data={"member_id": successor})
+    view_as(fast_client, pid, "Ben Lee")
     assert upload(fast_client, pid, "whatsapp", "c.txt", CHAT.encode()).status_code == 403
 
 
@@ -95,22 +92,6 @@ def test_run_without_sources_says_so(fast_client):
 def test_new_project_requires_consent(fast_client):
     r = fast_client.post("/new", data={"name": "x", "leaver": "a", "successor": "b", "reviewer": "c", "last_day": "2030-01-01"})
     assert "allowed to use" in r.text
-
-
-def test_viewer_cannot_switch_into_another_project(fast_client):
-    a = new_project(fast_client)
-    b = new_project(fast_client)
-    with fast_client.app.state.Sessions() as s:
-        other = s.get(Project, b).reviewer_id
-    assert fast_client.post(f"/p/{a}/viewer", data={"member_id": other}).status_code == 404
-
-
-def test_viewer_switch_cannot_redirect_off_site(fast_client):
-    pid = new_project(fast_client)
-    with fast_client.app.state.Sessions() as s:
-        m = s.get(Project, pid).reviewer_id
-    r = fast_client.post(f"/p/{pid}/viewer", data={"member_id": m, "back": "https://evil.example/"}, follow_redirects=False)
-    assert r.headers["location"] == f"/p/{pid}"
 
 
 def test_html_in_sources_is_escaped(fast_client):

@@ -15,19 +15,13 @@
     <a class="brand" href="/">Baton</a>
     {% if project %}
     <span class="pname">{{ project.name }}</span>
-    {% if has_picker %}
-    <form class="viewer-form" method="post" action="/p/{{ project.id }}/viewer">
-      <label for="viewer-select">Viewing as</label>
-      <input type="hidden" name="back" value="{{ request.url.path }}">
-      <select id="viewer-select" name="member_id" onchange="this.form.submit()" aria-label="Choose who you are viewing as">
-        {% for m in members %}
-        <option value="{{ m.id }}" {% if viewer and m.id == viewer.id %}selected{% endif %}>{{ m.name }}{% if m.role != 'teammate' %} ({{ m.role }}){% endif %}</option>
-        {% endfor %}
-      </select>
-      <noscript><button type="submit">Switch</button></noscript>
-    </form>
-    {% elif viewer %}
-    <span class="viewer-form viewer-name">{{ viewer.name }} ({{ viewer.role }})</span>
+    {% if viewer %}
+    <div class="viewer-form">
+      <span class="viewer-name">{{ viewer.name }} ({{ viewer.role }})</span>
+      {% if local_login %}
+      <form method="post" action="/p/{{ project.id }}/logout"><button type="submit" class="small secondary outline">Switch user</button></form>
+      {% endif %}
+    </div>
     {% endif %}
     {% endif %}
     {% if auth_enabled %}
@@ -42,7 +36,7 @@
     {% endif %}
   </div>
 </header>
-{% if project %}
+{% if project and viewer %}
 {% set baton = {"i": none} %}
 <nav class="steps" aria-label="Workflow steps">
   <div class="container track-in">
@@ -80,8 +74,8 @@
   {% for m in messages %}<div class="flash {{ m.kind }}" role="status">{{ m.text }}</div>{% endfor %}
   {% if project and project.is_demo and viewer %}
   <aside class="guide" aria-label="What to do next">
-    {% if viewer.role == 'leaver' %}<strong>You are Arjun, who is leaving.</strong> Answer a few questions in the <a href="/p/{{ project.id }}/interview">gap interview</a>, then choose Sana in &ldquo;Viewing as&rdquo; to review.
-    {% elif viewer.role == 'reviewer' %}<strong>You are Sana, the reviewer.</strong> Resolve conflicts and approve in the <a href="/p/{{ project.id }}/review">review console</a>, then choose Meera in &ldquo;Viewing as&rdquo;.
+    {% if viewer.role == 'leaver' %}<strong>You are Arjun, who is leaving.</strong> Answer a few questions in the <a href="/p/{{ project.id }}/interview">gap interview</a>, then use Switch user to sign in as Sana and review.
+    {% elif viewer.role == 'reviewer' %}<strong>You are Sana, the reviewer.</strong> Resolve conflicts and approve in the <a href="/p/{{ project.id }}/review">review console</a>, then use Switch user to sign in as Meera.
     {% elif viewer.role == 'successor' %}<strong>You are Meera, taking over.</strong> Your <a href="/p/{{ project.id }}/handover">handover</a> shows only what you may see. Open a receipt on any line.
     {% else %}<strong>You are {{ viewer.name }}.</strong> Compare the <a href="/p/{{ project.id }}/handover">handover</a> with Meera's: each person sees only what they are cleared for.{% endif %}
   </aside>

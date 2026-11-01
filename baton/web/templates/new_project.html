@@ -6,7 +6,7 @@
   <label>Project name <input name="name" required maxlength="200" placeholder="e.g. Club website"></label>
   <label>Role being handed over <input name="role_title" value="Tech lead" maxlength="100"></label>
   {% if not user %}
-  <div class="flash warn" role="note"><strong>No account: this is a private sandbox.</strong> Only this browser can open it, and you can switch between people yourself, so it suits trying Baton with test data.
+  <div class="flash warn" role="note"><strong>No account: this is a private sandbox.</strong> Only this browser can open it. Each person signs in with their name and the password <strong>pass</strong>, so use test data only.
   {% if auth_enabled %}<a href="/signin">Sign in</a> to create a real handover where each person signs in.{% endif %}</div>
   {% endif %}
   <div class="grid">

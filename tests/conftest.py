@@ -79,16 +79,9 @@ def demo_project_id(client: TestClient) -> int:
 
 
 def view_as(client: TestClient, pid: int, name: str) -> None:
-    from sqlalchemy import select
-
-    from baton.db import Member
-
-    with client.app.state.Sessions() as s:
-        m = s.scalars(select(Member).where(Member.project_id == pid, Member.name == name)).first()
-        assert m, name
-        mid = m.id
-    r = client.post(f"/p/{pid}/viewer", data={"member_id": mid}, follow_redirects=False)
-    assert r.status_code == 303
+    """Sign in to a demo or sandbox project as this person."""
+    r = client.post(f"/p/{pid}/login", data={"user_id": name, "password": "pass"}, follow_redirects=False)
+    assert r.status_code == 303 and "/login" not in r.headers["location"], name
 
 
 @pytest.fixture

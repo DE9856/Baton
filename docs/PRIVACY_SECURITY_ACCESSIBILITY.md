@@ -19,7 +19,7 @@ This says what the product does today and where it falls short. Claims here are 
 
 | Layer | Detail |
 |---|---|
-| Who can open a project | Demo: anyone (synthetic data only, and it refuses uploads). Sandbox: only the browser that made it. Member project: only signed-in people whose email the project lists. Others get the same 404 as a project that doesn't exist |
+| Who can open a project | Demo: anyone who signs in with a name and `pass` (synthetic data only, and it refuses uploads). Sandbox: only the browser that made it, with the same sign-in. Member project: only signed-in people whose email the project lists. Others get the same 404 as a project that doesn't exist |
 | What a person can read | `audience in clearances AND (reviewer OR not sensitive)`. On Postgres the database decides under row-level security with the viewer's identity, then a SQL filter and a Python check apply. A test breaks the app's checks and confirms the database still refuses |
 | Immutability | Approved versions and audit events can't be changed or deleted: an app-level guard, plus a database trigger on Postgres |
 | Prompt injection | The extractor has no tools and sees one chunk. Output must fit a schema, and each claim must quote its record word for word, so injected text can at most appear as a visible, sourced quote. **Not tested against a real model yet** |
@@ -28,7 +28,7 @@ This says what the product does today and where it falls short. Claims here are 
 
 **Known weaknesses:**
 
-- The "Viewing as" picker has no password. That's deliberate on the synthetic demo and on single-browser sandboxes, and it isn't available on member projects.
+- Demo and sandbox sign-ins use the person's name and the shared password `pass`, shown on the sign-in page. That separates roles for testing, but it isn't security: it's deliberate on the synthetic demo and on single-browser sandboxes, which is why neither should hold real data. Member projects don't accept it.
 - The sensitive guard is regex-based. It missed a password on its first run on new data (fixed), and it will miss others. The upload screen says so.
 - Sandboxes rely on the signed cookie. Clearing cookies loses access.
 - No rate limiting on sign-in beyond Supabase's own, and only a simple cap on concurrent pipeline runs.

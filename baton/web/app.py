@@ -1,14 +1,15 @@
 """The web app: one FastAPI service with server-rendered Jinja pages, HTMX for progress, and jobs in the same process.
 
 Three kinds of project decide who can open what:
-- demo: synthetic data, open to anyone, with a "Viewing as" picker so visitors can try every role;
-- sandbox: made without an account, visible only to the browser that made it, also with the picker;
-- member project: made while signed in; each person is identified by their account, with no picker.
+- demo: synthetic data, open to anyone; each person signs in with their name and the shared password "pass";
+- sandbox: made without an account and visible only to the browser that made it, with the same simple sign-in;
+- member project: made while signed in; each person signs in with their own Supabase account.
 """
 from __future__ import annotations
 
 import logging
 import os
+import re
 import secrets
 import threading
 from datetime import date, datetime
@@ -45,6 +46,12 @@ LABELS = {"verified": "Verified", "confirmed": "Confirmed by person", "missing":
           "needs_review": "Needs review", "outdated": "Possibly outdated", "withheld": "Withheld",
           "unsupported": "No real quote", "superseded": "Superseded"}
 MAX_RUNNING_JOBS = 5
+LOCAL_PASSWORD = "pass"  # demo and sandbox only: the demo's data is made up, and a sandbox is private to one browser
+
+
+class NeedsLogin(Exception):
+    def __init__(self, pid: int, path: str = ""):
+        self.pid, self.path = pid, path
 STEPS = [("connect", "Connect"), ("ledger", "Reconstruct & verify"), ("interview", "Gap interview"), ("review", "Review"), ("handover", "Handover")]
 
 
@@ -79,8 +86,18 @@ def create_app(database_url: str | None = None, extractor_factory=None, nli=None
     def current_user(request: Request) -> dict | None:
         return request.session.get("user")
 
-    def has_picker(project: Project) -> bool:
+    def local_login(project: Project) -> bool:
         return project.is_demo or project.is_sandbox
+
+    def find_member_by_name(s: Session, project: Project, user_id: str) -> Member | None:
+        """The user ID is the person's name: "Arjun Mehta" or just "Arjun", in any case."""
+        wanted = " ".join(user_id.lower().split())
+        members = s.scalars(select(Member).where(Member.project_id == project.id).order_by(Member.id)).all()
+        exact = [m for m in members if m.name.lower() == wanted]
+        if exact:
+            return exact[0]
+        partial = [m for m in members if wanted in {a.lower() for a in (m.aliases or [])}]
+        return partial[0] if len(partial) == 1 else None
 
     def member_for_user(s: Session, project: Project, user: dict | None) -> Member | None:
         if not user:
@@ -92,29 +109,28 @@ def create_app(database_url: str | None = None, extractor_factory=None, nli=None
         return m
 
     def viewer_of(request: Request, s: Session, project: Project) -> Member | None:
-        if not has_picker(project):
+        if not local_login(project):
             return member_for_user(s, project, current_user(request))
         vid = request.session.get(f"viewer_{project.id}")
         m = s.get(Member, vid) if vid else None
-        if m is None or m.project_id != project.id:
-            m = s.get(Member, project.reviewer_id) if project.reviewer_id else None
-            if m:
-                request.session[f"viewer_{project.id}"] = m.id
-        return m
+        return m if m is not None and m.project_id == project.id else None
 
     def flash(request: Request, text: str, kind: str = "info") -> None:
         request.session.setdefault("flash", []).append({"text": text, "kind": kind})
 
-    def get_project(s: Session, pid: int, request: Request) -> Project:
+    def find_project(s: Session, pid: int, request: Request) -> Project:
+        """The project, if this browser may even know about it. Says nothing about who is signed in."""
         p = s.get(Project, pid)
         # An unknown project and one you can't open look the same, so ids reveal nothing.
-        if p is None:
+        if p is None or (p.is_sandbox and pid not in request.session.get("sandboxes", [])):
             raise HTTPException(404, "Project not found")
-        if p.is_demo:
-            return p
-        if p.is_sandbox:
-            if pid not in request.session.get("sandboxes", []):
-                raise HTTPException(404, "Project not found")
+        return p
+
+    def get_project(s: Session, pid: int, request: Request) -> Project:
+        p = find_project(s, pid, request)
+        if local_login(p):
+            if viewer_of(request, s, p) is None:
+                raise NeedsLogin(pid, request.url.path if request.method == "GET" else "")
             return p
         if member_for_user(s, p, current_user(request)) is None:
             raise HTTPException(404, "Project not found. If someone added you to it, sign in with that email.")
@@ -128,7 +144,7 @@ def create_app(database_url: str | None = None, extractor_factory=None, nli=None
     def page(request: Request, name: str, s: Session, project: Project | None = None, **ctx) -> HTMLResponse:
         messages = request.session.pop("flash", [])
         base = {"request": request, "messages": messages, "project": project, "viewer": None, "members": [], "step": ctx.pop("step", ""),
-                "user": current_user(request), "has_picker": bool(project and has_picker(project))}
+                "user": current_user(request), "local_login": bool(project and local_login(project))}
         if project is not None:
             base["viewer"] = viewer_of(request, s, project)
             base["members"] = s.scalars(select(Member).where(Member.project_id == project.id).order_by(Member.id)).all()
@@ -211,9 +227,9 @@ def create_app(database_url: str | None = None, extractor_factory=None, nli=None
     def home(request: Request):
         with Sessions() as s:
             mine: list[Project] = []
-            sandbox_ids = request.session.get("sandboxes", [])
-            if sandbox_ids:
-                mine += s.scalars(select(Project).where(Project.id.in_(sandbox_ids)).order_by(Project.id.desc())).all()
+            local_ids = [*request.session.get("sandboxes", []), *request.session.get("demos", [])]
+            if local_ids:
+                mine += s.scalars(select(Project).where(Project.id.in_(local_ids)).order_by(Project.id.desc())).all()
             user = current_user(request)
             if user:
                 mine += s.scalars(select(Project).join(Member).where(func.lower(Member.email) == user["email"].lower(),
@@ -227,12 +243,10 @@ def create_app(database_url: str | None = None, extractor_factory=None, nli=None
             p = load_demo(s)
             s.commit()
             pid = p.id
-            request.session[f"viewer_{pid}"] = p.leaver_id
-        if start_job(pid):
-            flash(request, "Demo loaded. You are viewing as Arjun, the person leaving. The pipeline is running on 91 synthetic records.")
-        else:
-            flash(request, "The server is busy with other runs. Please press Build the claim ledger in a minute.", "error")
-        return RedirectResponse(f"/p/{pid}/connect", 303)
+        request.session["demos"] = [*request.session.get("demos", []), pid][-10:]
+        if not start_job(pid):
+            flash(request, "The server is busy with other runs. Sign in as Arjun or Sana, then press Build the claim ledger in a minute.", "error")
+        return RedirectResponse(f"/p/{pid}/login", 303)
 
     @app.get("/new", response_class=HTMLResponse)
     def new_form(request: Request):
@@ -309,21 +323,38 @@ def create_app(database_url: str | None = None, extractor_factory=None, nli=None
         request.session.pop("user", None)
         return RedirectResponse("/", 303)
 
-    @app.post("/p/{pid}/viewer")
-    def switch_viewer(pid: int, request: Request, member_id: int = Form(...), back: str = Form("")):
+    @app.get("/p/{pid}/login", response_class=HTMLResponse)
+    def login_form(pid: int, request: Request, next: str = ""):
         with Sessions() as s:
-            p = get_project(s, pid, request)
-            if not has_picker(p):
-                raise HTTPException(403, "In this project you are identified by your account.")
-            m = s.get(Member, member_id)
-            if m is None or m.project_id != pid:
-                raise HTTPException(404, "No such person in this project")
+            p = find_project(s, pid, request)
+            if not local_login(p):
+                return RedirectResponse("/signin", 303)
+            if viewer_of(request, s, p) is not None:
+                return RedirectResponse(f"/p/{pid}", 303)
+            people = s.scalars(select(Member).where(Member.project_id == pid).order_by(Member.id)).all()
+            return page(request, "login.html", s, p, people=people, next_path=next)
+
+    @app.post("/p/{pid}/login")
+    def login(pid: int, request: Request, user_id: str = Form(""), password: str = Form(""), next: str = Form("")):
+        with Sessions() as s:
+            p = find_project(s, pid, request)
+            if not local_login(p):
+                return RedirectResponse("/signin", 303)
+            m = find_member_by_name(s, p, user_id)
+            if m is None or not secrets.compare_digest(password.encode(), LOCAL_PASSWORD.encode()):
+                flash(request, "That user ID and password don't match. Your user ID is your name.", "error")
+                return RedirectResponse(f"/p/{pid}/login", 303)
             request.session[f"viewer_{pid}"] = m.id
-            audit(s, pid, m.name, "viewer_switched", "", "Demo sign-in stand-in")
+            audit(s, pid, m.name, "signed_in", "", "Demo or sandbox sign-in")
             s.commit()
         # Only ever redirect within this project's own pages.
-        target = back if back.startswith(f"/p/{pid}/") else f"/p/{pid}"
+        target = next if re.fullmatch(rf"/p/{pid}/[\w./-]*", next) else f"/p/{pid}"
         return RedirectResponse(target, 303)
+
+    @app.post("/p/{pid}/logout")
+    def logout(pid: int, request: Request):
+        request.session.pop(f"viewer_{pid}", None)
+        return RedirectResponse(f"/p/{pid}/login", 303)
 
     @app.get("/p/{pid}")
     def project_home(pid: int, request: Request):
@@ -965,6 +996,11 @@ def create_app(database_url: str | None = None, extractor_factory=None, nli=None
             require(viewer, "reviewer")
             events = s.scalars(select(AuditEvent).where(AuditEvent.project_id == pid).order_by(AuditEvent.id.desc()).limit(500)).all()
             return page(request, "audit.html", s, p, step="", events=events)
+
+    @app.exception_handler(NeedsLogin)
+    async def needs_login(request: Request, exc: NeedsLogin):
+        query = f"?next={exc.path}" if exc.path else ""
+        return RedirectResponse(f"/p/{exc.pid}/login{query}", 303)
 
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, exc: HTTPException):

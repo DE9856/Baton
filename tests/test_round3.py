@@ -81,8 +81,10 @@ def test_signup_with_email_confirmation_says_so(tmp_path):
 def test_member_project_identifies_people_by_account(auth_app):
     pid = member_project(auth_app)
     assert "Bo (reviewer)" in auth_app.get(f"/p/{pid}/connect").text
-    assert 'id="viewer-select"' not in auth_app.get(f"/p/{pid}/connect").text
-    assert auth_app.post(f"/p/{pid}/viewer", data={"member_id": 1}).status_code == 403
+    assert "Switch user" not in auth_app.get(f"/p/{pid}/connect").text
+    # The demo password means nothing here: this project only takes real accounts.
+    r = auth_app.post(f"/p/{pid}/login", data={"user_id": "Bo", "password": "pass"}, follow_redirects=False)
+    assert r.headers["location"] == "/signin"
     with auth_app.app.state.Sessions() as s:
         bo = s.scalars(select(Member).where(Member.project_id == pid, Member.name == "Bo")).one()
         assert bo.email == "boss@x.org"
@@ -126,6 +128,69 @@ def test_session_cookie_cannot_be_forged_to_a_sandbox(fast_client):
     with TestClient(fast_client.app) as other:
         other.cookies.set("session", "forged.value.here")
         assert other.get(f"/p/{pid}/connect").status_code == 404
+
+
+# --- demo and sandbox sign-in ----------------------------------------------------------------------------------------
+
+def test_demo_needs_a_sign_in_before_anything_opens(fast_client):
+    pid = demo_project_id(fast_client)
+    for path in ("connect", "ledger", "review", "interview", "handover", "ask", "audit", "export.md"):
+        r = fast_client.get(f"/p/{pid}/{path}", follow_redirects=False)
+        assert r.status_code == 303 and f"/p/{pid}/login" in r.headers["location"], path
+    t = fast_client.get(f"/p/{pid}/login").text
+    assert "Arjun Mehta" in t and "Sana" in t and "<strong>pass</strong>" in t
+    assert fast_client.post(f"/p/{pid}/approve", follow_redirects=False).status_code == 303
+
+
+@pytest.mark.parametrize("user_id", ["Arjun Mehta", "arjun mehta", "Arjun", "  ARJUN  ", "arjun-m"])
+def test_user_id_is_the_name_in_any_form(fast_client, user_id):
+    pid = demo_project_id(fast_client)
+    r = fast_client.post(f"/p/{pid}/login", data={"user_id": user_id, "password": "pass"})
+    assert "Arjun Mehta (leaver)" in r.text
+
+
+@pytest.mark.parametrize("user_id,password", [("Arjun", "wrong"), ("Arjun", ""), ("Nobody", "pass"), ("", "pass")])
+def test_bad_sign_in_is_refused(fast_client, user_id, password):
+    pid = demo_project_id(fast_client)
+    r = fast_client.post(f"/p/{pid}/login", data={"user_id": user_id, "password": password})
+    assert "match" in r.text and "(leaver)" not in r.text
+    assert fast_client.get(f"/p/{pid}/connect", follow_redirects=False).status_code == 303
+
+
+def test_each_person_gets_their_own_view_and_can_switch(fast_client):
+    pid = demo_project_id(fast_client)
+    view_as(fast_client, pid, "Meera Iyer")
+    assert fast_client.post(f"/p/{pid}/approve").status_code == 403
+    assert "Sana (reviewer)" not in fast_client.get(f"/p/{pid}/connect").text
+    r = fast_client.post(f"/p/{pid}/logout")
+    assert "Sign in to" in r.text
+    assert fast_client.get(f"/p/{pid}/connect", follow_redirects=False).status_code == 303
+    view_as(fast_client, pid, "Sana")
+    assert "Sana (reviewer)" in fast_client.get(f"/p/{pid}/connect").text
+
+
+def test_sign_in_returns_to_the_page_asked_for_but_never_off_site(fast_client):
+    pid = demo_project_id(fast_client)
+    r = fast_client.get(f"/p/{pid}/ledger", follow_redirects=False)
+    assert r.headers["location"].endswith(f"/login?next=/p/{pid}/ledger")
+    data = {"user_id": "Sana", "password": "pass"}
+    assert fast_client.post(f"/p/{pid}/login", data={**data, "next": f"/p/{pid}/ledger"}, follow_redirects=False).headers["location"] == f"/p/{pid}/ledger"
+    fast_client.post(f"/p/{pid}/logout")
+    for bad in ("https://evil.example/", f"//evil.example/p/{pid}/x", f"/p/{pid + 1}/ledger", "/"):
+        assert fast_client.post(f"/p/{pid}/login", data={**data, "next": bad}, follow_redirects=False).headers["location"] == f"/p/{pid}", bad
+        fast_client.post(f"/p/{pid}/logout")
+
+
+def test_signing_in_to_one_project_does_not_open_another(fast_client):
+    a, b = demo_project_id(fast_client), demo_project_id(fast_client)
+    view_as(fast_client, a, "Sana")
+    assert fast_client.get(f"/p/{b}/review", follow_redirects=False).status_code == 303
+
+
+def test_home_has_no_example_panel_or_record_count(fast_client):
+    t = fast_client.get("/").text
+    assert "Confirmed by Arjun" not in t and "91 records" not in t and "Every line tells" not in t
+    assert "Load the demo project" in t
 
 
 # --- leaver confirmation and access requests -------------------------------------------------------------------------

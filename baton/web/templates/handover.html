@@ -47,7 +47,7 @@
 {% include "_job.html" %}
 <p class="lead">Nothing is shared until a named reviewer approves it, and no version has been approved yet.</p>
 {% if viewer and viewer.role == 'reviewer' %}<a role="button" class="pass" href="/p/{{ project.id }}/review">Go to the review console</a>
-{% else %}<p class="muted">To continue the demo, choose the reviewer in the &ldquo;Viewing as&rdquo; menu at the top.</p>{% endif %}
+{% else %}<p class="muted">To continue the demo, use Switch user to sign in as Sana, the reviewer.</p>{% endif %}
 {% else %}
 <div class="hhead">
   <div>
