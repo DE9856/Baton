@@ -66,6 +66,15 @@ def _merge_roster(s: Session, project: Project, parsed: ParseResult) -> None:
             members = [*members, member]
 
 
+def max_claim_number(s: Session, project_id: int) -> int:
+    codes = s.scalars(select(Claim.code).where(Claim.project_id == project_id)).all()
+    return max((int(c[1:]) for c in codes if c[1:].isdigit()), default=0)
+
+
+def _question_key(text: str) -> str:
+    return " ".join(re.sub(r"[^a-z0-9 ]", "", text.lower()).split())
+
+
 def _chunks(units: list[EvidenceUnit], size: int | None):
     if not size:
         yield units
@@ -117,11 +126,13 @@ def run_pipeline(s: Session, project: Project, extractor: Extractor, job: Job | 
 
     stats: dict = {"extractor": extractor.label, "chunks": 0, "failed_chunks": [], "extraction_errors": []}
     project.extractor = extractor.label
-    for model in (Conflict, GapQuestion):
-        s.execute(delete(model).where(model.project_id == project.id))
-    for c in s.scalars(select(Claim).where(Claim.project_id == project.id)).all():
+    # People's words survive a re-run: answers, and anything a reviewer wrote. Only machine output is replaced.
+    s.execute(delete(Conflict).where(Conflict.project_id == project.id))
+    s.execute(delete(GapQuestion).where(GapQuestion.project_id == project.id, GapQuestion.status != "answered"))
+    for c in s.scalars(select(Claim).where(Claim.project_id == project.id, Claim.origin.in_(("extracted", "guard")))).all():
         s.delete(c)
     s.flush()
+    answered = {_question_key(q.text) for q in s.scalars(select(GapQuestion).where(GapQuestion.project_id == project.id)).all()}
 
     sources = s.scalars(select(Source).where(Source.project_id == project.id).order_by(Source.id)).all()
     if not sources:
@@ -134,7 +145,7 @@ def run_pipeline(s: Session, project: Project, extractor: Extractor, job: Job | 
 
     # --- 1. Extract, one chunk of one source at a time, and 2. ground each quote.
     step("Extracting claims", 5)
-    counter = 0
+    counter = max_claim_number(s, project.id)
     claims: list[Claim] = []
     premises: dict[int, str] = {}
     variants: dict[int, list[str]] = {}
@@ -279,6 +290,8 @@ def run_pipeline(s: Session, project: Project, extractor: Extractor, job: Job | 
                                        project.role_title if project.role_title in gp.ROLE_TEMPLATES else "default")
     unique, counts = gp.route_questions(raw_questions)
     for q in unique:
+        if _question_key(q.text) in answered:
+            continue  # already answered before this re-run
         asked = None
         if q.route == "leaver" and leaver:
             asked = leaver.id

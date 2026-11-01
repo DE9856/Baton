@@ -140,7 +140,7 @@ def raise_questions(claims: list[GapClaim], leaver: list[str], leaver_clearances
             m = re.search(r"it's a bit manual", all_text, re.I)
             if m:
                 hint = f" We found only “{m.group(0)}”, with no steps."
-        qs.append(Question("coverage", f"[{name}] {spec['question']}{hint}", 1, "leaver", None, "tech-team"))
+        qs.append(Question("coverage", f"{spec['question']}{hint}", 1, "leaver", None, "tech-team"))
     return qs
 
 

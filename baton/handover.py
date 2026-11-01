@@ -126,6 +126,9 @@ def compose(version, viewer: Member | None) -> Handover:
             h.conflicts.append(cf)
 
     h.missing = [q for q in snap["missing"] if viewer is not None and q["audience"] in (viewer.clearances or [])]
+    # A question that is still open appears once, as Missing, with the person to ask.
+    missing_text = " ".join(q["text"].rstrip("\u2026") for q in h.missing).lower()
+    by_section["questions"] = [i for i in by_section["questions"] if i["statement"].lower()[:100] not in missing_text]
     return h
 
 
@@ -137,7 +140,7 @@ def to_markdown(h: Handover, project_name: str, viewer: Member | None) -> str:
     def line(i: dict) -> str:
         label = "VERIFIED" if i["label"] == "verified" else f"CONFIRMED BY {(i.get('answered_by') or 'PERSON').upper()}"
         due = f" (due {i['due']})" if i.get("due") else ""
-        subject = f"{i['subject']}: " if i.get("subject") and i.get("origin") == "extracted" else ""
+        subject = f"{i['subject']}: " if i.get("subject") else ""
         text = f"- [{label}] {subject}{i['statement']}{due}"
         quotes = "; ".join(f"{r['source']}, {r['when']}: “{r['quote']}” [{r['uid']}]" for r in i["receipts"][:2])
         return f"{text} Source: {quotes}" if quotes else text

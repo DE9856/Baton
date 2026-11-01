@@ -1,4 +1,4 @@
-{% if job %}
+{% if job and (job.state != 'done' or show_done or job.stats.incomplete or job.stats.nli_available == false) %}
 <div id="job" class="job job-{{ job.state }}" {% if job.state in ('queued', 'running') %}hx-get="/p/{{ project.id }}/job" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %} aria-live="polite">
   {% if job.state in ('queued', 'running') %}
     <strong>Working: {{ job.step }}</strong>

@@ -60,8 +60,10 @@ def test_01_pipeline_finds_what_was_planted(world):
         assert next(c for c in claims if "library" in c.statement).label == "unsupported"
         assert len(conflicts) == 3
         subjects = " ".join(by_code[c.code].statement for cf in conflicts for c in [s.get(Claim, i) for i in cf.claim_ids])
-        for needle in ("10 Jan", "never actually", "login redirect"):
+        for needle in ("10 Jan", "never actually", "login redirect", "DB backups is completed"):
             assert needle in subjects
+        # Disagreeing about the date doesn't make "in progress" false, so it stays out of that conflict.
+        assert "SSO login with college portal (CAS) is in progress" not in subjects
         leaver = [q for q in questions if q.route == "leaver"]
         assert 6 <= len(leaver) <= 12
         text = " ".join(q.text.lower() for q in leaver)

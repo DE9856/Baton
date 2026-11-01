@@ -44,6 +44,14 @@
 {% endif %}
 <main class="container">
   {% for m in messages %}<div class="flash {{ m.kind }}" role="status">{{ m.text }}</div>{% endfor %}
+  {% if project and project.is_demo and viewer %}
+  <aside class="guide" aria-label="What to do next">
+    {% if viewer.role == 'leaver' %}<strong>You are Arjun, who is leaving.</strong> Answer a few questions in the <a href="/p/{{ project.id }}/interview">gap interview</a>, then choose Sana in &ldquo;Viewing as&rdquo; to review.
+    {% elif viewer.role == 'reviewer' %}<strong>You are Sana, the reviewer.</strong> Resolve conflicts and approve in the <a href="/p/{{ project.id }}/review">review console</a>, then choose Meera in &ldquo;Viewing as&rdquo;.
+    {% elif viewer.role == 'successor' %}<strong>You are Meera, taking over.</strong> Your <a href="/p/{{ project.id }}/handover">handover</a> shows only what you may see. Open a receipt on any line.
+    {% else %}<strong>You are {{ viewer.name }}.</strong> Compare the <a href="/p/{{ project.id }}/handover">handover</a> with Meera's: each person sees only what they are cleared for.{% endif %}
+  </aside>
+  {% endif %}
   {% block content %}{% endblock %}
 </main>
 <footer class="container foot">

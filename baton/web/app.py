@@ -38,7 +38,7 @@ AUDIENCES = [("public", "Public"), ("tech-team", "Tech team"), ("core-committee"
 LABELS = {"verified": "Verified", "confirmed": "Confirmed by person", "missing": "Missing", "conflict": "Conflict",
           "needs_review": "Needs review", "outdated": "Possibly outdated", "withheld": "Withheld",
           "unsupported": "No real quote", "superseded": "Superseded"}
-STEPS = [("connect", "Connect"), ("ledger", "Reconstruct"), ("review", "Review"), ("interview", "Gap interview"), ("handover", "Handover")]
+STEPS = [("connect", "Connect"), ("ledger", "Reconstruct & verify"), ("interview", "Gap interview"), ("review", "Review"), ("handover", "Handover")]
 
 
 def create_app(database_url: str | None = None, extractor_factory=None, nli=None, embedder=None, inline_jobs: bool = False,
@@ -373,7 +373,7 @@ def create_app(database_url: str | None = None, extractor_factory=None, nli=None
     def job_status(pid: int, request: Request):
         with Sessions() as s:
             p = get_project(s, pid)
-            return templates.TemplateResponse(request, "_job.html", {"job": latest_job(s, pid), "project": p})
+            return templates.TemplateResponse(request, "_job.html", {"job": latest_job(s, pid), "project": p, "show_done": True})
 
     # --- ledger -------------------------------------------------------------------------------------------------
 

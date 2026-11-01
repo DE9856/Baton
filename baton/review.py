@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from .db import Acknowledgement, Claim, Conflict, GapQuestion, Member, Project, Version, audit
-from .pipeline import bucket_of
+from .pipeline import bucket_of, max_claim_number
 from .verify.sensitive import classify, mask_secrets
 
 CONTRADICTION_FLAG = 0.5
@@ -20,8 +20,7 @@ class ReviewError(ValueError):
 
 
 def _next_code(s: Session, project_id: int) -> str:
-    n = s.scalar(select(func.count(Claim.id)).where(Claim.project_id == project_id)) or 0
-    return f"C{n + 1:03d}"
+    return f"C{max_claim_number(s, project_id) + 1:03d}"
 
 
 # --- gap interview ------------------------------------------------------------------------------------------------
@@ -45,8 +44,9 @@ def answer_question(s: Session, q: GapQuestion, by: Member, text: str, nli=None)
     s.add(claim)
     s.flush()
     q.status, q.answer, q.answered_by, q.answered_at, q.testimony_claim_id = "answered", text, by.name, datetime.now(), claim.id
-    if related is not None and nli is not None and nli.available:
+    if related is not None and nli is not None and nli.available and q.kind != "ownership":
         # Advisory only. In testing this flagged some consistent answers too, so it says "check", never "wrong".
+        # Ownership answers are exempt: "Meera takes this over" is meant to differ from "Arjun is responsible".
         score = nli.score([(related.statement, text)])[0]
         if score.contradiction >= CONTRADICTION_FLAG:
             claim.check_flag = f"This answer may disagree with: “{related.statement}”. Check it."
@@ -233,11 +233,10 @@ def build_snapshot(s: Session, project: Project) -> dict:
 
 
 def _diff(old: dict | None, new: dict) -> dict:
-    before = {c["code"]: c["statement"] for c in (old or {}).get("claims", [])}
-    after = {c["code"]: c["statement"] for c in new["claims"]}
-    return {"added": [after[k] for k in after if k not in before],
-            "removed": [before[k] for k in before if k not in after],
-            "changed": [{"from": before[k], "to": after[k]} for k in after if k in before and before[k] != after[k]]}
+    # Compared by wording, because claim codes can be reassigned when the pipeline is run again.
+    before = [c["statement"] for c in (old or {}).get("claims", [])]
+    after = [c["statement"] for c in new["claims"]]
+    return {"added": [x for x in after if x not in before], "removed": [x for x in before if x not in after], "changed": []}
 
 
 def approve_version(s: Session, project: Project, by: Member) -> Version:

@@ -3,6 +3,7 @@
 {% block content %}
 <h1>Connect authorised sources</h1>
 <p class="lead">{{ total }} records from {{ sources|length }} source(s) you may see. Each source records who authorised it and who may see what comes from it.</p>
+{% set show_done = True %}
 {% include "_job.html" %}
 {% if run_stats.extractor %}
 <p class="muted"><small>Claims extracted by: <strong>{{ run_stats.extractor }}</strong>.

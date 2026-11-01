@@ -23,12 +23,16 @@ _STOP = {"the", "a", "an", "is", "are", "was", "were", "be", "been", "to", "of",
          "had", "after", "before", "only", "so", "as", "we", "our", "they", "their", "not", "no", "never", "new", "due",
          "date", "deadline", "target", "status", "owner", "card", "list", "issue", "pr", "done", "completed", "progress",
          "todo", "still", "actually", "being", "then", "now", "up", "set", "get", "does", "do", "did", "than", "about",
-         "responsible", "working", "college", "work", "there", "right", "fix", "fixed", "bug"}
-_DONE = re.compile(r"\b(done|completed?|finished|configured|enabled|set up|are set|fixed|resolved|closed|merged)\b", re.I)
+         "responsible", "working", "college", "work", "there", "right", "fix", "fixed", "bug",
+         # A shared month says nothing about whether two claims concern the same thing.
+         "jan", "january", "feb", "february", "mar", "march", "apr", "april", "may", "jun", "june", "jul", "july",
+         "aug", "august", "sep", "sept", "september", "oct", "october", "nov", "november", "dec", "december"}
+_DONE = re.compile(r"\b(done|completed?|finished|configured|enabled|set up|are set|fixed|resolved|closed|merged|working|"
+                   r"delivered|deployed|live|(?:has|have) been \w+|can now)\b", re.I)
 _NOT_DONE = re.compile(
-    r"\b(never|not (?:yet |actually |been )?(?:enabled|done|finished|fixed|configured|completed|include[ds]?)|"
-    r"(?:doesn't|does not|don't|do not) include|no \w+ (?:right now|exist)|in[ _]progress|still (?:open|working|being)|"
-    r"to[ _]?do|started)\b",
+    r"\b(never|not (?:yet|all|actually|been)\b|not (?:enabled|done|finished|fixed|configured|completed|functional|available|include[ds]?)|"
+    r"(?:doesn't|does not|don't|do not) (?:include|have)|no \w+ (?:right now|exist)|in[ _]progress|still (?:open|working|being|in|under|waiting|awaiting)|"
+    r"to[ _]?do|started|pending|under development|waiting|awaiting|unresolved|remain\w*|yet to)\b",
     re.I,
 )
 
@@ -79,8 +83,10 @@ def _about(c: ConflictClaim, ignore: set[str]) -> set[str]:
 
 def _days(c: ConflictClaim) -> set[tuple[int, int]]:
     anchor = c.as_of.date() if c.as_of else None
-    # Only the statement counts. A date elsewhere in a quote is often an aside ("see the 12 Sep notes").
+    # The statement first. A date elsewhere in a quote is often an aside ("see the 12 Sep notes").
     found = find_dates(c.statement, anchor)
+    if not found and c.type == "deadline":
+        found = find_dates(c.value, anchor)
     return {(d.day.month, d.day.day) for d in found}
 
 
@@ -91,6 +97,15 @@ def _polarity(c: ConflictClaim) -> str | None:
     if _DONE.search(text):
         return "done"
     return None
+
+
+def _different_people(a: str, b: str, roster: list[list[str]]) -> bool:
+    """With a roster, aliases count as one person. Without a match, the names must share no word."""
+    pa, pb = _person(a, roster), _person(b, roster)
+    if pa is not None and pb is not None:
+        return pa != pb
+    words_a, words_b = set(re.findall(r"\w+", a.lower())), set(re.findall(r"\w+", b.lower()))
+    return bool(words_a and words_b and not words_a & words_b)
 
 
 def _person(value: str, roster: list[list[str]]) -> int | None:
@@ -109,15 +124,14 @@ def facet_check(a: ConflictClaim, b: ConflictClaim, roster: list[list[str]] | No
             ignore |= {t.lower() for t in re.split(r"[\s_-]+", alias)}
     shared = _about(a, ignore) & _about(b, ignore)
 
-    if a.type == "owner" and b.type == "owner" and fuzz.token_set_ratio(a.subject, b.subject) >= 85:
-        pa, pb = _person(a.value, roster), _person(b.value, roster)
-        if pa is not None and pb is not None and pa != pb:
-            return "different owners"
+    same_subject = bool(a.subject and b.subject) and fuzz.token_set_ratio(a.subject, b.subject) >= 85
+    if a.type == "owner" and b.type == "owner" and same_subject and _different_people(a.value, b.value, roster):
+        return "different owners"
     if len(shared) >= 1:
         da, db = _days(a), _days(b)
         if da and db and not da & db and (_is_schedule(a) and _is_schedule(b)):
             return "different dates"
-    if len(shared) >= 2:
+    if len(shared) >= 2 or same_subject:
         pa, pb = _polarity(a), _polarity(b)
         if pa and pb and pa != pb:
             return "opposite status"
@@ -223,6 +237,8 @@ def expand_groups(groups: list[ConflictGroup], claims: list[ConflictClaim]) -> N
     """
     placed = {c.id for g in groups for c in [*g.side_a, *g.side_b]}
     for g in groups:
+        if g.facet != "opposite status":
+            continue  # "in progress" is still true when two sources only disagree about the date
         for side in (g.side_a, g.side_b):
             for member in list(side):
                 polarity = _polarity(member)

@@ -1,4 +1,4 @@
-:root {
+:root, :root[data-theme=light] {
   --pico-font-size: 100%;
   --ink: #101a2c;
   --muted: #5a6577;
@@ -141,7 +141,11 @@ form { margin-bottom: 0; }
 .hhead { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
 .hactions { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
 .legend { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; font-size: .84rem; margin: .5rem 0; color: var(--muted); }
-.hsection { border-top: 1px solid var(--line); margin-top: 1.4rem; }
+.hsection { border-top: 1px solid var(--line); margin-top: .4rem; padding-top: .3rem; }
+.hdetails { margin: 0; border: 0; padding: 0; }
+.hdetails > summary h2 { display: inline; margin: 0; font-size: 1.15rem; }
+.hdetails > summary { padding: .35rem 0; }
+.guide { background: var(--violet-bg); border-left: 4px solid var(--violet); padding: .5rem .9rem; border-radius: 6px; margin: .7rem 0; font-size: .92rem; }
 .lines { padding: 0; margin: .4rem 0; }
 .line { list-style: none; padding: .55rem 0; border-bottom: 1px dashed var(--line); }
 .line:last-child { border-bottom: 0; }

@@ -81,12 +81,12 @@ def simulate_review(s, project) -> None:
     s.flush()
 
 
-def run(database_url: str = "sqlite:///:memory:") -> dict:
+def run(database_url: str = "sqlite:///:memory:", extractor=None) -> dict:
     Session = make_sessionmaker(make_engine(database_url))
     with Session() as s:
         p = load_demo(s)
         s.commit()
-        stats = run_pipeline(s, p, ReplayExtractor())
+        stats = run_pipeline(s, p, extractor or ReplayExtractor())
         s.commit()
         simulate_review(s, p)
         s.commit()
@@ -99,7 +99,9 @@ def run(database_url: str = "sqlite:///:memory:") -> dict:
 
 
 def main() -> None:
-    result = run()
+    from baton.extract import RuleExtractor
+
+    result = run(extractor=RuleExtractor() if "--rules" in sys.argv else None)
     print("Pipeline:", json.dumps({k: v for k, v in result["pipeline"].items() if k != "extraction_errors"}, default=str))
     for name, view in result["views"].items():
         print(f"\n{name} ({view['role']}): facts {view['facts']}/{view['facts_total']}, missed {view['missed']}, "

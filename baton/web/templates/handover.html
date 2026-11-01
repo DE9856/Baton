@@ -6,7 +6,7 @@
     {% if i.cliff %}<span class="chip cliff">Departure cliff</span>{% endif %}
     {% if i.due %}<span class="chip">Due {{ i.due }}</span>{% endif %}
   </div>
-  <p class="stmt">{% if i.subject and i.origin == 'extracted' %}<span class="subj">{{ i.subject }}:</span> {% endif %}{{ i.statement }}</p>
+  <p class="stmt">{% if i.subject %}<span class="subj">{{ i.subject }}:</span> {% endif %}{{ i.statement }}</p>
   {% if i.receipts %}
   <details class="receipts"><summary>Receipt{% if i.receipts|length > 1 %}s ({{ i.receipts|length }} sources){% endif %}</summary>
     <ul>{% for r in i.receipts %}{{ ui.receipt_row(r) }}{% endfor %}</ul></details>
@@ -75,7 +75,13 @@
 
 {% for key, title in SECTIONS %}
 <section id="{{ key }}" class="hsection">
-  <h2>{{ title }}</h2>
+  {% set primary = key in ('start_here', 'plan') %}
+  {% if key == 'questions' %}{% set n = (h.missing|length) + ((h.sections.get(key) or [])|length) %}
+  {% elif key == 'timeline' %}{% set n = h.timeline|length %}
+  {% elif key == 'plan' %}{% set n = h.plan.values()|map('length')|sum %}
+  {% else %}{% set n = (h.sections.get(key) or [])|length %}{% endif %}
+  <details class="hdetails" {% if primary %}open{% endif %}>
+  <summary><h2>{{ title }} <small class="muted">({{ n }})</small>{% if key in acks %} <span class="chip l-verified">Acknowledged</span>{% endif %}</h2></summary>
   {% if key == 'plan' %}
     {% for name, rows in h.plan.items() %}{% if rows %}
     <h3>{{ name }}</h3>
@@ -109,6 +115,7 @@
     {% if rows %}<ul class="lines">{% for i in rows %}{{ line(i) }}{% endfor %}</ul>{% else %}<p class="muted">Nothing here for your role.</p>{% endif %}
   {% endif %}
   {{ sectionfoot(key) }}
+  </details>
 </section>
 {% endfor %}
 {% endif %}
