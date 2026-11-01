@@ -1,0 +1,1089 @@
+{
+ "_note": "Raw claims output by Qwen2.5-7B (4-bit, local, temperature 0) during the planning round, 30 Oct 2026, over the synthetic CampusConnect dataset. Verdict fields removed: this file holds model output only, and everything is re-verified by the product.",
+ "model": "qwen2.5:7b",
+ "claims": [
+  {
+   "source": "WA",
+   "type": "decision",
+   "subject": "attendance method",
+   "statement": "For attendance we're going with QR codes, not NFC.",
+   "value": "QR codes",
+   "evidence": [
+    {
+     "id": "WA-0003",
+     "quote": "For attendance we're going with QR codes, not NFC. Half the first years have phones without NFC, we checked during orientation"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "decision",
+   "subject": "login method",
+   "statement": "For login let's just use Google Sign-In for now.",
+   "value": "Google Sign-In",
+   "evidence": [
+    {
+     "id": "WA-0005",
+     "quote": "For login let's just use Google Sign-In for now, it's the fastest"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "decision",
+   "subject": "backend migration",
+   "statement": "we're moving the backend from Firebase to Supabase.",
+   "value": "Supabase",
+   "evidence": [
+    {
+     "id": "WA-0010",
+     "quote": "Summary of today's sync: we're moving the backend from Firebase to Supabase. Postgres also lets us build the attendance reports the HoDs keep asking for."
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "owner",
+   "subject": "login redirect bug fix",
+   "statement": "I started the login redirect bug fix, it's on the board.",
+   "value": "Arjun",
+   "evidence": [
+    {
+     "id": "WA-0007",
+     "quote": "I started the login redirect bug fix, it's on the board"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "owner",
+   "subject": "backend migration",
+   "statement": "Kabir owns the migration.",
+   "value": "Kabir",
+   "evidence": [
+    {
+     "id": "WA-0010",
+     "quote": "Summary of today's sync: we're moving the backend from Firebase to Supabase. Postgres also lets us build the attendance reports the HoDs keep asking for. Kabir owns the migration"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "open_question",
+   "subject": "reports part",
+   "statement": "can I help with the reports part?",
+   "value": "Meera's offer",
+   "evidence": [
+    {
+     "id": "WA-0012",
+     "quote": "can I help with the reports part?"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "owner",
+   "subject": "reports dashboard",
+   "statement": "Meera will take the reports dashboard.",
+   "value": "Meera",
+   "evidence": [
+    {
+     "id": "WA-0013",
+     "quote": "Meera take the reports dashboard"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "dependency",
+   "subject": "Firebase Cloud Messaging for push notifications",
+   "statement": "We still need Firebase Cloud Messaging after migration.",
+   "value": "needed",
+   "evidence": [
+    {
+     "id": "WA-0014",
+     "quote": "we still need Firebase Cloud Messaging for push notifications even after the migration. Supabase doesn't do push"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "status",
+   "subject": "new build deployment",
+   "statement": "The new build was deployed on Render.",
+   "value": "done",
+   "evidence": [
+    {
+     "id": "WA-0015",
+     "quote": "Deployed the new build on Render. Took a while"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "open_question",
+   "subject": "deployment process documentation",
+   "statement": "Arjun will write down the deployment process.",
+   "value": "undecided",
+   "evidence": [
+    {
+     "id": "WA-0016",
+     "quote": "how do you deploy btw?"
+    },
+    {
+     "id": "WA-0017",
+     "quote": "it's a bit manual, I'll write it down sometime"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "recurring_problem",
+   "subject": "QR attendance issues on iOS Safari",
+   "statement": "QR attendance is failing on iOS Safari again. Third time this month.",
+   "value": "failing",
+   "evidence": [
+    {
+     "id": "WA-0018",
+     "quote": "QR attendance failing on iOS Safari again. Third time this month."
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "event",
+   "subject": "login redirect issue fixed",
+   "statement": "The login redirect issue was fixed.",
+   "value": "fixed",
+   "evidence": [
+    {
+     "id": "WA-0021",
+     "quote": "closed the login redirect issue on GitHub, fixed in #33"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "decision",
+   "subject": "switch to college SSO (CAS)",
+   "statement": "We must switch to the college SSO (CAS) instead of Google Sign-In.",
+   "value": "Mandatory for all student apps from next semester by 15 Dec",
+   "evidence": [
+    {
+     "id": "WA-0022",
+     "quote": "Mr. Vikram Rao from college IT says we must switch to the college SSO (CAS) instead of Google Sign-In. Mandatory for all student apps from next semester"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "access",
+   "subject": "maps key for the venue page",
+   "statement": "The maps key for the venue page is held by Arjun.",
+   "value": "Arjun",
+   "evidence": [
+    {
+     "id": "WA-0025",
+     "quote": "here's the maps key for the venue page, don't share outside"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "contact",
+   "subject": "urgent communication",
+   "statement": "Call Arjun on +91 98450 12345 if anything is urgent.",
+   "value": "+91 98450 12345",
+   "evidence": [
+    {
+     "id": "WA-0036",
+     "quote": "if anything is urgent and I'm not responding, call me on +91 98450 12345"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "event",
+   "subject": "Kabir's absence",
+   "statement": "Kabir will be out from 3 Nov to 17 Nov due to knee surgery.",
+   "value": "3 Nov to 17 Nov",
+   "evidence": [
+    {
+     "id": "WA-0028",
+     "quote": "heads up, I'll be out from 3 Nov to 17 Nov, knee surgery. Will be offline"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "open_question",
+   "subject": "attendance data retention",
+   "statement": "We need to check with Sana / Prof Narayanan about keeping attendance data after the semester ends.",
+   "value": "Sana / Prof Narayanan",
+   "evidence": [
+    {
+     "id": "WA-0032",
+     "quote": "need to check with Sana / Prof Narayanan"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "risk",
+   "subject": "Supabase free tier inactivity",
+   "statement": "Supabase free tier could pause the project after a week of inactivity over the Dec break.",
+   "value": "Dec break",
+   "evidence": [
+    {
+     "id": "WA-0033",
+     "quote": "Supabase free tier pauses the project after a week of inactivity. Over the Dec break that could take the app down"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "dependency",
+   "subject": "push notifications PR #42",
+   "statement": "PR #42 for push notifications is blocked due to FCM rate limiting test sends.",
+   "value": "blocked",
+   "evidence": [
+    {
+     "id": "WA-0035",
+     "quote": "PR #42 for push notifications is up but blocked, FCM is rate limiting our test sends. need to batch them"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "access",
+   "subject": "Android signing key",
+   "statement": "Riya needs the Android signing key to push the release for the poster QR update.",
+   "value": "Arjun (on his laptop)",
+   "evidence": [
+    {
+     "id": "WA-0037",
+     "quote": "Who has the Android signing key? I need to push the release for the poster QR update"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "risk",
+   "subject": "Weekly backups",
+   "statement": "The Supabase plan does not include weekly backups, and the cron job was never actually enabled.",
+   "value": "No backups right now",
+   "evidence": [
+    {
+     "id": "WA-0039",
+     "quote": "ok bad news, I checked: weekly backups were never actually enabled. The cron job was configured but our Supabase plan doesn't include it. We have NO backups right now"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "event",
+   "subject": "Arjun's departure",
+   "statement": "Arjun is leaving on 15 Nov for his internship.",
+   "value": "15 Nov",
+   "evidence": [
+    {
+     "id": "WA-0043",
+     "quote": "guys, as you know I'm leaving on 15 Nov for my internship. Meera will take over as tech lead"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "next_action",
+   "subject": "Fixing backups",
+   "statement": "Arjun needs to fix the backup issue before he leaves.",
+   "value": "before Arjun leaves",
+   "evidence": [
+    {
+     "id": "WA-0040",
+     "quote": "ok that's a risk. need to fix before I leave"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "status",
+   "subject": "CAS credentials issuance",
+   "statement": "CAS credentials will be issued after the security audit, pushing SSO implementation to 10 Jan.",
+   "value": "blocked (until security audit)",
+   "evidence": [
+    {
+     "id": "WA-0041",
+     "quote": "Update from Vikram Rao (IT): CAS credentials will only be issued after their security audit, so SSO is pushed to 10 Jan"
+    }
+   ]
+  },
+  {
+   "source": "WA",
+   "type": "contact",
+   "subject": "Tech lead transition",
+   "statement": "Meera will take over as tech lead.",
+   "value": "Meera",
+   "evidence": [
+    {
+     "id": "WA-0043",
+     "quote": "guys, as you know I'm leaving on 15 Nov for my internship. Meera will take over as tech lead"
+    }
+   ]
+  },
+  {
+   "source": "GH",
+   "type": "decision",
+   "subject": "library opening hours",
+   "statement": "The library will open at 8 am because exam season starts.",
+   "value": "8 am",
+   "evidence": [
+    {
+     "id": "",
+     "quote": ""
+    }
+   ]
+  },
+  {
+   "source": "GH",
+   "type": "owner",
+   "subject": "database migration",
+   "statement": "Moves auth data, events and attendance tables to Supabase Postgres.",
+   "value": "kabirs",
+   "evidence": [
+    {
+     "id": "GH-31",
+     "quote": "PR #31 'Migrate backend from Firebase to Supabase' (state: merged): Moves auth data, events and attendance tables to Supabase Postgres."
+    }
+   ]
+  },
+  {
+   "source": "GH",
+   "type": "status",
+   "subject": "Firebase read quota issue",
+   "statement": "Attendance scanning stopped for about 40 minutes on fest day because the Firebase free tier read quota was exceeded at 11:00.",
+   "value": "blocked",
+   "evidence": [
+    {
+     "id": "GH-28",
+     "quote": "Attendance scanning stopped for about 40 minutes on fest day because the Firebase free tier read quota was exceeded at 11:00."
+    }
+   ]
+  },
+  {
+   "source": "GH",
+   "type": "risk",
+   "subject": "Firebase read quota issue",
+   "statement": "Free tier is 50k reads/day and fest day blew through it before noon. We need a database that can handle spikes.",
+   "value": "need for database with higher read capacity",
+   "evidence": [
+    {
+     "id": "GH-28c1",
+     "quote": "Free tier is 50k reads/day and fest day blew through it before noon. We need a database that can handle spikes."
+    }
+   ]
+  },
+  {
+   "source": "GH",
+   "type": "dependency",
+   "subject": "database migration",
+   "statement": "Push notifications stay on Firebase Cloud Messaging because Supabase has no push service.",
+   "value": "Firebase Cloud Messaging for push notifications",
+   "evidence": [
+    {
+     "id": "GH-31c1",
+     "quote": "Approving. Reason for the move is in #28 and the 12 Sep tech sync notes: quota limits, and we need SQL for the HoD attendance reports."
+    }
+   ]
+  },
+  {
+   "source": "GH",
+   "type": "open_question",
+   "subject": "QR scan issue on iOS Safari",
+   "statement": "On iPhones using Safari the QR scanner shows a black screen and attendance cannot be marked.",
+   "value": "unknown root cause",
+   "evidence": [
+    {
+     "id": "GH-38",
+     "quote": "On iPhones using Safari the QR scanner shows a black screen and attendance cannot be marked."
+    }
+   ]
+  },
+  {
+   "source": "GH",
+   "type": "open_question",
+   "subject": "QR scan issue on iOS Safari",
+   "statement": "Happened again at the workshop, third time this month. Workaround: clear Safari cache or use Chrome. Root cause unknown, I suspect camera permission caching.",
+   "value": "unknown root cause",
+   "evidence": [
+    {
+     "id": "GH-38c1",
+     "quote": "Happened again at the workshop, third time this month. Workaround: clear Safari cache or use Chrome. Root cause unknown, I suspect camera permission caching."
+    }
+   ]
+  },
+  {
+   "source": "GH",
+   "type": "decision",
+   "subject": "FCM rate limiting",
+   "statement": "Need to batch the sends before this can merge.",
+   "value": "batch the sends",
+   "evidence": [
+    {
+     "id": "GH-42c1",
+     "quote": "Blocked: FCM is rate limiting our bulk test sends. Need to batch the sends before this can merge."
+    }
+   ]
+  },
+  {
+   "source": "GH",
+   "type": "deadline",
+   "subject": "Target for CAS integration",
+   "statement": "New target is 10 Jan.",
+   "value": "2026-01-10",
+   "evidence": [
+    {
+     "id": "GH-45c1",
+     "quote": "New target is 10 Jan."
+    }
+   ]
+  },
+  {
+   "source": "GH",
+   "type": "owner",
+   "subject": "CAS credentials issuance",
+   "statement": "IT will issue CAS credentials.",
+   "value": "College IT",
+   "evidence": [
+    {
+     "id": "GH-45c1",
+     "quote": "IT will issue CAS credentials only after their security audit."
+    }
+   ]
+  },
+  {
+   "source": "GH",
+   "type": "contact",
+   "subject": "CAS integration contact",
+   "statement": "Contact: Vikram Rao (vikram.rao@college.edu).",
+   "value": "Vikram Rao (vikram.rao@college.edu)",
+   "evidence": [
+    {
+     "id": "GH-45",
+     "quote": "Contact: Vikram Rao (vikram.rao@college.edu)"
+    }
+   ]
+  },
+  {
+   "source": "GH",
+   "type": "dependency",
+   "subject": "CAS credentials issuance dependency",
+   "statement": "IT will issue CAS credentials only after their security audit.",
+   "value": "security audit completion",
+   "evidence": [
+    {
+     "id": "GH-45c1",
+     "quote": "IT will issue CAS credentials only after their security audit."
+    }
+   ]
+  },
+  {
+   "source": "GH",
+   "type": "open_question",
+   "subject": "Batching strategy",
+   "statement": "Need to batch the sends before this can merge.",
+   "value": "batching strategy",
+   "evidence": [
+    {
+     "id": "GH-42c1",
+     "quote": "Blocked: FCM is rate limiting our bulk test sends. Need to batch the sends before this can merge."
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "deadline",
+   "subject": "SSO login with college portal (CAS)",
+   "statement": "The SSO login with college portal (CAS) is due by 2026-12-15.",
+   "value": "2026-12-15",
+   "evidence": [
+    {
+     "id": "TR-c1",
+     "quote": "due: 2026-12-15"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "status",
+   "subject": "SSO login with college portal (CAS)",
+   "statement": "The SSO login with college portal (CAS) is in progress.",
+   "value": "in_progress",
+   "evidence": [
+    {
+     "id": "TR-c1",
+     "quote": "Card 'SSO login with college portal (CAS)' is in list 'In Progress'"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "owner",
+   "subject": "SSO login with college portal (CAS)",
+   "statement": "Arjun Mehta is responsible for the SSO login with college portal (CAS).",
+   "value": "Arjun Mehta",
+   "evidence": [
+    {
+     "id": "TR-c1",
+     "quote": "members: Arjun Mehta"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "deadline",
+   "subject": "Supabase migration",
+   "statement": "The Supabase migration is due by 2026-10-10.",
+   "value": "2026-10-10",
+   "evidence": [
+    {
+     "id": "TR-c2",
+     "quote": "due: 2026-10-10"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "status",
+   "subject": "Supabase migration",
+   "statement": "The Supabase migration is completed.",
+   "value": "done",
+   "evidence": [
+    {
+     "id": "TR-c2",
+     "quote": "Card 'Supabase migration' is in list 'Done'"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "owner",
+   "subject": "Supabase migration",
+   "statement": "Kabir Shah is responsible for the Supabase migration.",
+   "value": "Kabir Shah",
+   "evidence": [
+    {
+     "id": "TR-c2",
+     "quote": "members: Kabir Shah"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "deadline",
+   "subject": "Reports dashboard for HoDs",
+   "statement": "The Reports dashboard for HoDs is due by 2026-11-25.",
+   "value": "2026-11-25",
+   "evidence": [
+    {
+     "id": "TR-c3",
+     "quote": "due: 2026-11-25"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "status",
+   "subject": "Reports dashboard for HoDs",
+   "statement": "The Reports dashboard for HoDs is in progress.",
+   "value": "in_progress",
+   "evidence": [
+    {
+     "id": "TR-c3",
+     "quote": "Card 'Reports dashboard for HoDs' is in list 'In Progress'"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "owner",
+   "subject": "Reports dashboard for HoDs",
+   "statement": "Meera Iyer is responsible for the Reports dashboard for HoDs.",
+   "value": "Meera Iyer",
+   "evidence": [
+    {
+     "id": "TR-c3",
+     "quote": "members: Meera Iyer"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "open_question",
+   "subject": "Fix login redirect bug",
+   "statement": "The status of the Fix login redirect bug is undecided.",
+   "value": "in_progress",
+   "evidence": [
+    {
+     "id": "TR-c4",
+     "quote": "Card 'Fix login redirect bug' is in list 'In Progress'"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "owner",
+   "subject": "Fix login redirect bug",
+   "statement": "Arjun Mehta is responsible for the Fix login redirect bug.",
+   "value": "Arjun Mehta",
+   "evidence": [
+    {
+     "id": "TR-c4",
+     "quote": "members: Arjun Mehta"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "deadline",
+   "subject": "Renew domain campusconnect.in",
+   "statement": "The renewal of the domain campusconnect.in is due by 2026-11-20.",
+   "value": "2026-11-20",
+   "evidence": [
+    {
+     "id": "TR-c5",
+     "quote": "due: 2026-11-20"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "status",
+   "subject": "Renew domain campusconnect.in",
+   "statement": "The renewal of the domain campusconnect.in is to do.",
+   "value": "todo",
+   "evidence": [
+    {
+     "id": "TR-c5",
+     "quote": "Card 'Renew domain campusconnect.in' is in list 'To Do'"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "owner",
+   "subject": "Renew domain campusconnect.in",
+   "statement": "Arjun Mehta is responsible for the renewal of the domain campusconnect.in.",
+   "value": "Arjun Mehta",
+   "evidence": [
+    {
+     "id": "TR-c5",
+     "quote": "members: Arjun Mehta"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "deadline",
+   "subject": "Hackfest poster + UI kit",
+   "statement": "The Hackfest poster + UI kit is due by 2026-11-05.",
+   "value": "2026-11-05",
+   "evidence": [
+    {
+     "id": "TR-c6",
+     "quote": "due: 2026-11-05"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "status",
+   "subject": "Hackfest poster + UI kit",
+   "statement": "The Hackfest poster + UI kit is in progress.",
+   "value": "in_progress",
+   "evidence": [
+    {
+     "id": "TR-c6",
+     "quote": "Card 'Hackfest poster + UI kit' is in list 'In Progress'"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "owner",
+   "subject": "Hackfest poster + UI kit",
+   "statement": "Riya Thomas is responsible for the Hackfest poster + UI kit.",
+   "value": "Riya Thomas",
+   "evidence": [
+    {
+     "id": "TR-c6",
+     "quote": "members: Riya Thomas"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "open_question",
+   "subject": "Push notifications",
+   "statement": "The status of the Push notifications is undecided.",
+   "value": "in_progress",
+   "evidence": [
+    {
+     "id": "TR-c7",
+     "quote": "Card 'Push notifications' is in list 'In Progress'"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "owner",
+   "subject": "Push notifications",
+   "statement": "Kabir Shah is responsible for the Push notifications.",
+   "value": "Kabir Shah",
+   "evidence": [
+    {
+     "id": "TR-c7",
+     "quote": "members: Kabir Shah"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "deadline",
+   "subject": "Sponsor logo on splash screen",
+   "statement": "The sponsor logo on the splash screen is due by 2026-11-30.",
+   "value": "2026-11-30",
+   "evidence": [
+    {
+     "id": "TR-c8",
+     "quote": "due: 2026-11-30"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "status",
+   "subject": "Sponsor logo on splash screen",
+   "statement": "The sponsor logo on the splash screen is to do.",
+   "value": "todo",
+   "evidence": [
+    {
+     "id": "TR-c8",
+     "quote": "Card 'Sponsor logo on splash screen' is in list 'To Do'"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "owner",
+   "subject": "Sponsor logo on splash screen",
+   "statement": "Arjun Mehta is responsible for the sponsor logo on the splash screen.",
+   "value": "Arjun Mehta",
+   "evidence": [
+    {
+     "id": "TR-c8",
+     "quote": "members: Arjun Mehta"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "status",
+   "subject": "Set up DB backups",
+   "statement": "The set up of DB backups is completed.",
+   "value": "done",
+   "evidence": [
+    {
+     "id": "TR-c9",
+     "quote": "Card 'Set up DB backups' is in list 'Done'"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "owner",
+   "subject": "Set up DB backups",
+   "statement": "Kabir Shah is responsible for the set up of DB backups.",
+   "value": "Kabir Shah",
+   "evidence": [
+    {
+     "id": "TR-c9",
+     "quote": "members: Kabir Shah"
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "contact",
+   "subject": "SSO login with college portal (CAS)",
+   "statement": "Contact Vikram Rao for the SSO login with college portal (CAS).",
+   "value": "Vikram Rao",
+   "evidence": [
+    {
+     "id": "TR-c1",
+     "quote": "Contact Vikram Rao."
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "status",
+   "subject": "Target 15 Dec agreed with IT",
+   "statement": "The target of the SSO login with college portal (CAS) is to be completed by 2026-12-15.",
+   "value": "in_progress",
+   "evidence": [
+    {
+     "id": "TR-a1",
+     "quote": "Target 15 Dec agreed with IT."
+    }
+   ]
+  },
+  {
+   "source": "TR",
+   "type": "status",
+   "subject": "Weekly backup cron configured",
+   "statement": "The weekly backup cron for the DB is configured.",
+   "value": "done",
+   "evidence": [
+    {
+     "id": "TR-a2",
+     "quote": "Weekly backup cron configured."
+    }
+   ]
+  },
+  {
+   "source": "N1",
+   "type": "decision",
+   "subject": "backend migration",
+   "statement": "Move the backend from Firebase to Supabase.",
+   "value": "Supabase",
+   "evidence": [
+    {
+     "id": "N1-02",
+     "quote": "Move the backend from Firebase to Supabase. Why: the Firebase free-tier read quota was exceeded on fest day and scanning stopped for about 40 minutes; Postgres gives us SQL for the attendance reports the HoDs want."
+    }
+   ]
+  },
+  {
+   "source": "N1",
+   "type": "decision",
+   "subject": "keep Firebase Cloud Messaging",
+   "statement": "Keep Firebase Cloud Messaging for push notifications.",
+   "value": "Firebase Cloud Messaging",
+   "evidence": [
+    {
+     "id": "N1-03",
+     "quote": "Keep Firebase Cloud Messaging for push notifications."
+    }
+   ]
+  },
+  {
+   "source": "N1",
+   "type": "decision",
+   "subject": "hosting provider",
+   "statement": "Hosting stays on Render.",
+   "value": "Render",
+   "evidence": [
+    {
+     "id": "N1-04",
+     "quote": "Hosting stays on Render."
+    }
+   ]
+  },
+  {
+   "source": "N1",
+   "type": "owner",
+   "subject": "Supabase migration",
+   "statement": "Kabir is responsible for the Supabase migration.",
+   "value": "Kabir",
+   "evidence": [
+    {
+     "id": "N1-05",
+     "quote": "Kabir: Supabase migration (target 10 Oct)"
+    }
+   ]
+  },
+  {
+   "source": "N1",
+   "type": "owner",
+   "subject": "reports dashboard",
+   "statement": "Meera is responsible for the reports dashboard.",
+   "value": "Meera",
+   "evidence": [
+    {
+     "id": "N1-06",
+     "quote": "Meera: reports dashboard"
+    }
+   ]
+  },
+  {
+   "source": "N1",
+   "type": "owner",
+   "subject": "QR scan screen redesign",
+   "statement": "Riya is responsible for the QR scan screen redesign.",
+   "value": "Riya",
+   "evidence": [
+    {
+     "id": "N1-07",
+     "quote": "Riya: QR scan screen redesign"
+    }
+   ]
+  },
+  {
+   "source": "N1",
+   "type": "open_question",
+   "subject": "data retention policy",
+   "statement": "The data retention policy for attendance records was not discussed and is parked.",
+   "value": "not discussed/parked",
+   "evidence": [
+    {
+     "id": "N1-08",
+     "quote": "Data retention policy for attendance records was not discussed and is parked."
+    }
+   ]
+  },
+  {
+   "source": "N2",
+   "type": "open_question",
+   "subject": "iOS Safari QR issue",
+   "statement": "The root cause of the iOS Safari QR issue (#38) is unknown.",
+   "value": "unknown",
+   "evidence": [
+    {
+     "id": "N2-03",
+     "quote": "The iOS Safari QR issue (#38) is still open and the root cause is unknown."
+    }
+   ]
+  },
+  {
+   "source": "N2",
+   "type": "next_action",
+   "subject": "Reports dashboard feedback",
+   "statement": "Meera needs to get feedback from HoDs on the first version of the reports dashboard.",
+   "value": "get feedback from HoDs",
+   "evidence": [
+    {
+     "id": "N2-02",
+     "quote": "Meera has a first version; it needs feedback from the HoDs."
+    }
+   ]
+  },
+  {
+   "source": "N2",
+   "type": "event",
+   "subject": "Kabir's unavailability",
+   "statement": "Kabir is unavailable from 3 Nov to 17 Nov.",
+   "value": "2026-11-03 to 2026-11-17",
+   "evidence": [
+    {
+     "id": "N2-04",
+     "quote": "Kabir is unavailable from 3 Nov to 17 Nov."
+    }
+   ]
+  },
+  {
+   "source": "N2",
+   "type": "dependency",
+   "subject": "Push notifications PR #42",
+   "statement": "Push notifications PR #42 is waiting on the batching fix.",
+   "value": "waiting on batching fix",
+   "evidence": [
+    {
+     "id": "N2-05",
+     "quote": "Push notifications PR #42 is waiting on the batching fix."
+    }
+   ]
+  },
+  {
+   "source": "N2",
+   "type": "decision",
+   "subject": "Freezing new features",
+   "statement": "Decision: freeze new features after 1 Dec until the end-semester exams finish.",
+   "value": "freeze new features after 1 Dec until end-semester exams finish",
+   "evidence": [
+    {
+     "id": "N2-06",
+     "quote": "Decision: freeze new features after 1 Dec until the end-semester exams finish."
+    }
+   ]
+  },
+  {
+   "source": "N3",
+   "type": "decision",
+   "subject": "TechNova sponsorship logo appearance deadline",
+   "statement": "The TechNova logo must appear on the CampusConnect splash screen by 30 Nov.",
+   "value": "30 Nov",
+   "evidence": [
+    {
+     "id": "N3-02",
+     "quote": "Condition: the TechNova logo must appear on the CampusConnect splash screen by 30 Nov."
+    }
+   ]
+  },
+  {
+   "source": "N3",
+   "type": "owner",
+   "subject": "TechNova sponsorship contact",
+   "statement": "Sponsor contact: Ananya (TechNova), +91 99000 55511.",
+   "value": "Ananya, +91 99000 55511",
+   "evidence": [
+    {
+     "id": "N3-02",
+     "quote": "Sponsor contact: Ananya (TechNova), +91 99000 55511."
+    }
+   ]
+  },
+  {
+   "source": "N3",
+   "type": "access",
+   "subject": "club Google account admin password",
+   "statement": "The admin password for the club Google account was reset to DevCircle@2026.",
+   "value": "DevCircle@2026",
+   "evidence": [
+    {
+     "id": "N3-04",
+     "quote": "The admin password for the club Google account was reset to DevCircle@2026."
+    }
+   ]
+  },
+  {
+   "source": "N3",
+   "type": "owner",
+   "subject": "password manager update",
+   "statement": "Dev will move it into the password manager.",
+   "value": "Dev",
+   "evidence": [
+    {
+     "id": "N3-04",
+     "quote": "Dev will move it into the password manager."
+    }
+   ]
+  },
+  {
+   "source": "N3",
+   "type": "event",
+   "subject": "Arjun's departure",
+   "statement": "Arjun leaves on 15 Nov.",
+   "value": "15 Nov",
+   "evidence": [
+    {
+     "id": "N3-05",
+     "quote": "Arjun leaves on 15 Nov."
+    }
+   ]
+  },
+  {
+   "source": "N3",
+   "type": "decision",
+   "subject": "next tech lead proposal and approval",
+   "statement": "Meera is proposed as the next tech lead; approved.",
+   "value": "approved",
+   "evidence": [
+    {
+     "id": "N3-05",
+     "quote": "Meera is proposed as the next tech lead; approved."
+    }
+   ]
+  }
+ ]
+}

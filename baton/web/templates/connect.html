@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Connect · Baton{% endblock %}
+{% block content %}
+<h1>Connect authorised sources</h1>
+<p class="lead">{{ total }} records from {{ sources|length }} source(s) you may see. Each source records who authorised it and who may see what comes from it.</p>
+{% include "_job.html" %}
+{% if run_stats.extractor %}
+<p class="muted"><small>Claims extracted by: <strong>{{ run_stats.extractor }}</strong>.
+{% if project.is_demo %}Demo mode replays a recorded run of a real LLM, so no API key is needed. All the checks after extraction run live.{% elif 'rules' in run_stats.extractor or 'Basic' in run_stats.extractor %}No AI model is configured, so keyword rules are used. They find far less than an LLM.{% endif %}</small></p>
+{% endif %}
+
+<div class="tablewrap"><table>
+  <thead><tr><th>Source</th><th>Records</th><th>Who may see it</th><th>Authorised by</th><th>Skipped</th></tr></thead>
+  <tbody>
+  {% for x in sources %}
+    <tr>
+      <td><a href="/p/{{ project.id }}/sources/{{ x.id }}">{{ x.title }}</a></td>
+      <td>{{ counts[x.id] }}</td>
+      <td><span class="chip aud">{{ AUDIENCE_LABELS.get(x.audience, x.audience) }}</span></td>
+      <td>{{ x.authorised_by }}{% if x.consent_note %}<br><small class="muted">{{ x.consent_note }}</small>{% endif %}</td>
+      <td>
+        {% if x.skipped %}
+        <details><summary>{{ x.skipped|length }} line(s)</summary>
+          <ul class="skips">{% for k in x.skipped %}<li><small>{{ k.reason }}{% if k.excerpt %}: {{ k.excerpt }}{% endif %}</small></li>{% endfor %}</ul>
+        </details>
+        {% else %}<span class="muted">none</span>{% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5" class="muted">No sources yet. Add one below.</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% if hidden %}<p class="muted"><small>{{ hidden }} more source(s) exist that you are not cleared to see.</small></p>{% endif %}
+
+{% if viewer and viewer.role in ('reviewer', 'leaver') %}
+<form method="post" action="/p/{{ project.id }}/run" class="runbar">
+  <button type="submit" {% if not sources or (job and job.state in ('queued','running')) %}disabled{% endif %}>{% if job %}Run again{% else %}Build the claim ledger{% endif %}</button>
+  {% if job and job.state == 'done' %}<small class="muted">Running again replaces the current claims, conflicts and open questions. Approved versions are kept.</small>{% endif %}
+</form>
+
+<div class="flash warn" role="note"><strong>Before you upload:</strong> add only exports you are allowed to make, and don't upload confidential workplace material without permission. Baton masks credentials it recognises, but it can miss some.</div>
+
+<div class="grid2">
+  <article>
+    <h2>Upload an export</h2>
+    <form method="post" action="/p/{{ project.id }}/sources/upload" enctype="multipart/form-data">
+      <label>Type
+        <select name="kind">
+          <option value="whatsapp">WhatsApp "Export chat" (.txt)</option>
+          <option value="trello">Trello board (.json)</option>
+          <option value="github">GitHub export (.json)</option>
+          <option value="notes">Meeting notes (.md, .txt, .docx)</option>
+        </select>
+      </label>
+      <label>File <input type="file" name="file" required></label>
+      <label>Who may see what comes from it?
+        <select name="audience">{% for k, v in AUDIENCES %}<option value="{{ k }}" {% if k == 'tech-team' %}selected{% endif %}>{{ v }}</option>{% endfor %}</select>
+      </label>
+      <label>Consent note (optional) <input name="consent" maxlength="300" placeholder="e.g. Group agreed on 3 Nov"></label>
+      <label class="check"><input type="checkbox" name="authorised" value="1" required> I'm allowed to add this source.</label>
+      <button type="submit" class="secondary">Upload</button>
+    </form>
+  </article>
+  <article>
+    <h2>Add a GitHub repository</h2>
+    <form method="post" action="/p/{{ project.id }}/sources/github">
+      <label>Repository <input name="url" required placeholder="https://github.com/owner/name"></label>
+      <label>Read-only token (optional, for private repositories)
+        <input type="password" name="token" autocomplete="off"><small>Used once and never stored. Never give Baton an admin token.</small>
+      </label>
+      <label>Who may see what comes from it?
+        <select name="audience">{% for k, v in AUDIENCES %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select>
+      </label>
+      <label>Consent note (optional) <input name="consent" maxlength="300"></label>
+      <label class="check"><input type="checkbox" name="authorised" value="1" required> I'm allowed to add this source.</label>
+      <button type="submit" class="secondary">Fetch repository</button>
+    </form>
+  </article>
+</div>
+{% endif %}
+
+<h2>People</h2>
+<p class="muted"><small>People are matched across sources by alias. Clearances decide what each person can ever see.</small></p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Person</th><th>Role</th><th>Also known as</th><th>Cleared for</th></tr></thead>
+  <tbody>
+  {% for m in members %}
+    <tr>
+      <td>{{ m.name }}<br><small class="muted">{{ m.title }}</small></td>
+      <td>{{ m.role }}</td>
+      <td><small>{{ m.aliases|join(', ') }}</small></td>
+      <td>
+      {% if viewer and viewer.role == 'reviewer' %}
+        <form method="post" action="/p/{{ project.id }}/members/{{ m.id }}" class="inline-checks">
+          {% for k, v in AUDIENCES %}
+          <label class="check"><input type="checkbox" name="clearances" value="{{ k }}" {% if k in m.clearances %}checked{% endif %} {% if k == 'public' %}disabled{% endif %}> {{ v }}</label>
+          {% endfor %}
+          <button type="submit" class="small secondary outline">Save</button>
+        </form>
+      {% else %}
+        {% for c in m.clearances %}<span class="chip aud">{{ AUDIENCE_LABELS.get(c, c) }}</span> {% endfor %}
+      {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

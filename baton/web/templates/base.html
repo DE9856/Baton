@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Baton{% endblock %}</title>
+<link rel="stylesheet" href="/static/pico.min.css">
+<link rel="stylesheet" href="/static/baton.css">
+<script src="/static/htmx.min.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar-in">
+    <a class="brand" href="/">Baton</a>
+    {% if project %}
+    <span class="pname">{{ project.name }}</span>
+    <form class="viewer-form" method="post" action="/p/{{ project.id }}/viewer">
+      <label for="viewer-select">Viewing as</label>
+      <input type="hidden" name="back" value="{{ request.url.path }}">
+      <select id="viewer-select" name="member_id" onchange="this.form.submit()" aria-label="Choose who you are viewing as">
+        {% for m in members %}
+        <option value="{{ m.id }}" {% if viewer and m.id == viewer.id %}selected{% endif %}>{{ m.name }}{% if m.role != 'teammate' %} ({{ m.role }}){% endif %}</option>
+        {% endfor %}
+      </select>
+      <noscript><button type="submit">Switch</button></noscript>
+    </form>
+    {% endif %}
+  </div>
+</header>
+{% if project %}
+<nav class="steps container" aria-label="Workflow steps">
+  <ol>
+    {% for key, title in STEPS %}
+    <li class="{% if step == key %}on{% endif %}">
+      <a href="/p/{{ project.id }}/{{ key }}" {% if step == key %}aria-current="page"{% endif %}>
+        <span class="num">{{ loop.index }}</span> {{ title }}
+        {% if key == 'interview' and open_q %}<span class="badge">{{ open_q }}</span>{% endif %}
+      </a>
+    </li>
+    {% endfor %}
+  </ol>
+  {% if viewer and viewer.role == 'reviewer' %}<a class="audit-link" href="/p/{{ project.id }}/audit">Audit log</a>{% endif %}
+</nav>
+{% endif %}
+<main class="container">
+  {% for m in messages %}<div class="flash {{ m.kind }}" role="status">{{ m.text }}</div>{% endfor %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="container foot">
+  <small>Baton {{ version }}. Team sky-flyers, WCC Forge 48. Sign-in is a demo stand-in: use synthetic or permitted data only. Baton may miss things; check the Missing items with your team.</small>
+</footer>
+</body>
+</html>

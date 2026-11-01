@@ -1,0 +1,149 @@
+[
+ {
+  "id": "GH-28x",
+  "record": "github: Issue #28 'Firebase read quota exceeded during fest' was closed.",
+  "kind": "a different date or number",
+  "faithful": "Issue #28 'Firebase read quota exceeded during fest' was closed on GitHub.",
+  "distorted": "Issue #28 'Firebase write quota exceeded during fest' was closed on GitHub."
+ },
+ {
+  "id": "GH-38",
+  "record": "riya-t: Issue #38 'QR scan fails on iOS Safari' (state: open): On iPhones using Safari the QR scanner shows a black screen and attendance cannot be marked.",
+  "kind": "a flipped negation (is/is not, done/not done)",
+  "faithful": "riya-t notes that Issue #38 'QR scan fails on iOS Safari' is open and describes the problem as a black screen in Safari on iPhones preventing QR scanning and attendance marking.",
+  "distorted": "riya-t notes that Issue #38 'QR scan fails on iOS Safari' is closed and describes the problem as a black screen in Safari on iPhones preventing QR scanning and attendance marking."
+ },
+ {
+  "id": "WA-0027",
+  "record": "Arjun: Riya is handling the Hackfest poster and the new UI kit",
+  "kind": "an added reason that the record does not give",
+  "faithful": "Arjun said: Riya is handling the Hackfest poster and the new UI kit.",
+  "distorted": "Arjun said: Riya is handling the Hackfest poster and the new UI kit because she has a lot of free time."
+ },
+ {
+  "id": "N3-01",
+  "record": "notes (Core committee — 3 Oct 2026): Attendees: Sana (President), Prof. R. Narayanan (Faculty coordinator), Dev (Treasurer), Arjun",
+  "kind": "a different person",
+  "faithful": "The core committee meeting on October 3, 2026, had attendees including Sana (President), Prof. R. Narayanan (Faculty coordinator), Dev (Treasurer), and Arjun.",
+  "distorted": "The core committee meeting on October 3, 2026, had attendees including Sana (President), Prof. R. Narayanan (Faculty coordinator), Dev (Treasurer), and Priya."
+ },
+ {
+  "id": "TR-c6",
+  "record": "trello: Card 'Hackfest poster + UI kit' is in list 'In Progress'; due: 2026-11-05; members: Riya Thomas; last activity: 2026-10-08.",
+  "kind": "a different date or number",
+  "faithful": "Riya Thomas is working on the 'Hackfest poster + UI kit' card, which is due on 2026-11-05 and was last updated on 2026-10-08.",
+  "distorted": "Riya Thomas is working on the 'Hackfest poster + UI kit' card, which is due on 2027-11-05 and was last updated on 2026-10-08."
+ },
+ {
+  "id": "WA-0043",
+  "record": "Arjun: guys, as you know I'm leaving on 15 Nov for my internship. Meera will take over as tech lead",
+  "kind": "a flipped negation (is/is not, done/not done)",
+  "faithful": "Arjun said that Meera will take over as tech lead when he leaves for his internship on November 15.",
+  "distorted": "Arjun said that Meera will not take over as tech lead when he leaves for his internship on November 15."
+ },
+ {
+  "id": "GH-42c1",
+  "record": "kabirs: Comment on PR #42: Blocked: FCM is rate limiting our bulk test sends. Need to batch the sends before this can merge.",
+  "kind": "an added reason that the record does not give",
+  "faithful": "kabirs: Comment on PR #42: Blocked: FCM is rate limiting our bulk test sends. Need to batch the sends before this can merge.",
+  "distorted": "kabirs: Comment on PR #42: Blocked: FCM is rate limiting our bulk test sends because of API misuse. Need to batch the sends before this can merge."
+ },
+ {
+  "id": "WA-0032",
+  "record": "Arjun: good question, no idea tbh. need to check with Sana / Prof Narayanan",
+  "kind": "a different person",
+  "faithful": "Arjun asked for help from Sana and Prof Narayanan regarding a question.",
+  "distorted": "Arjun asked for help from Ayesha and Prof Narayanan regarding a question."
+ },
+ {
+  "id": "WA-0024",
+  "record": "Arjun: yes eventually. SSO target is 15 Dec as per the board",
+  "kind": "a different date or number",
+  "faithful": "Arjun said that the SSO target is 15 Dec as per the board.",
+  "distorted": "Arjun said that the SSO target is 20 Dec as per the board."
+ },
+ {
+  "id": "WA-0039",
+  "record": "Kabir: ok bad news, I checked: weekly backups were never actually enabled. The cron job was configured but our Supabase plan doesn't include it.\nWe have NO backups right now",
+  "kind": "a flipped negation (is/is not, done/not done)",
+  "faithful": "Kabir said that weekly backups were never actually enabled because the cron job was configured but their Supabase plan doesn't include it, so they have NO backups right now.",
+  "distorted": "Kabir said that weekly backups were always enabled because the cron job was configured but their Supabase plan doesn't include it, so they do NOT have any backups right now."
+ },
+ {
+  "id": "WA-0020",
+  "record": "Arjun: Weekly DB backups are set up now on the Supabase side, Kabir configured it",
+  "kind": "an added reason that the record does not give",
+  "faithful": "Kabir configured the weekly DB backups on the Supabase side.",
+  "distorted": "Arjun configured the weekly DB backups on the Supabase side because he wanted to test his skills."
+ },
+ {
+  "id": "GH-33",
+  "record": "kabirs: PR #33 'Fix login redirect loop' (state: merged): Fixes the redirect loop by clearing the stale session cookie before redirect. Closes #29.",
+  "kind": "a different person",
+  "faithful": "kabirs: PR #33 'Fix login redirect loop' (state: merged): Fixes the redirect loop by clearing the stale session cookie before redirect. Closes #29.",
+  "distorted": "sara: PR #33 'Fix login redirect loop' (state: merged): Fixes the redirect loop by clearing the stale session cookie before redirect. Closes #29."
+ },
+ {
+  "id": "WA-0001",
+  "record": "Arjun: Welcome to the new tech group folks. CampusConnect v2 planning starts this week",
+  "kind": "a different date or number",
+  "faithful": "Arjun: Welcome to the new tech group folks. CampusConnect v2 planning starts this week",
+  "distorted": "Arjun: Welcome to the new tech group folks. CampusConnect v2 planning starts next month"
+ },
+ {
+  "id": "GH-38c1",
+  "record": "kabirs: Comment on Issue #38: Happened again at the workshop, third time this month. Workaround: clear Safari cache or use Chrome. Root cause unknown, I suspect camera permission caching.",
+  "kind": "a flipped negation (is/is not, done/not done)",
+  "faithful": "kabirs: Comment on Issue #38: Happened again at the workshop, third time this month. Workaround: clear Safari cache or use Chrome. Root cause unknown, I suspect camera permission caching.",
+  "distorted": "kabirs: Comment on Issue #38: Happened again at the workshop, third time this month. Workaround: clear Safari cache or use Chrome. Root cause known, I do not suspect camera permission caching."
+ },
+ {
+  "id": "WA-0035",
+  "record": "Kabir: PR #42 for push notifications is up but blocked, FCM is rate limiting our test sends. need to batch them",
+  "kind": "an added reason that the record does not give",
+  "faithful": "Kabir said that PR #42 for push notifications is up but blocked, as FCM is rate limiting their test sends and they need to batch them.",
+  "distorted": "Kabir said that PR #42 for push notifications is up but blocked, as FCM is rate limiting their test sends and they need to batch them because of API failures."
+ },
+ {
+  "id": "N2-05",
+  "record": "notes (Tech sync — 17 Oct 2026): Push notifications PR #42 is waiting on the batching fix.",
+  "kind": "a different person",
+  "faithful": "The note from Tech sync on October 17, 2026, states that PR #42 for push notifications is waiting on the batching fix.",
+  "distorted": "The note from Tech sync on October 17, 2026, states that PR #42 for push notifications is waiting on the caching fix."
+ },
+ {
+  "id": "N2-06",
+  "record": "notes (Tech sync — 17 Oct 2026): Decision: freeze new features after 1 Dec until the end-semester exams finish.",
+  "kind": "a different date or number",
+  "faithful": "The decision was to freeze new features after 1 Dec until the end-semester exams finish.",
+  "distorted": "The decision was to freeze new features after 15 Nov until the end-semester exams finish."
+ },
+ {
+  "id": "GH-28",
+  "record": "arjun-m: Issue #28 'Firebase read quota exceeded during fest' (state: closed): Attendance scanning stopped for about 40 minutes on fest day because the Firebase free tier read quota was exceeded at 11:00.",
+  "kind": "a flipped negation (is/is not, done/not done)",
+  "faithful": "Arjun-M reported that Issue #28 'Firebase read quota exceeded during fest' was closed because attendance scanning stopped for about 40 minutes on the festival day due to the Firebase free tier read quota being exceeded at 11:00.",
+  "distorted": "Arjun-M reported that Issue #28 'Firebase read quota exceeded during fest' was not closed because attendance scanning continued without stopping for about 40 minutes on the festival day despite the Firebase free tier read quota being exceeded at 11:00."
+ },
+ {
+  "id": "GH-31m",
+  "record": "github: PR #31 'Migrate backend from Firebase to Supabase' was merged.",
+  "kind": "an added reason that the record does not give",
+  "faithful": "The PR #31 'Migrate backend from Firebase to Supabase' was merged.",
+  "distorted": "The PR #31 'Migrate backend from Firebase to Supabase' was merged because it significantly improved performance."
+ },
+ {
+  "id": "WA-0022",
+  "record": "Arjun: Mr. Vikram Rao from college IT says we must switch to the college SSO (CAS) instead of Google Sign-In. Mandatory for all student apps from next semester",
+  "kind": "a different person",
+  "faithful": "Mr. Vikram Rao from college IT says we must switch to the college SSO (CAS) instead of Google Sign-In. Mandatory for all student apps from next semester",
+  "distorted": "Ms. Anu Sharma from college IT says we must switch to the college SSO (CAS) instead of Google Sign-In. Mandatory for all student apps from next semester"
+ },
+ {
+  "id": "TR-a2",
+  "record": "Kabir Shah: Comment on card 'Set up DB backups': Weekly backup cron configured.",
+  "kind": "a different date or number",
+  "faithful": "Kabir Shah commented on 'Set up DB backups': Weekly backup cron configured.",
+  "distorted": "Kabir Shah commented on 'Set up DB backups': Daily backup cron configured."
+ }
+]

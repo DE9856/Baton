@@ -1,0 +1,212 @@
+[
+ {
+  "id": "WA-0040",
+  "record": "Arjun: 😐 ok that's a risk. need to fix before I leave",
+  "kind": "a different person",
+  "faithful": "Arjun: 😐 ok that's a risk. need to fix before I leave",
+  "distorted": "Sofia: 😐 ok that's a risk. need to fix before I leave"
+ },
+ {
+  "id": "WA-0021",
+  "record": "Kabir: closed the login redirect issue on GitHub, fixed in #33",
+  "kind": "a different date or number",
+  "faithful": "Kabir fixed the login redirect issue on GitHub, which is recorded in #33.",
+  "distorted": "Kabir fixed the login redirect issue on GitHub, which is recorded in #43."
+ },
+ {
+  "id": "GH-29",
+  "record": "riya-t: Issue #29 'Login redirect loop after Google Sign-In' (state: closed): After signing in with Google, some users are sent back to the login page in a loop.",
+  "kind": "a flipped negation (is/is not, done/not done)",
+  "faithful": "riya-t: Issue #29 'Login redirect loop after Google Sign-In' was reported as users being sent back to the login page in a loop after signing in with Google.",
+  "distorted": "riya-t: Issue #29 'Login redirect loop after Google Sign-In' was reported as users not being sent back to the login page in a loop after signing in with Google."
+ },
+ {
+  "id": "TR-c8",
+  "record": "trello: Card 'Sponsor logo on splash screen' is in list 'To Do'; due: 2026-11-30; members: Arjun Mehta; last activity: 2026-10-03. Description: Required by the sponsor agreement.",
+  "kind": "an added reason that the record does not give",
+  "faithful": "Arjun Mehta needs to add the sponsor logo on the splash screen, which is due by November 30, 2026.",
+  "distorted": "Arjun Mehta needs to add the sponsor logo on the homepage, not the splash screen, which is due by November 30, 2026."
+ },
+ {
+  "id": "WA-0008",
+  "record": "Kabir: Fest day attendance spike killed us. Firebase free tier read quota exceeded at 11am, scanning stopped for 40 mins",
+  "kind": "a different person",
+  "faithful": "Kabir said that the festival day attendance spike caused Firebase's free tier read quota to be exceeded at 11am, resulting in scanning being halted for 40 minutes.",
+  "distorted": "Kabir said that the festival day attendance spike caused Firestore's free tier read quota to be exceeded at 11am, resulting in scanning being halted for 40 minutes."
+ },
+ {
+  "id": "WA-0009",
+  "record": "Arjun: ok that's it, we need to get off Firebase. Let's discuss at the tech sync on 12th",
+  "kind": "a different date or number",
+  "faithful": "Arjun said that they need to get off Firebase and suggested discussing it at the tech sync on the 12th.",
+  "distorted": "Arjun said that they need to get off Firebase and suggested discussing it at the tech sync on the 15th."
+ },
+ {
+  "id": "GH-45",
+  "record": "arjun-m: Issue #45 'Integrate college SSO (CAS)' (state: open): College IT mandates CAS single sign-on for all student apps from next semester, replacing Google Sign-In. Contact: Vikram Rao (vikram.rao@college.edu). Target: 15 Dec.",
+  "kind": "a flipped negation (is/is not, done/not done)",
+  "faithful": "Arjun-M mentioned that Issue #45 'Integrate college SSO (CAS)' is open and needs to be addressed by integrating CAS single sign-on for all student apps from the next semester, with a target of 15 Dec.",
+  "distorted": "Arjun-M mentioned that Issue #45 'Integrate college SSO (CAS)' is not open and needs to be addressed by integrating CAS single sign-on for all student apps from the next semester, with a target of 15 Dec."
+ },
+ {
+  "id": "WA-0014",
+  "record": "Kabir: Note: we still need Firebase Cloud Messaging for push notifications even after the migration. Supabase doesn't do push",
+  "kind": "an added reason that the record does not give",
+  "faithful": "Kabir noted that Firebase Cloud Messaging is still required for push notifications after the migration, as Supabase does not support this feature.",
+  "distorted": "Kabir noted that Firebase Cloud Messaging is still required for push notifications after the migration because it provides better security than Supabase."
+ },
+ {
+  "id": "GH-28c1",
+  "record": "kabirs: Comment on Issue #28: Free tier is 50k reads/day and fest day blew through it before noon. We need a database that can handle spikes.",
+  "kind": "a different person",
+  "faithful": "kabirs: Comment on Issue #28: Free tier is 50k reads/day and fest day blew through it before noon. We need a database that can handle spikes.",
+  "distorted": "sara: Comment on Issue #28: Free tier is 50k reads/day and fest day blew through it before noon. We need a database that can handle spikes."
+ },
+ {
+  "id": "TR-c3",
+  "record": "trello: Card 'Reports dashboard for HoDs' is in list 'In Progress'; due: 2026-11-25; members: Meera Iyer; last activity: 2026-10-17. Description: Attendance reports per department.",
+  "kind": "a different date or number",
+  "faithful": "Meera Iyer is working on the 'Reports dashboard for HoDs' card in Trello, which is due on 2026-11-25 and was last updated on 2026-10-17.",
+  "distorted": "Meera Iyer is working on the 'Reports dashboard for HoDs' card in Trello, which is due on 2026-10-25 and was last updated on 2026-10-17."
+ },
+ {
+  "id": "N2-03",
+  "record": "notes (Tech sync — 17 Oct 2026): The iOS Safari QR issue (#38) is still open and the root cause is unknown.",
+  "kind": "a flipped negation (is/is not, done/not done)",
+  "faithful": "The iOS Safari QR issue (#38) is still open and the root cause is unknown.",
+  "distorted": "The iOS Safari QR issue (#38) is not open and the root cause is known."
+ },
+ {
+  "id": "GH-42",
+  "record": "kabirs: PR #42 'Push notifications for event reminders' (state: open, labels: blocked): Adds event reminder notifications through Firebase Cloud Messaging.",
+  "kind": "an added reason that the record does not give",
+  "faithful": "Kabir mentioned that PR #42 'Push notifications for event reminders' is open and labeled as blocked, adding event reminder notifications through Firebase Cloud Messaging.",
+  "distorted": "Kabir stated that PR #42 'Push notifications for event reminders' is open and labeled as blocked because the project was delayed due to technical issues, adding event reminder notifications through Firebase Cloud Messaging."
+ },
+ {
+  "id": "WA-0031",
+  "record": "Meera: should we keep attendance data after the semester ends? some profs asked",
+  "kind": "a different person",
+  "faithful": "Meera: should we keep attendance data after the semester ends? some profs asked",
+  "distorted": "Sara: should we keep attendance data after the semester ends? some profs asked"
+ },
+ {
+  "id": "WA-0007",
+  "record": "Arjun: I started the login redirect bug fix, it's on the board",
+  "kind": "a different date or number",
+  "faithful": "Arjun said he started the login redirect bug fix, and it's on the board.",
+  "distorted": "Arjun said she started the login redirect bug fix, and it's on the board."
+ },
+ {
+  "id": "WA-0010",
+  "record": "Arjun: Summary of today's sync: we're moving the backend from Firebase to Supabase. Postgres also lets us build the attendance reports the HoDs keep asking for. Kabir owns the migration",
+  "kind": "a flipped negation (is/is not, done/not done)",
+  "faithful": "Arjun: Summary of today's sync: we're moving the backend from Firebase to Supabase. Postgres also lets us build the attendance reports the HoDs keep asking for. Kabir owns the migration.",
+  "distorted": "Arjun: Summary of today's sync: we are not moving the backend from Firebase to Supabase. Postgres also lets us build the attendance reports the HoDs keep asking for. Kabir owns the migration."
+ },
+ {
+  "id": "GH-31",
+  "record": "kabirs: PR #31 'Migrate backend from Firebase to Supabase' (state: merged): Moves auth data, events and attendance tables to Supabase Postgres. Push notifications stay on Firebase Cloud Messaging because Supabase has no push service. Closes #28.",
+  "kind": "an added reason that the record does not give",
+  "faithful": "kabirs: PR #31 'Migrate backend from Firebase to Supabase' (state: merged) moves auth data, events and attendance tables to Supabase Postgres while keeping push notifications on Firebase Cloud Messaging because Supabase lacks a push service. This resolves issue #28.",
+  "distorted": "kabirs: PR #31 'Migrate backend from Firebase to Supabase' (state: merged) moves auth data, events and attendance tables to Supabase Postgres while keeping push notifications on Firebase Cloud Messaging because the project's leader prefers it. This resolves issue #28."
+ },
+ {
+  "id": "GH-29x",
+  "record": "github: Issue #29 'Login redirect loop after Google Sign-In' was closed.",
+  "kind": "a different person",
+  "faithful": "Issue #29 'Login redirect loop after Google Sign-In' was closed in the GitHub repository.",
+  "distorted": "Issue #29 'Login redirect loop after Facebook Sign-In' was closed in the GitHub repository."
+ },
+ {
+  "id": "N2-02",
+  "record": "notes (Tech sync — 17 Oct 2026): Reports dashboard: Meera has a first version; it needs feedback from the HoDs.",
+  "kind": "a different date or number",
+  "faithful": "Meera has completed a first version of the reports dashboard and it needs feedback from the HoDs.",
+  "distorted": "Meera has completed a first version of the reports dashboard and it needs feedback from the Deans, as per the notes on Tech sync — 17 Oct 2026."
+ },
+ {
+  "id": "WA-0033",
+  "record": "Kabir: Supabase free tier pauses the project after a week of inactivity. Over the Dec break that could take the app down",
+  "kind": "a flipped negation (is/is not, done/not done)",
+  "faithful": "Kabir: Supabase free tier pauses the project after a week of inactivity. Over the Dec break that could take the app down",
+  "distorted": "Kabir: Supabase free tier does not pause the project after a week of inactivity. Over the Dec break that could take the app down"
+ },
+ {
+  "id": "TR-c2",
+  "record": "trello: Card 'Supabase migration' is in list 'Done'; due: 2026-10-10; members: Kabir Shah; last activity: 2026-10-10. Description: Move backend off Firebase.",
+  "kind": "an added reason that the record does not give",
+  "faithful": "Kabir Shah completed the 'Supabase migration' card on Trello, which was moved to the 'Done' list and marked as complete on 2026-10-10.",
+  "distorted": "Kabir Shah completed the 'Supabase migration' card on Trello because it improved the app's security features, moving it to the 'Done' list and marking it as complete on 2026-10-10."
+ },
+ {
+  "id": "WA-0037",
+  "record": "Riya: Who has the Android signing key? I need to push the release for the poster QR update",
+  "kind": "a different person",
+  "faithful": "Riya asked who has the Android signing key because she needs to push the release for the poster QR update.",
+  "distorted": "Sakshi asked who has the Android signing key because she needs to push the release for the poster QR update."
+ },
+ {
+  "id": "TR-c4",
+  "record": "trello: Card 'Fix login redirect bug' is in list 'In Progress'; due: none; members: Arjun Mehta; last activity: 2026-08-20.",
+  "kind": "a different date or number",
+  "faithful": "Arjun Mehta is working on fixing the login redirect bug in Trello, and the last activity was recorded on 2026-08-20.",
+  "distorted": "Arjun Mehta is working on fixing the login redirect bug in Trello, and the last activity was recorded on 2027-08-20."
+ },
+ {
+  "id": "WA-0005",
+  "record": "Arjun: For login let's just use Google Sign-In for now, it's the fastest",
+  "kind": "a flipped negation (is/is not, done/not done)",
+  "faithful": "Arjun: For login let's just use Google Sign-In for now, it's the fastest.",
+  "distorted": "Arjun: For login let's just use Google Sign-In for now, it is not the fastest."
+ },
+ {
+  "id": "N1-08",
+  "record": "notes (Tech sync — 12 Sep 2026 > Parked): Data retention policy for attendance records was not discussed and is parked.",
+  "kind": "an added reason that the record does not give",
+  "faithful": "The data retention policy for attendance records was not discussed and is parked.",
+  "distorted": "The data retention policy for attendance records was not discussed and is parked because of budget constraints."
+ },
+ {
+  "id": "WA-0038",
+  "record": "Arjun: I have it on my laptop. we should move it somewhere safe",
+  "kind": "a different person",
+  "faithful": "Arjun: I have it on my laptop. We should move it somewhere safe",
+  "distorted": "Bhaskar: I have it on my laptop. We should move it somewhere safe"
+ },
+ {
+  "id": "TR-c7",
+  "record": "trello: Card 'Push notifications' is in list 'In Progress'; due: none; members: Kabir Shah; last activity: 2026-10-20. Description: See PR #42.",
+  "kind": "a different date or number",
+  "faithful": "Kabir Shah is working on the 'Push notifications' card in Trello's 'In Progress' list, last active on October 20, 2026, and it references PR #42.",
+  "distorted": "Kabir Shah is working on the 'Push notifications' card in Trello's 'In Progress' list, last active on October 15, 2026, and it references PR #42."
+ },
+ {
+  "id": "WA-0018",
+  "record": "Kabir: QR attendance failing on iOS Safari again. Third time this month.\nWorkaround: ask them to clear Safari cache or use Chrome",
+  "kind": "a flipped negation (is/is not, done/not done)",
+  "faithful": "Kabir says that QR attendance is failing on iOS Safari again and suggests asking students to clear Safari cache or use Chrome as a workaround.",
+  "distorted": "Kabir says that QR attendance is not failing on iOS Safari again and suggests asking students to clear Safari cache or use Chrome as a workaround."
+ },
+ {
+  "id": "N3-05",
+  "record": "notes (Core committee — 3 Oct 2026): Arjun leaves on 15 Nov. Meera is proposed as the next tech lead; approved.",
+  "kind": "an added reason that the record does not give",
+  "faithful": "Arjun leaves on November 15, and Meera is proposed as the next tech lead, which was approved by the committee.",
+  "distorted": "Arjun leaves on November 15, and Meera is proposed as the next tech lead because she has more experience than the current one, which was approved by the committee."
+ },
+ {
+  "id": "TR-a1",
+  "record": "Arjun Mehta: Comment on card 'SSO login with college portal (CAS)': Target 15 Dec agreed with IT.",
+  "kind": "a different person",
+  "faithful": "Arjun Mehta commented on the card 'SSO login with college portal (CAS)': Target 15 Dec agreed with IT.",
+  "distorted": "Sara Patel commented on the card 'SSO login with college portal (CAS)': Target 15 Dec agreed with IT."
+ },
+ {
+  "id": "TR-c1",
+  "record": "trello: Card 'SSO login with college portal (CAS)' is in list 'In Progress'; due: 2026-12-15; members: Arjun Mehta; last activity: 2026-10-02. Description: Mandated by college IT. Contact Vikram Rao.",
+  "kind": "a different date or number",
+  "faithful": "Arjun Mehta is working on the Trello card 'SSO login with college portal (CAS)' which is in the 'In Progress' list and was last updated on 2026-10-02.",
+  "distorted": "Arjun Mehta is working on the Trello card 'SSO login with college portal (CAS)' which is in the 'In Progress' list and was last updated on 2025-10-02."
+ }
+]

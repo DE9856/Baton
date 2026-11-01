@@ -1,0 +1,854 @@
+{
+ "date conflict": [
+  {
+   "a": {
+    "statement": "Deadline for driver sign-up",
+    "type": "deadline",
+    "subject": "driver sign-up",
+    "value": "March 15, 2023"
+   },
+   "b": {
+    "statement": "Driver sign-up extended to March 22, 2023",
+    "type": "decision",
+    "subject": "driver sign-up extension",
+    "value": "extended"
+   }
+  },
+  {
+   "a": {
+    "statement": "Deadline for volunteer registration is May 1, 2023",
+    "type": "deadline",
+    "subject": "volunteer registration",
+    "value": "May 1, 2023"
+   },
+   "b": {
+    "statement": "Volunteer registration deadline moved to June 15, 2023",
+    "type": "decision",
+    "subject": "registration deadline change",
+    "value": "moved"
+   }
+  },
+  {
+   "a": {
+    "statement": "Donation collection drive ends on July 10, 2023",
+    "type": "deadline",
+    "subject": "donation collection drive",
+    "value": "July 10, 2023"
+   },
+   "b": {
+    "statement": "Donation collection extended to August 30, 2023",
+    "type": "decision",
+    "subject": "collection extension",
+    "value": "extended"
+   }
+  },
+  {
+   "a": {
+    "statement": "Warehouse inventory check due on September 15, 2023",
+    "type": "deadline",
+    "subject": "warehouse inventory check",
+    "value": "September 15, 2023"
+   },
+   "b": {
+    "statement": "Inventory check rescheduled for October 10, 2023",
+    "type": "decision",
+    "subject": "inventory check rescheduling",
+    "value": "rescheduled"
+   }
+  },
+  {
+   "a": {
+    "statement": "Website update due by December 25, 2023",
+    "type": "deadline",
+    "subject": "website update",
+    "value": "December 25, 2023"
+   },
+   "b": {
+    "statement": "Website update postponed to January 15, 2024",
+    "type": "decision",
+    "subject": "update postponement",
+    "value": "postponed"
+   }
+  },
+  {
+   "a": {
+    "statement": "Driver training scheduled for March 30, 2023",
+    "type": "deadline",
+    "subject": "driver training",
+    "value": "March 30, 2023"
+   },
+   "b": {
+    "statement": "Driver training rescheduled to April 15, 2023",
+    "type": "decision",
+    "subject": "training rescheduling",
+    "value": "rescheduled"
+   }
+  },
+  {
+   "a": {
+    "statement": "Donor appreciation event on November 10, 2023",
+    "type": "deadline",
+    "subject": "donor appreciation event",
+    "value": "November 10, 2023"
+   },
+   "b": {
+    "statement": "Event moved to December 5, 2023",
+    "type": "decision",
+    "subject": "event relocation",
+    "value": "moved"
+   }
+  },
+  {
+   "a": {
+    "statement": "Website maintenance window from February 14-16, 2023",
+    "type": "deadline",
+    "subject": "website maintenance",
+    "value": "February 14-16, 2023"
+   },
+   "b": {
+    "statement": "Maintenance moved to March 5-7, 2023",
+    "type": "decision",
+    "subject": "maintenance change",
+    "value": "moved"
+   }
+  },
+  {
+   "a": {
+    "statement": "Warehouse manager training on October 10, 2023",
+    "type": "deadline",
+    "subject": "warehouse manager training",
+    "value": "October 10, 2023"
+   },
+   "b": {
+    "statement": "Training rescheduled to November 5, 2023",
+    "type": "decision",
+    "subject": "training rescheduling",
+    "value": "rescheduled"
+   }
+  },
+  {
+   "a": {
+    "statement": "Volunteer briefing on January 15, 2023",
+    "type": "deadline",
+    "subject": "volunteer briefing",
+    "value": "January 15, 2023"
+   },
+   "b": {
+    "statement": "Briefing moved to February 10, 2023",
+    "type": "decision",
+    "subject": "briefing relocation",
+    "value": "moved"
+   }
+  }
+ ],
+ "status conflict": [
+  {
+   "a": {
+    "statement": "The food-bank delivery app has been developed.",
+    "type": "status",
+    "subject": "food-bank delivery app",
+    "value": "working"
+   },
+   "b": {
+    "statement": "The food-bank delivery app is not yet functional for volunteers to use.",
+    "type": "status",
+    "subject": "food-bank delivery app",
+    "value": "not done"
+   }
+  },
+  {
+   "a": {
+    "statement": "All volunteer drivers have downloaded the app and are ready for training.",
+    "type": "status",
+    "subject": "volunteer drivers",
+    "value": "done"
+   },
+   "b": {
+    "statement": "Not all volunteer drivers have downloaded or installed the app yet.",
+    "type": "status",
+    "subject": "volunteer drivers",
+    "value": "pending"
+   }
+  },
+  {
+   "a": {
+    "statement": "The warehouse has been set up to store food items for distribution.",
+    "type": "status",
+    "subject": "warehouse",
+    "value": "set up"
+   },
+   "b": {
+    "statement": "The warehouse is still in the process of being prepared and does not have all necessary equipment yet.",
+    "type": "status",
+    "subject": "warehouse",
+    "value": "still in progress"
+   }
+  },
+  {
+   "a": {
+    "statement": "Donors can now use the app to schedule food deliveries directly from their homes.",
+    "type": "status",
+    "subject": "donor function",
+    "value": "set up"
+   },
+   "b": {
+    "statement": "The donor function is still under development and not yet available in the app.",
+    "type": "status",
+    "subject": "donor function",
+    "value": "not done"
+   }
+  },
+  {
+   "a": {
+    "statement": "All necessary permissions have been granted for the website to integrate with the delivery app.",
+    "type": "status",
+    "subject": "website integration",
+    "value": "set up"
+   },
+   "b": {
+    "statement": "The website is still waiting for approval from the IT department before integrating with the food-bank delivery app.",
+    "type": "status",
+    "subject": "website integration",
+    "value": "pending"
+   }
+  },
+  {
+   "a": {
+    "statement": "A WhatsApp group has been created for volunteers to communicate and coordinate deliveries.",
+    "type": "status",
+    "subject": "WhatsApp group",
+    "value": "set up"
+   },
+   "b": {
+    "statement": "The WhatsApp group is still being set up, and some volunteers have not joined yet.",
+    "type": "status",
+    "subject": "WhatsApp group",
+    "value": "not done"
+   }
+  },
+  {
+   "a": {
+    "statement": "All drivers have been trained on using the app to deliver food items.",
+    "type": "status",
+    "subject": "driver training",
+    "value": "done"
+   },
+   "b": {
+    "statement": "Some drivers are still waiting for their training sessions before they can start using the delivery app.",
+    "type": "status",
+    "subject": "driver training",
+    "value": "pending"
+   }
+  },
+  {
+   "a": {
+    "statement": "The logistics team has been briefed on the new delivery process through the app.",
+    "type": "status",
+    "subject": "logistics briefing",
+    "value": "done"
+   },
+   "b": {
+    "statement": "The logistics team is still awaiting their briefing on how to use the food-bank delivery app for deliveries.",
+    "type": "status",
+    "subject": "logistics briefing",
+    "value": "pending"
+   }
+  },
+  {
+   "a": {
+    "statement": "The app's bug fixing process has been completed, and it runs smoothly now.",
+    "type": "status",
+    "subject": "app bugs",
+    "value": "done"
+   },
+   "b": {
+    "statement": "Several critical bugs remain unresolved in the food-bank delivery app, making its use problematic for volunteers.",
+    "type": "status",
+    "subject": "app bugs",
+    "value": "broken"
+   }
+  },
+  {
+   "a": {
+    "statement": "A backup system has been set up to ensure data security and continuity of operations.",
+    "type": "status",
+    "subject": "backup system",
+    "value": "set up"
+   },
+   "b": {
+    "statement": "The backup system for the food-bank delivery app is still in the planning stage, and no action has been taken yet.",
+    "type": "status",
+    "subject": "backup system",
+    "value": "not done"
+   }
+  }
+ ],
+ "owner conflict": [
+  {
+   "a": {
+    "statement": "The warehouse manager",
+    "type": "owner",
+    "subject": "managing inventory for today's deliveries",
+    "value": "Jane"
+   },
+   "b": {
+    "statement": "The volunteer coordinator",
+    "type": "owner",
+    "subject": "managing inventory for today's deliveries",
+    "value": "Tom"
+   }
+  },
+  {
+   "a": {
+    "statement": "The app developer",
+    "type": "owner",
+    "subject": "debugging the delivery tracking feature",
+    "value": "Lily"
+   },
+   "b": {
+    "statement": "The IT support specialist",
+    "type": "owner",
+    "subject": "debugging the delivery tracking feature",
+    "value": "Mark"
+   }
+  },
+  {
+   "a": {
+    "statement": "The donor liaison officer",
+    "type": "owner",
+    "subject": "coordinating with food donors",
+    "value": "Samantha"
+   },
+   "b": {
+    "statement": "The volunteer team leader",
+    "type": "owner",
+    "subject": "coordinating with food donors",
+    "value": "Alex"
+   }
+  },
+  {
+   "a": {
+    "statement": "The warehouse staff",
+    "type": "owner",
+    "subject": "preparing packages for delivery",
+    "value": "Zoe"
+   },
+   "b": {
+    "statement": "The volunteer coordinator",
+    "type": "owner",
+    "subject": "preparing packages for delivery",
+    "value": "Tom"
+   }
+  },
+  {
+   "a": {
+    "statement": "The website administrator",
+    "type": "owner",
+    "subject": "updating the donor portal",
+    "value": "Nina"
+   },
+   "b": {
+    "statement": "The volunteer driver supervisor",
+    "type": "owner",
+    "subject": "updating the donor portal",
+    "value": "Chris"
+   }
+  },
+  {
+   "a": {
+    "statement": "The data analyst",
+    "type": "owner",
+    "subject": "analyzing delivery routes",
+    "value": "Emily"
+   },
+   "b": {
+    "statement": "The driver manager",
+    "type": "owner",
+    "subject": "analyzing delivery routes",
+    "value": "Ian"
+   }
+  },
+  {
+   "a": {
+    "statement": "The WhatsApp group admin",
+    "type": "owner",
+    "subject": "coordinating volunteer shifts",
+    "value": "Helen"
+   },
+   "b": {
+    "statement": "The logistics planner",
+    "type": "owner",
+    "subject": "coordinating volunteer shifts",
+    "value": "Jack"
+   }
+  },
+  {
+   "a": {
+    "statement": "The food distribution manager",
+    "type": "owner",
+    "subject": "monitoring delivery times",
+    "value": "Leah"
+   },
+   "b": {
+    "statement": "The driver dispatcher",
+    "type": "owner",
+    "subject": "monitoring delivery times",
+    "value": "Steve"
+   }
+  },
+  {
+   "a": {
+    "statement": "The social media manager",
+    "type": "owner",
+    "subject": "promoting the food bank app",
+    "value": "Maggie"
+   },
+   "b": {
+    "statement": "The volunteer team leader",
+    "type": "owner",
+    "subject": "promoting the food bank app",
+    "value": "Alex"
+   }
+  },
+  {
+   "a": {
+    "statement": "The donor relations officer",
+    "type": "owner",
+    "subject": "scheduling donation pick-ups",
+    "value": "Olivia"
+   },
+   "b": {
+    "statement": "The volunteer coordinator",
+    "type": "owner",
+    "subject": "scheduling donation pick-ups",
+    "value": "Tom"
+   }
+  }
+ ],
+ "different facets": [
+  {
+   "a": {
+    "statement": "owner",
+    "type": "owner",
+    "subject": "Food delivery task for today's evening shift",
+    "value": "John Doe"
+   },
+   "b": {
+    "statement": "deadline",
+    "type": "deadline",
+    "subject": "Food delivery task for today's evening shift",
+    "value": "2023-10-15 18:00"
+   }
+  },
+  {
+   "a": {
+    "statement": "status",
+    "type": "status",
+    "subject": "Order processing in the warehouse",
+    "value": "Completed"
+   },
+   "b": {
+    "statement": "dependency",
+    "type": "dependency",
+    "subject": "Food delivery task for today's evening shift",
+    "value": "Order processing is complete"
+   }
+  },
+  {
+   "a": {
+    "statement": "owner",
+    "type": "owner",
+    "subject": "Updating the website with new donor information",
+    "value": "Jane Smith"
+   },
+   "b": {
+    "statement": "deadline",
+    "type": "deadline",
+    "subject": "Updating the website with new donor information",
+    "value": "2023-10-16 17:00"
+   }
+  },
+  {
+   "a": {
+    "statement": "risk",
+    "type": "risk",
+    "subject": "Potential delay in delivery due to traffic",
+    "value": "Moderate"
+   },
+   "b": {
+    "statement": "status",
+    "type": "status",
+    "subject": "Food delivery task for today's evening shift",
+    "value": "On track"
+   }
+  },
+  {
+   "a": {
+    "statement": "owner",
+    "type": "owner",
+    "subject": "Scheduling volunteer shifts next week",
+    "value": "Emily Johnson"
+   },
+   "b": {
+    "statement": "deadline",
+    "type": "deadline",
+    "subject": "Scheduling volunteer shifts next week",
+    "value": "2023-10-18 09:00"
+   }
+  },
+  {
+   "a": {
+    "statement": "dependency",
+    "type": "dependency",
+    "subject": "Order picking from the warehouse",
+    "value": "Inventory check is complete"
+   },
+   "b": {
+    "statement": "status",
+    "type": "status",
+    "subject": "Food delivery task for today's evening shift",
+    "value": "Pending order collection"
+   }
+  },
+  {
+   "a": {
+    "statement": "owner",
+    "type": "owner",
+    "subject": "Handling complaints from donors regarding delayed deliveries",
+    "value": "Tom Brown"
+   },
+   "b": {
+    "statement": "deadline",
+    "type": "deadline",
+    "subject": "Handling complaints from donors regarding delayed deliveries",
+    "value": "2023-10-15 16:00"
+   }
+  },
+  {
+   "a": {
+    "statement": "risk",
+    "type": "risk",
+    "subject": "Possible shortage of drivers due to unexpected events",
+    "value": "High"
+   },
+   "b": {
+    "statement": "status",
+    "type": "status",
+    "subject": "Food delivery task for today's evening shift",
+    "value": "Waiting on driver availability"
+   }
+  },
+  {
+   "a": {
+    "statement": "owner",
+    "type": "owner",
+    "subject": "Coordinating with drivers to ensure timely pick-up and delivery of food",
+    "value": "Sarah Lee"
+   },
+   "b": {
+    "statement": "deadline",
+    "type": "deadline",
+    "subject": "Coordinating with drivers to ensure timely pick-up and delivery of food",
+    "value": "2023-10-15 17:00"
+   }
+  },
+  {
+   "a": {
+    "statement": "risk",
+    "type": "risk",
+    "subject": "Potential damage to food during transit",
+    "value": "Low"
+   },
+   "b": {
+    "statement": "status",
+    "type": "status",
+    "subject": "Food delivery task for today's evening shift",
+    "value": "Ready for dispatch"
+   }
+  }
+ ],
+ "restatement": [
+  {
+   "a": {
+    "statement": "The volunteer team owner is John Doe",
+    "type": "owner",
+    "subject": "volunteer team",
+    "value": "John Doe"
+   },
+   "b": {
+    "statement": "John Doe oversees the operations of the volunteer team",
+    "type": "decision",
+    "subject": "operations",
+    "value": "John Doe"
+   }
+  },
+  {
+   "a": {
+    "statement": "The warehouse will be open until 30 April 2027",
+    "type": "deadline",
+    "subject": "warehouse operation",
+    "value": "30 April 2027"
+   },
+   "b": {
+    "statement": "Operations at the warehouse end on 5 May 2027",
+    "type": "deadline",
+    "subject": "warehouse operation",
+    "value": "5 May 2027"
+   }
+  },
+  {
+   "a": {
+    "statement": "The delivery status is currently on time for all scheduled deliveries",
+    "type": "status",
+    "subject": "delivery schedule",
+    "value": "on time"
+   },
+   "b": {
+    "statement": "All scheduled deliveries are running as per the planned timeline",
+    "type": "status",
+    "subject": "delivery schedule",
+    "value": "on time"
+   }
+  },
+  {
+   "a": {
+    "statement": "The website owner is Ali Khan",
+    "type": "owner",
+    "subject": "website",
+    "value": "Ali Khan"
+   },
+   "b": {
+    "statement": "Website management and updates are overseen by Ali Khan",
+    "type": "decision",
+    "subject": "management and updates",
+    "value": "Ali Khan"
+   }
+  },
+  {
+   "a": {
+    "statement": "The app will be updated on 5 May 2027",
+    "type": "deadline",
+    "subject": "app update",
+    "value": "5 May 2027"
+   },
+   "b": {
+    "statement": "An upgrade to the app is scheduled for 30 April 2027",
+    "type": "deadline",
+    "subject": "app update",
+    "value": "30 April 2027"
+   }
+  },
+  {
+   "a": {
+    "statement": "The volunteer coordinator's decision on route planning will be finalized by 15 June 2027",
+    "type": "decision",
+    "subject": "route planning",
+    "value": "by 15 June 2027"
+   },
+   "b": {
+    "statement": "Route plans for deliveries are due to be confirmed on 16 June 2027",
+    "type": "deadline",
+    "subject": "route planning",
+    "value": "16 June 2027"
+   }
+  },
+  {
+   "a": {
+    "statement": "The delivery status is currently delayed by one day for all scheduled deliveries",
+    "type": "status",
+    "subject": "delivery schedule",
+    "value": "delayed by one day"
+   },
+   "b": {
+    "statement": "All deliveries are running a day behind the planned timeline",
+    "type": "status",
+    "subject": "delivery schedule",
+    "value": "delayed by one day"
+   }
+  },
+  {
+   "a": {
+    "statement": "The WhatsApp group owner is Sarah Johnson",
+    "type": "owner",
+    "subject": "WhatsApp group",
+    "value": "Sarah Johnson"
+   },
+   "b": {
+    "statement": "Sarah Johnson manages the communication in the volunteer WhatsApp group",
+    "type": "decision",
+    "subject": "communication management",
+    "value": "Sarah Johnson"
+   }
+  },
+  {
+   "a": {
+    "statement": "The dependency on driver availability is critical for our delivery schedule",
+    "type": "dependency",
+    "subject": "delivery schedule",
+    "value": "driver availability"
+   },
+   "b": {
+    "statement": "Driver schedules are a key factor in ensuring the timely delivery of food items",
+    "type": "dependency",
+    "subject": "timely delivery",
+    "value": "driver schedules"
+   }
+  },
+  {
+   "a": {
+    "statement": "The risk of weather conditions affecting deliveries is high during June 2027",
+    "type": "risk",
+    "subject": "weather impact on deliveries",
+    "value": "high"
+   },
+   "b": {
+    "statement": "There's a significant chance that bad weather will disrupt our delivery plans in June 2027",
+    "type": "risk",
+    "subject": "delivery disruption",
+    "value": "significant"
+   }
+  }
+ ],
+ "different items": [
+  {
+   "a": {
+    "statement": "owner",
+    "type": "owner",
+    "subject": "App design and development",
+    "value": "John"
+   },
+   "b": {
+    "statement": "status",
+    "type": "status",
+    "subject": "App design and development",
+    "value": "In progress"
+   }
+  },
+  {
+   "a": {
+    "statement": "decision",
+    "type": "decision",
+    "subject": "Driver assignment criteria",
+    "value": "John"
+   },
+   "b": {
+    "statement": "dependency",
+    "type": "dependency",
+    "subject": "Driver assignment criteria",
+    "value": "App design and development completed"
+   }
+  },
+  {
+   "a": {
+    "statement": "risk",
+    "type": "risk",
+    "subject": "Weather conditions impact delivery times",
+    "value": "All drivers"
+   },
+   "b": {
+    "statement": "risk",
+    "type": "risk",
+    "subject": "Road closures affect delivery routes",
+    "value": "All drivers"
+   }
+  },
+  {
+   "a": {
+    "statement": "owner",
+    "type": "owner",
+    "subject": "Donor database management",
+    "value": "Alice"
+   },
+   "b": {
+    "statement": "status",
+    "type": "status",
+    "subject": "Donor database management",
+    "value": "Completed"
+   }
+  },
+  {
+   "a": {
+    "statement": "decision",
+    "type": "decision",
+    "subject": "Warehouse storage optimization",
+    "value": "Alice"
+   },
+   "b": {
+    "statement": "dependency",
+    "type": "dependency",
+    "subject": "Donor database management",
+    "value": "Database updated with new donor information"
+   }
+  },
+  {
+   "a": {
+    "statement": "owner",
+    "type": "owner",
+    "subject": "Website maintenance and updates",
+    "value": "Bob"
+   },
+   "b": {
+    "statement": "status",
+    "type": "status",
+    "subject": "Website maintenance and updates",
+    "value": "Scheduled for next week"
+   }
+  },
+  {
+   "a": {
+    "statement": "risk",
+    "type": "risk",
+    "subject": "Technical issues with the app",
+    "value": "All volunteers"
+   },
+   "b": {
+    "statement": "risk",
+    "type": "risk",
+    "subject": "Security breaches to donor data",
+    "value": "Donors and volunteers"
+   }
+  },
+  {
+   "a": {
+    "statement": "owner",
+    "type": "owner",
+    "subject": "WhatsApp group management",
+    "value": "Charlie"
+   },
+   "b": {
+    "statement": "status",
+    "type": "status",
+    "subject": "WhatsApp group management",
+    "value": "Active and functional"
+   }
+  },
+  {
+   "a": {
+    "statement": "decision",
+    "type": "decision",
+    "subject": "Frequency of volunteer training sessions",
+    "value": "Charlie"
+   },
+   "b": {
+    "statement": "dependency",
+    "type": "dependency",
+    "subject": "WhatsApp group management",
+    "value": "Group active and functional"
+   }
+  },
+  {
+   "a": {
+    "statement": "risk",
+    "type": "risk",
+    "subject": "Low donation response rate to appeals",
+    "value": "All volunteers"
+   },
+   "b": {
+    "statement": "risk",
+    "type": "risk",
+    "subject": "Inconsistent donor information updates",
+    "value": "Donor database management incomplete"
+   }
+  }
+ ]
+}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ source.title }} · Baton{% endblock %}
+{% block content %}
+<p><a href="/p/{{ project.id }}/connect">Back to sources</a></p>
+<h1>{{ source.title }}</h1>
+<p class="muted">Audience: {{ AUDIENCE_LABELS.get(source.audience, source.audience) }}. Authorised by {{ source.authorised_by }}. {{ source.notes|join(' ') }}</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Record</th><th>When</th><th>Who</th><th>Text</th></tr></thead>
+  <tbody>
+  {% for u, ok in shown %}
+    <tr id="{{ u.uid }}">
+      <td><code>{{ u.uid }}</code></td>
+      <td><small>{{ u.ts.strftime('%d %b %Y %H:%M') if u.ts else 'undated' }}</small></td>
+      <td>{{ u.author }}</td>
+      <td class="prewrap">{% if ok %}{{ u.text }}{% else %}<span class="chip l-withheld">Withheld</span> <small class="muted">Contains {{ u.sensitivity|map('replace', '_', ' ')|join(', ') }}. Only the reviewer can read this record.</small>{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

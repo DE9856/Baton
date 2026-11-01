@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>Hand over the project, not just the files.</h1>
+  <p class="lead">Baton turns a departing member's project trail into a handover the next person can trust. It proves what the sources can prove, asks the person leaving only about what they can't, and shows each person only what they may see.</p>
+  <div class="cta">
+    <form method="post" action="/demo"><button type="submit">Load the demo project</button></form>
+    <a role="button" class="secondary outline" href="/new">Start your own handover</a>
+  </div>
+  <p class="muted"><small>The demo uses a synthetic student-club project: 91 made-up records with planted conflicts, gaps and secrets.</small></p>
+</section>
+
+<section class="flow" aria-label="How it works">
+  <article><h3>1. Connect</h3><p>Exports any member can make: GitHub, WhatsApp, Trello, meeting notes.</p></article>
+  <article><h3>2. Reconstruct</h3><p>AI proposes small claims, each with a word-for-word quote.</p></article>
+  <article><h3>3. Verify</h3><p>Code checks every quote and finds conflicts, gaps and secrets.</p></article>
+  <article><h3>4. Review</h3><p>The leaver answers about 10 questions. A reviewer approves.</p></article>
+  <article><h3>5. Hand over</h3><p>The successor gets a role-scoped plan with a receipt on each line.</p></article>
+</section>
+
+{% if projects %}
+<section>
+  <h2>Projects</h2>
+  <table><thead><tr><th>Project</th><th>Role</th><th>Last day</th></tr></thead><tbody>
+  {% for p in projects %}
+  <tr><td><a href="/p/{{ p.id }}">{{ p.name }}</a></td><td>{{ p.role_title }}</td><td>{{ p.last_day.strftime('%d %b %Y') }}</td></tr>
+  {% endfor %}
+  </tbody></table>
+</section>
+{% endif %}
+{% endblock %}

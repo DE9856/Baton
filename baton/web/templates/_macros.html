@@ -1,0 +1,41 @@
+{% macro label(name, who="") %}
+<span class="chip l-{{ name }}">{% if name == 'confirmed' and who %}Confirmed by {{ who }}{% else %}{{ LABELS.get(name, name) }}{% endif %}</span>
+{% endmacro %}
+
+{% macro receipt_row(r, show_scores=False) %}
+<li class="receipt">
+  <div class="rmeta">
+    <strong>{{ r.source }}</strong>{% if r.when %}, {{ r.when }}{% endif %}{% if r.author %}, {{ r.author }}{% endif %}
+    <code>{{ r.uid }}</code>
+    {% if r.link and (r.link.startswith('http://') or r.link.startswith('https://')) %}<a href="{{ r.link }}" rel="noopener noreferrer" target="_blank">open source</a>{% endif %}
+  </div>
+  <blockquote>{{ r.quote }}</blockquote>
+  {% if show_scores %}<small class="muted">Quote check: {{ r.match|replace('_', ' ') }}{% if r.entailment is not none %}. Support score: {{ '%.2f'|format(r.entailment) }}{% endif %}</small>{% endif %}
+</li>
+{% endmacro %}
+
+{# A claim row for the reviewer and the leaver, read from the live tables. #}
+{% macro claim_receipts(c, show_scores=True) %}
+<details class="receipts" {% if c.label in ('conflict', 'needs_review', 'unsupported') %}open{% endif %}>
+  <summary>Receipt</summary>
+  <ul>
+  {% for e in c.evidence %}
+    {% if e.unit %}
+    <li class="receipt">
+      <div class="rmeta">
+        <strong>{{ e.unit.source.title }}</strong>{% if e.unit.ts %}, {{ e.unit.ts.strftime('%d %b %Y') }}{% endif %}, {{ e.unit.author }}
+        <code>{{ e.unit.uid }}</code>
+        {% if e.unit.link and (e.unit.link.startswith('http://') or e.unit.link.startswith('https://')) %}<a href="{{ e.unit.link }}" rel="noopener noreferrer" target="_blank">open source</a>{% endif %}
+      </div>
+      <blockquote>{{ e.quote }}</blockquote>
+      {% if show_scores %}<small class="muted">Quote check: {{ e.match|replace('_', ' ') }}{% if e.match_reason %} ({{ e.match_reason }}){% endif %}{% if e.entailment is not none %}. Support score: {{ '%.2f'|format(e.entailment) }}{% endif %}{% if e.guard_missing %}. Not in the evidence: {{ e.guard_missing|join(', ') }}{% endif %}</small>{% endif %}
+    </li>
+    {% else %}
+    <li class="receipt"><blockquote class="bad">{{ e.quote or 'No quote was given.' }}</blockquote><small class="muted">Rejected: {{ e.match_reason }}</small></li>
+    {% endif %}
+  {% else %}
+    <li class="muted">No source quote. {{ c.label_reason }}</li>
+  {% endfor %}
+  </ul>
+</details>
+{% endmacro %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Audit log · Baton{% endblock %}
+{% block content %}
+<h1>Audit log</h1>
+<p class="lead">An append-only record of who connected, viewed, edited, approved and shared what. Entries can't be changed or deleted through the app.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>When</th><th>Who</th><th>What</th><th>On</th><th>Detail</th></tr></thead>
+  <tbody>
+  {% for e in events %}
+  <tr><td><small>{{ e.at.strftime('%d %b %H:%M:%S') }}</small></td><td>{{ e.actor }}</td><td><code>{{ e.action }}</code></td><td>{{ e.target }}</td><td><small>{{ e.detail }}</small></td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

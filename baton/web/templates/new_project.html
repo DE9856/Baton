@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}New handover · Baton{% endblock %}
+{% block content %}
+<h1>Start a handover</h1>
+<form method="post" action="/new" class="narrow">
+  <label>Project name <input name="name" required maxlength="200" placeholder="e.g. Club website"></label>
+  <label>Role being handed over <input name="role_title" value="Tech lead" maxlength="100"></label>
+  <div class="grid">
+    <label>Who is leaving? <input name="leaver" required maxlength="120"></label>
+    <label>Who takes over? <input name="successor" required maxlength="120"></label>
+  </div>
+  <label>Who reviews the handover?
+    <input name="reviewer" required maxlength="120">
+    <small>Whoever the team makes responsible, usually the president or the leaver's lead. They are cleared to see every source.</small>
+  </label>
+  <label>Last day of the person leaving <input type="date" name="last_day" required min="{{ today }}"></label>
+  <label class="check"><input type="checkbox" name="confirm_authorised" value="1" required>
+    I'm allowed to use this project's data. I won't upload confidential workplace material without permission.</label>
+  <button type="submit">Create handover</button>
+</form>
+{% endblock %}

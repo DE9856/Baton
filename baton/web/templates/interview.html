@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Gap interview · Baton{% endblock %}
+{% block content %}
+<h1>Gap interview</h1>
+{% include "_job.html" %}
+{% if questions %}
+<p class="lead">{{ viewer.name }}, the sources couldn't answer these. They're the only questions we have for you{% if open_count %}: {{ open_count }} left, about {{ (open_count * 1.5)|round|int }} minutes{% else %}, and you've finished them{% endif %}. Your answers are saved under your name and date, and shown as your word, never as verified fact.</p>
+{% for q in questions %}
+<article class="question {% if q.status != 'open' %}done{% endif %}" id="q{{ q.id }}">
+  <div class="claimhead"><span class="chip kind">{{ {'ownership':'Ownership after you leave','coverage':'Undocumented process','credential':'Credential','rationale':'Missing reason','unclear':'Your successor asks'}.get(q.kind, q.kind) }}</span>
+    {% if q.status == 'answered' %}<span class="chip l-confirmed">Answered</span>{% endif %}</div>
+  <p class="qtext">{{ q.text }}</p>
+  {% set rel = related.get(q.id) %}
+  {% if rel and rel.evidence and rel.evidence[0].unit %}
+    <small class="muted">Why we ask: {{ rel.evidence[0].unit.source.title }}, {{ rel.evidence[0].unit.author }}: &ldquo;{{ rel.evidence[0].quote }}&rdquo;</small>
+  {% endif %}
+  {% if q.status == 'open' %}
+    <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/answer">
+      {% if q.kind == 'ownership' %}
+      <div class="taps" role="group" aria-label="One-tap answers">
+        {% for m in people if q.audience in m.clearances and m.role != 'reviewer' and m.title != 'Just joined the club' %}
+        <button type="submit" name="text" value="{{ m.name }} takes this over after my last day." class="small secondary outline">{{ m.name.split(' ')[0] }} takes it over</button>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </form>
+    <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/answer" class="actions">
+      <label class="sr" for="a{{ q.id }}">Your answer</label>
+      <textarea id="a{{ q.id }}" name="text" rows="2" maxlength="2000" placeholder="Answer in your own words"></textarea>
+      <button type="submit" class="small">Save answer</button>
+    </form>
+    <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/reassign" class="actions">
+      <label for="r{{ q.id }}"><small>Not me:</small></label>
+      <select id="r{{ q.id }}" name="to">
+        {% for m in people if q.audience in m.clearances %}<option value="{{ m.id }}">{{ m.name }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="small secondary outline">Pass it on</button>
+    </form>
+  {% else %}
+    <blockquote>{{ q.answer }}</blockquote>
+    <small class="muted">{{ q.answered_by }}, {{ q.answered_at.strftime('%d %b %Y') if q.answered_at else '' }}</small>
+  {% endif %}
+</article>
+{% endfor %}
+{% else %}
+<p class="lead">No questions for {{ viewer.name if viewer else 'you' }}.
+{% if viewer and viewer.role == 'teammate' %}If someone passes you a question, it will appear here.{% endif %}
+{% if viewer and viewer.role == 'successor' %}Your place to start is the <a href="/p/{{ project.id }}/handover">handover</a>.{% endif %}
+{% if viewer and viewer.role == 'reviewer' %}Your questions are in the <a href="/p/{{ project.id }}/review#questions">review console</a>.{% endif %}</p>
+{% endif %}
+{% endblock %}

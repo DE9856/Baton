@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% macro line(i) %}
+<li class="line">
+  <div class="claimhead">{{ ui.label(i.label, i.answered_by) }}
+    {% if i.cliff %}<span class="chip cliff">Departure cliff</span>{% endif %}
+    {% if i.due %}<span class="chip">Due {{ i.due }}</span>{% endif %}
+  </div>
+  <p class="stmt">{% if i.subject and i.origin == 'extracted' %}<span class="subj">{{ i.subject }}:</span> {% endif %}{{ i.statement }}</p>
+  {% if i.receipts %}
+  <details class="receipts"><summary>Receipt{% if i.receipts|length > 1 %}s ({{ i.receipts|length }} sources){% endif %}</summary>
+    <ul>{% for r in i.receipts %}{{ ui.receipt_row(r) }}{% endfor %}</ul></details>
+  {% elif i.answered_by %}
+  <small class="muted">{{ i.answered_by }}'s word, {{ i.answered_at }}. Not independently sourced.</small>
+  {% endif %}
+</li>
+{% endmacro %}
+{% macro sectionfoot(key) %}
+<footer class="ack">
+  {% if key in acks %}<span class="chip l-verified">Acknowledged</span>
+  {% else %}
+  <form method="post" action="/p/{{ project.id }}/ack/{{ key }}"><button type="submit" class="small secondary">Acknowledge</button></form>
+  {% endif %}
+  <details><summary><small>{% if key in unclear %}Marked unclear. Ask something else?{% else %}Something is unclear{% endif %}</small></summary>
+    <form method="post" action="/p/{{ project.id }}/unclear/{{ key }}" class="actions">
+      <input name="text" required maxlength="500" placeholder="What is unclear?" aria-label="What is unclear?">
+      <button type="submit" class="small secondary outline">Send question</button>
+    </form>
+  </details>
+</footer>
+{% endmacro %}
+{% block title %}Handover · Baton{% endblock %}
+{% block content %}
+{% if not h %}
+<h1>Handover</h1>
+{% include "_job.html" %}
+<p class="lead">Nothing is shared until a named reviewer approves it, and no version has been approved yet.</p>
+{% if viewer and viewer.role == 'reviewer' %}<a role="button" href="/p/{{ project.id }}/review">Go to the review console</a>
+{% else %}<p class="muted">To continue the demo, choose the reviewer in the &ldquo;Viewing as&rdquo; menu at the top.</p>{% endif %}
+{% else %}
+<div class="hhead">
+  <div>
+    <h1>{{ h.role_title }} handover</h1>
+    <p class="muted">Prepared for {{ viewer.name }}. Approved by {{ h.approved_by }}, {{ h.approved_at }}, version {{ h.version }}. Last day of the person leaving: {{ h.last_day.strftime('%d %b %Y') }}.</p>
+  </div>
+  <div class="hactions">
+    <span class="chip">{{ acks|length }} of {{ SECTIONS|length }} sections acknowledged</span>
+    <a role="button" class="small secondary outline" href="/p/{{ project.id }}/export.md">Export</a>
+  </div>
+</div>
+<div class="legend" role="note">
+  <span>{{ ui.label('verified') }} Proven by a checked source quote.</span>
+  <span>{{ ui.label('confirmed') }} A named person's word, not independently sourced.</span>
+  <span>{{ ui.label('missing') }} Nobody has answered yet; ask the person named.</span>
+</div>
+<p class="muted"><small>You see {{ h.total_items }} items, limited to what your role may see. Baton may miss things. Check the Missing items with your team.</small></p>
+
+{% if h.conflicts %}
+<section id="conflicts">
+  <h2>Sources disagreed here</h2>
+  {% for cf in h.conflicts %}
+  <article class="conflict resolved">
+    <p class="stmt">{{ cf.winner_text|join(' / ') or 'Neither side was correct.' }}</p>
+    <small class="muted">Resolved by {{ cf.resolved_by }}{% if cf.note %}: {{ cf.note }}{% endif %}</small>
+    <details class="receipts"><summary>See both sides</summary>
+      <ul>
+      {% for r in cf.winner_quotes %}{{ ui.receipt_row(r) }}{% endfor %}
+      {% for r in cf.loser_quotes %}<li class="receipt overruled"><div class="rmeta"><span class="chip">Overruled</span> <strong>{{ r.source }}</strong>, {{ r.when }} <code>{{ r.uid }}</code></div><blockquote>{{ r.quote }}</blockquote></li>{% endfor %}
+      </ul>
+    </details>
+  </article>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% for key, title in SECTIONS %}
+<section id="{{ key }}" class="hsection">
+  <h2>{{ title }}</h2>
+  {% if key == 'plan' %}
+    {% for name, rows in h.plan.items() %}{% if rows %}
+    <h3>{{ name }}</h3>
+    <ul class="lines">{% for i in rows %}{{ line(i) }}{% endfor %}</ul>
+    {% endif %}{% endfor %}
+  {% elif key == 'timeline' %}
+    <ol class="timeline">
+      {% set ns = namespace(marked=false) %}
+      {% for row in h.timeline %}
+        {% if not ns.marked and row.date >= h.last_day %}
+        <li class="tl-cliff"><b>{{ h.last_day.strftime('%d %b') }}</b> <strong>Last day of the person leaving: anything below can fall off the cliff</strong></li>
+        {% set ns.marked = true %}
+        {% endif %}
+        <li class="{{ 'tl-due' if row.is_deadline }} {{ 'tl-risk' if row.item.cliff }}"><b>{{ row.date.strftime('%d %b') }}</b> {{ row.item.statement }}</li>
+      {% endfor %}
+      {% if not ns.marked %}<li class="tl-cliff"><b>{{ h.last_day.strftime('%d %b') }}</b> <strong>Last day of the person leaving</strong></li>{% endif %}
+    </ol>
+  {% elif key == 'questions' %}
+    {% if h.missing %}
+    <ul class="lines">
+      {% for q in h.missing %}
+      <li class="line"><div class="claimhead">{{ ui.label('missing') }}<span class="chip">Ask {{ q.ask }}</span></div><p class="stmt">{{ q.text }}</p></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% set rows = h.sections.get(key) or [] %}
+    {% if rows %}<ul class="lines">{% for i in rows %}{{ line(i) }}{% endfor %}</ul>{% endif %}
+    {% if not h.missing and not rows %}<p class="muted">Nothing open.</p>{% endif %}
+  {% else %}
+    {% set rows = h.sections.get(key) or [] %}
+    {% if rows %}<ul class="lines">{% for i in rows %}{{ line(i) }}{% endfor %}</ul>{% else %}<p class="muted">Nothing here for your role.</p>{% endif %}
+  {% endif %}
+  {{ sectionfoot(key) }}
+</section>
+{% endfor %}
+{% endif %}
+{% endblock %}

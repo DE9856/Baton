@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Claim ledger · Baton{% endblock %}
+{% block content %}
+<h1>Claim ledger</h1>
+<p class="lead">What Baton reconstructed. {{ total }} claims you may see, each with its receipt. Labels are computed by rules from the checks, never from the AI's own confidence.</p>
+{% include "_job.html" %}
+<nav class="filters" aria-label="Filter claims by label">
+  <a href="?" class="chip {% if not active %}sel{% endif %}">All ({{ total }})</a>
+  {% for key, n in counts.items() %}<a href="?label={{ key }}" class="chip l-{{ key }} {% if active == key %}sel{% endif %}">{{ LABELS.get(key, key) }} ({{ n }})</a>{% endfor %}
+</nav>
+{% for c in claims %}
+<article class="claim" id="{{ c.code }}">
+  <div class="claimhead">
+    {{ ui.label(c.label, c.answered_by) }}
+    <span class="chip kind">{{ TYPE_TITLES.get(c.type, c.type) }}</span>
+    <span class="chip aud">{{ AUDIENCE_LABELS.get(c.audience, c.audience) }}</span>
+    {% if c.cliff %}<span class="chip cliff">Departure cliff</span>{% endif %}
+    {% if c.due %}<span class="chip">Due {{ c.due.strftime('%d %b %Y') }}</span>{% endif %}
+    <code class="code">{{ c.code }}</code>
+  </div>
+  <p class="stmt">{{ c.statement }}</p>
+  {% if c.label not in ('verified', 'confirmed') and c.label_reason %}<small class="why">{{ c.label_reason }}</small>{% endif %}
+  {{ ui.claim_receipts(c) }}
+</article>
+{% else %}
+<p class="muted">No claims yet. Add sources and build the ledger on the <a href="/p/{{ project.id }}/connect">Connect</a> page.</p>
+{% endfor %}
+{% endblock %}

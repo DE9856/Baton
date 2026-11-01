@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ 'You can\'t see this' if status == 403 else 'Not found' if status == 404 else 'Something went wrong' }}</h1>
+<p class="lead">{{ detail }}</p>
+<p><a href="/">Back to the start</a></p>
+{% endblock %}
