@@ -9,15 +9,15 @@ Measured on 1 Nov 2026. Reproduce with the commands in the README.
 | `test_parsers.py` | 32 | Demo record counts; iOS, Android, US, ISO and 12-hour WhatsApp; ambiguous dates; UTF-16; 50,000-line chat; bad files; GitHub errors |
 | `test_grounding.py` | 39 | 13 adversarial quotes, date anchoring, value guard |
 | `test_sensitive.py` | 29 | Masking, false positives, classification |
-| `test_rules.py` | 30 | Facet check, staleness, departure cliff, routing, the permission rule, re-runs |
-| `test_failures.py` | 31 | Bad uploads, API failures, crashes, the NLI model being down, restart, HTML escaping, adapters |
-| `test_round3.py` | 32 | Sign-in, sandboxes, leaver confirmation, access requests, Ask, re-sync, voice uploads, Groq (fake servers) |
+| `test_rules.py` | 34 | Facet check, staleness, departure cliff, routing, the permission rule, re-runs |
+| `test_failures.py` | 29 | Bad uploads, API failures, crashes, the NLI model being down, restart, HTML escaping, adapters |
+| `test_round3.py` | 46 | Sign-in, sandboxes, leaver confirmation, access requests, Ask, re-sync, voice uploads, Groq (fake servers) |
 | `test_workflow.py` | 15 | The product over HTTP with real models, including a canary check on every page for every person |
 | `test_round3_models.py` | 7 | Ask, re-sync and speech with real models |
 | `test_postgres.py` | 8 | Row-level security on real Postgres, including with the app's own checks deliberately broken |
 | `test_browser.py` | 2 | A first-time walkthrough in a real browser; voice with a simulated microphone; WCAG checks on 6 pages; phone width |
 
-All pass: 215 on SQLite (the 8 Postgres tests skip there), all 223 on Postgres 16 with row-level security active, and 2 in the browser.
+All pass on 1 Nov 2026: 231 on SQLite (the 8 Postgres tests skip there), all 239 on Postgres 16 with row-level security active, and 2 in the browser. The SQLite and browser runs were also repeated from a fresh clone with a new environment.
 
 **Deployment check:** `eval/smoke_deployed.py` passes against the Docker image limited to 2 CPUs and connected to Postgres, with row-level security active: 21 s to run the pipeline, about 860 MB of memory.
 

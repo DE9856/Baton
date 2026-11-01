@@ -4,6 +4,8 @@ Baton turns a departing member's authorised project trail into a verified, permi
 
 Team sky-flyers, WCC Forge 48, Challenge 01: Prevent Critical Knowledge From Leaving With People.
 
+**New here, or moving to a new system?** Start with [CLAUDE.md](CLAUDE.md): what's built, setup requirements, a full run-through and what's left.
+
 ## Try it
 
 ```sh

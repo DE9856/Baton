@@ -7,3 +7,5 @@ __pycache__/
 *.sqlite3*
 .playwright/
 test-results/
+# Holds team members' phone numbers. Goes in the zip, never in git.
+docs/reference/
