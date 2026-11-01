@@ -68,13 +68,15 @@ A fresh clone was tested this way on 1 Nov 2026.
 
 **Using Claude Code on the new system:** open Claude Code in this folder. It reads this file. A good first message is "Set this up and run the tests". Docker Desktop isn't needed for that.
 
-**Sending it on:** run this inside the project folder (Windows 10 or later, in PowerShell or Git Bash). It writes `baton-handoff.zip` next to the project folder, without the environment, local data or secrets:
+**Sending it on:** commit your work, then run this from the project folder. It needs only Python and git, and writes `baton-handoff.zip` next to the project folder:
 
 ```sh
-tar -a -c -f ../baton-handoff.zip --exclude=./.venv --exclude=./data --exclude=./.env --exclude=./test-results --exclude=./.pytest_cache --exclude=__pycache__ .
+python deploy/make_zip.py
 ```
 
-Keep the `./` on those excludes: without it, `data` would also drop the demo dataset in `baton/demo/data`. The zip keeps `.git`, for the history, and `docs/reference/`, so **it contains team members' phone numbers: share it only with the team.** Send `.env` separately and privately if the other person needs it.
+Use this rather than zipping by hand or with `tar`: exclude rules for the local `data` folder also removed the demo dataset in `baton/demo/data` when tested. The script takes exactly what git tracks, plus the history in `.git` and `docs/reference/`, and leaves out `.venv`, `.env` and local data.
+
+The zip contains team members' phone numbers (in the plan PDF), so **share it only with the team**. Send `.env` separately and privately if the other person needs it.
 
 ## 4. Run-through
 
