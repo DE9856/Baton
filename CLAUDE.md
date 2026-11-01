@@ -1,6 +1,41 @@
 # Baton: project handoff
 
-Read this first. It says what exists, how to set it up on a new system, how to run through it, and what's left. Claude Code loads this file automatically; people can read it too.
+Read this first. It says what needs doing, what exists, how to set it up on a new system, how to run through it, and what's left. Claude Code loads this file automatically; people can read it too.
+
+## What needs to be done for submission
+
+**Round 2 is not submittable yet.** It's roughly 70% done, and Round 3 roughly 60%. These percentages are a judgment as of 1 Nov 2026, not a measurement. The code is close to finished; most of what's left needs accounts or other people.
+
+**Do these in order:**
+
+- [ ] **1. Ask the organiser** for the deadlines, and whether Round 3 work built now counts. This could affect eligibility (rules 1 and 4). Also confirm the Round 1 plan was actually submitted: the PDF is dated 31 Oct, but the team's checklist still listed it as a to-do.
+- [ ] **2. Fill in `.env`** with Groq, Supabase, Hugging Face and GitHub (section 7), then deploy and publish with `docs/DEPLOY.md`. These steps have never run for real, so expect some fixes.
+- [ ] **3. Run Groq on the second dataset** as soon as the key is in: `python eval/evaluate_dataset.py eval/second_dataset/foodlink`. This is the biggest unknown. Keyword rules found 0 of 3 conflicts there, so a weak result may need fixing before submission.
+- [ ] **4. Choose three new Round 3 commitments.** The original three are already built. Proposals are in `docs/ROUND3_COMMITMENTS.md`.
+- [ ] **5. Have the team read the code.** Judges can question any member on any part (rule 16). Each member confirms their role and writes their own contribution (rule 14).
+- [ ] **6. Run the usability test** with 5 club members if time allows (`docs/USABILITY_TEST.md`). If time is short, shorten this rather than the second dataset. Never invent results.
+
+**Round 2 checklist, from the brief:**
+
+| Required item | Status | What's left |
+|---|---|---|
+| Working product | Mostly done | Full workflow runs on the demo; real Groq and Supabase have never been run |
+| Deployed link or demo for judges | **Not done** | Scripts are written but never run; needs Supabase and Hugging Face credentials |
+| Repository judges can access | **Not done** | Everything is committed locally; needs a GitHub repo and token |
+| Architecture and technical document | Done | `docs/ARCHITECTURE.md` |
+| APIs, models, datasets and libraries disclosed | Done | `docs/DISCLOSURES.md` |
+| Features completed, changes from plan, testing evidence | Done | The usability test would strengthen the evidence |
+| Three Round 3 commitments | **Decision needed** | The team chooses; three proposals are drafted |
+
+**Round 3 checklist:**
+
+| Item | Status |
+|---|---|
+| The three improvements | Built; voice is untested on a real phone or with a real voice |
+| Testing notes, privacy and security report, limitations, roadmap | Written; update them after the first real runs |
+| Final report (`docs/FINAL_REPORT.md`) | Draft; needs real results added |
+| Demo video | Silent recording only (`docs/demo/walkthrough.webm`); needs narration |
+| Participant and contribution details | **Not done**; each member writes their own |
 
 **Baton** turns a departing member's authorised project trail into a verified, permission-safe handover. It proves what the sources can prove, asks the person leaving only about what they can't, and shows each person only what they may see.
 
