@@ -2,8 +2,8 @@
 
 - ReplayExtractor plays back claims a real LLM produced earlier over the demo dataset, so the one-click demo works
   without a key. Only the extraction step is replayed; every check after it runs live.
-- RuleExtractor reads uploads with keyword rules when no LLM is configured. It recalls much less than an LLM, and
-  the UI says so. Its statements stay close to the source text, so they stay checkable.
+- RuleExtractor reads uploads with keyword rules when no LLM is configured. Its statements are copied sentences, so
+  they stay checkable, but they are poor input for conflict detection, and the UI says so.
 """
 from __future__ import annotations
 
@@ -64,7 +64,8 @@ def _sentences(text: str) -> list[str]:
 class RuleExtractor(Extractor):
     name = "rules"
     label = "Basic rules (no AI)"
-    description = ("No AI model is configured, so claims come from keyword rules. This finds far less than an LLM. "
+    description = ("No AI model is configured, so claims come from keyword rules. They copy sentences rather than state "
+                   "self-contained claims, and on the demo data they led to 0 of 3 conflicts being found. "
                    "Add ANTHROPIC_API_KEY to use Claude.")
     chunk_size = 25
 

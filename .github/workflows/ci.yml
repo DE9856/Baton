@@ -1,0 +1,38 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HF_HOME: ~/.cache/huggingface
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements-dev.txt
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-models-v1
+      # Includes the canary-leak test: any leak fails this job and blocks the release.
+      - name: Unit, workflow and permission tests
+        run: pytest -m "not browser"
+      - name: Gold-set scores
+        run: python eval/evaluate.py
+      - name: Browser walkthrough
+        run: |
+          playwright install --with-deps chromium
+          pytest -m browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: test-results/shots

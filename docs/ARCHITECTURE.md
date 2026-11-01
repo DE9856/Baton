@@ -1,0 +1,91 @@
+# Architecture, data flow and technical decisions
+
+## Overview
+
+One Python service: FastAPI, server-rendered Jinja2 pages, HTMX for progress, Pico.css, and background jobs in a thread in the same process. The NLI and embedding models load once, on CPU.
+
+```
+ Exports                   Pipeline (baton/pipeline.py)                         People
+ WhatsApp .txt   ┐                                                            ┌ Leaver: gap interview
+ GitHub URL/JSON ┤  parsers ─► mask secrets ─► evidence units                 │
+ Trello JSON     ┤                                 │                          ├ Reviewer: review console
+ Notes .md/.docx ┘                                 ▼                          │
+                         1 extract (one chunk of one source; LLM or rules)    └ Successor: handover view
+                         2 ground  (quote checked by code)                         ▲
+                         3 support (NLI + value guard)                             │ compose per viewer
+                         4 guard   (sensitive tags; credential tasks)              │
+                         5 reconcile (cosine ─► facet check ─► NLI)                │
+                         6 gaps    (departure cliff, coverage, routing)            │
+                                   │                                               │
+                                   ▼                                               │
+                         Claim ledger ─► review ─► immutable Version (snapshot) ───┘
+```
+
+## Data flow, step by step
+
+1. **Connect** (`baton/parsers/`). Each parser returns evidence units plus a skip report, so nothing is dropped silently. WhatsApp date order is detected from the data: values above 12 first, then whichever order keeps the chat chronological. Each source records its audience, who authorised it and a consent note. People are matched across sources by alias.
+2. **Mask at ingestion** (`verify/sensitive.py`). Credentials are masked before anything is stored or sent to a model, so a secret can't leak from the database or a prompt. The raw upload is never kept.
+3. **Extract** (`extract/`). One chunk of one source per call, with no tools and a JSON schema. Records are presented as data, and the prompt tells the model not to follow instructions inside them. Output is a proposal only.
+4. **Ground** (`verify/grounding.py`). A quote must match its record exactly after normalisation, or nearly verbatim with identical numbers and negations. A true quote with the wrong ID is re-anchored, but only within the chunk the model saw.
+5. **Support** (`verify/value_guard.py`, `pipeline.py`). `cross-encoder/nli-deberta-v3-base` must give entailment of at least 0.5, against either the speaker + record + previous message or the speaker + exact quote. Separately, every date, number and capitalised name in the claim must appear in the evidence. Dates are resolved deterministically, anchored to the record's timestamp.
+6. **Sensitive guard**. Regex rules tag phone numbers, personal emails, health, HR and finance content. Tagged claims are withheld from non-reviewers. Each record holding a credential also produces a "rotate this" task carrying only the masked text.
+7. **Reconcile** (`verify/conflicts.py`). MiniLM embeddings select related pairs (cosine at least 0.35). The facet check keeps a pair only if the claims give different dates, opposite done/not-done status, or different owners of the same subject. NLI contradiction of at least 0.5 in either direction must then agree. Cards sharing a claim merge into one conflict. The newer side is suggested; nothing is auto-resolved.
+8. **Gaps** (`verify/gaps.py`). Owner, access, deadline and next-action claims involving the leaver become departure-cliff questions, one per item. A role template raises coverage gaps. Verified decisions without a reason raise a question. Routing: the leaver gets what they alone can answer; anything from a source they can't see goes to the reviewer; open team questions go to triage. Overflow past the budget goes to the reviewer rather than being dropped.
+9. **Interview and review** (`review.py`). Answers become attributed, dated testimony, labelled Confirmed by person, never Verified. Routine claims are approved in one pass; risky ones individually. Conflicts must be resolved before approval. A claim a reviewer edits or accepts after a failed check becomes that reviewer's word and loses Verified.
+10. **Version and handover** (`review.py`, `handover.py`). Approval writes an immutable snapshot with a SHA-256 hash and a diff. The view is composed per viewer at read time, only from claims that viewer may see, and rendered from claims rather than generated prose.
+
+## Trust labels
+
+Computed by rules in `pipeline._label`; the model's confidence plays no part.
+
+| Label | Rule | Who sees it |
+|---|---|---|
+| Verified | Quote grounded, entailment ≥ 0.5, all values present, not sensitive, no open conflict | Everyone cleared |
+| Confirmed by person | Interview answer, or a reviewer's own word | Everyone cleared |
+| Missing | An open question, always with a person to ask | Everyone cleared for its source |
+| Conflict, Needs review, Possibly outdated, Withheld | Each becomes one of the above, or stays withheld | Reviewer only |
+
+## The permission model
+
+```
+visible(claim, viewer) = claim.audience in viewer.clearances
+                         AND (viewer is the reviewer OR claim is not sensitive)
+```
+
+- A claim comes from one source chunk, so it inherits exactly one audience.
+- `permissions.visible_claims` filters in SQL, then re-checks every row in Python. Snapshots are filtered at read time by the same rule (`handover.item_visible`).
+- Being the reviewer doesn't grant clearance: a reviewer not cleared for a source can't see it.
+- `db/supabase_schema.sql` holds the Postgres schema with Row-Level Security. `db/test_rls.sh` proves it on real Postgres: 21 checks pass. It is **not yet connected to the running app**.
+
+## Important technical decisions
+
+| Decision | Why |
+|---|---|
+| Mask secrets at ingestion rather than at display | A stored secret is a leak waiting to happen, and hosted models never need to see one |
+| Facet check before NLI, not after | The result is the same intersection, but it costs no model time and allows a wider candidate net. A fixed budget of 30 pairs missed real conflicts ranked 31–35 |
+| Check support against the exact quote as well as the whole record | Long records confuse the classifier. This reduced Needs review from 18 to 12 on the demo |
+| Render the handover from claims, with no generated prose | Prose can drift; claims can't say more than was checked. This removes the need for the plan's containment check for now |
+| Same-card expansion for status conflicts only | "DB backups: Done" must fall with "backup cron configured", but "in progress" stays true when sources only disagree on a date |
+| Ownership answers skip the contradiction flag | "Meera takes this over" is meant to differ from "Arjun is responsible" |
+| Re-runs keep people's answers | Only machine output is replaced, so nobody is asked twice |
+| If the NLI model can't load, label nothing Verified | The product must not guess. Claims stay in Needs review and the UI says why |
+
+## Code map
+
+| Path | Purpose |
+|---|---|
+| `baton/parsers/` | The four core connectors |
+| `baton/extract/` | Schema, prompt, Claude, Ollama, rules and replay extractors |
+| `baton/verify/` | Grounding, value guard, dates, sensitive guard, conflicts, gaps, models |
+| `baton/pipeline.py` | Orchestration and label rules |
+| `baton/permissions.py` | The visibility rule |
+| `baton/review.py` | Interview, review, versions, acknowledgement |
+| `baton/handover.py` | Per-viewer composition and export |
+| `baton/web/` | FastAPI routes, templates, CSS |
+| `baton/db.py` | The evidence model |
+| `db/` | Postgres schema, RLS and its test |
+| `eval/` | Gold-set scoring, held-out checks, deployment smoke test |
+
+## Performance
+
+Measured in Docker limited to 2 CPUs, on the demo's 91 records: 21 s from clicking the button to a finished pipeline, with extraction replayed; about 690 MB of memory. Hosted extraction will add model latency, not yet measured.

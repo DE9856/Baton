@@ -7,7 +7,7 @@
 {% include "_job.html" %}
 {% if run_stats.extractor %}
 <p class="muted"><small>Claims extracted by: <strong>{{ run_stats.extractor }}</strong>.
-{% if project.is_demo %}Demo mode replays a recorded run of a real LLM, so no API key is needed. All the checks after extraction run live.{% elif 'rules' in run_stats.extractor or 'Basic' in run_stats.extractor %}No AI model is configured, so keyword rules are used. They find far less than an LLM.{% endif %}</small></p>
+{% if project.is_demo %}Demo mode replays a recorded run of a real LLM, so no API key is needed. All the checks after extraction run live.{% elif 'rules' in run_stats.extractor or 'Basic' in run_stats.extractor %}No AI model is configured, so keyword rules are used. They copy sentences rather than state self-contained claims, and they rarely surface conflicts: on the demo data they led to 0 of 3 being found.{% endif %}</small></p>
 {% endif %}
 
 <div class="tablewrap"><table>

@@ -36,7 +36,7 @@ def answer_question(s: Session, q: GapQuestion, by: Member, text: str, nli=None)
     related = s.get(Claim, q.claim_id) if q.claim_id else None
     tags = classify(text)
     claim = Claim(
-        project_id=q.project_id, code=_next_code(s, q.project_id), type=_testimony_type(q), subject=related.subject if related else q.kind,
+        project_id=q.project_id, code=_next_code(s, q.project_id), type=_testimony_type(q), subject=related.subject if related else _TESTIMONY_SUBJECT.get(q.kind, ""),
         statement=text, value="", as_of=datetime.now(), audience=q.audience, origin="testimony", label="confirmed",
         label_reason=f"{by.name}'s word, given in the gap interview.", sensitive=bool(tags), sens_tags=tags,
         answered_by=by.name, answered_at=datetime.now(), bucket="decide", review_state="pending",
@@ -55,6 +55,9 @@ def answer_question(s: Session, q: GapQuestion, by: Member, text: str, nli=None)
     audit(s, q.project_id, by.name, "question_answered", f"Q{q.id}", text[:200])
     _ = project
     return claim
+
+
+_TESTIMONY_SUBJECT = {"coverage": "How it works", "unclear": "Answer to a question from the successor"}
 
 
 def _testimony_type(q: GapQuestion) -> str:
