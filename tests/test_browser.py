@@ -1,6 +1,7 @@
 """Drives the real server in a real browser through the whole workflow, as a first-time judge would.
 
 Run: pytest -m browser tests/test_browser.py. Screenshots go to the folder in BATON_SHOTS (default: test-results/shots).
+Against a deployed copy: BATON_LIVE_URL=https://... pytest -m browser tests/test_browser.py -k walkthrough
 """
 from __future__ import annotations
 
@@ -22,6 +23,10 @@ SHOTS = Path(os.environ.get("BATON_SHOTS", ROOT / "test-results" / "shots"))
 
 @pytest.fixture(scope="module")
 def server(tmp_path_factory):
+    # BATON_LIVE_URL runs the same walkthrough against a deployed copy instead of a local server.
+    if os.environ.get("BATON_LIVE_URL"):
+        yield os.environ["BATON_LIVE_URL"].rstrip("/")
+        return
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
         port = sock.getsockname()[1]

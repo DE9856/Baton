@@ -86,13 +86,20 @@ def render_chunk(chunk: list[ChunkUnit], source_type: str) -> str:
 def parse_claims(text: str) -> list[RawClaim]:
     try:
         data = json.loads(text)
-        items = data["claims"]
+        # A bare list instead of {"claims": [...]} is the same answer in a different wrapper.
+        items = data if isinstance(data, list) else data["claims"]
+        if not isinstance(items, list):
+            raise TypeError("claims is not a list")
         claims = []
         for item in items:
-            if item.get("type") not in CLAIM_TYPES or not (item.get("statement") or "").strip():
+            # One malformed item (a string, a null) is skipped rather than losing the whole chunk.
+            if not isinstance(item, dict):
                 continue
-            claims.append(RawClaim(item["type"], item.get("subject", ""), item["statement"], item.get("value", ""),
-                                   [{"id": item.get("record_id", ""), "quote": item.get("quote", "")}]))
+            if item.get("type") not in CLAIM_TYPES or not isinstance(item.get("statement"), str) or not item["statement"].strip():
+                continue
+            text_of = lambda k: item.get(k) if isinstance(item.get(k), str) else ""  # noqa: E731
+            claims.append(RawClaim(item["type"], text_of("subject"), item["statement"], text_of("value"),
+                                   [{"id": text_of("record_id"), "quote": text_of("quote")}]))
         return claims
     except (json.JSONDecodeError, KeyError, TypeError, AttributeError) as e:
         raise ExtractionError(f"The model returned output that does not match the schema ({type(e).__name__}).") from e
@@ -125,6 +132,7 @@ class GroqExtractor(Extractor):
 
     def extract(self, chunk, source_type, source_code):
         headers = {"Authorization": f"Bearer {self.api_key}"}
+        bad_output_retries = 1  # The model's output varies, so an unreadable answer is worth asking for once more.
         for attempt in range(1, self.max_attempts + 1):
             try:
                 r = self.client.post(self.url, headers=headers, json=self._body(chunk, source_type))
@@ -137,7 +145,14 @@ class GroqExtractor(Extractor):
                 choice = r.json()["choices"][0]
                 if choice.get("finish_reason") == "length":
                     raise ExtractionError("The model's answer was cut off because this chunk produced too much output.")
-                return parse_claims(choice["message"]["content"] or "")
+                try:
+                    return parse_claims(choice["message"]["content"] or "")
+                except ExtractionError:
+                    if bad_output_retries and attempt < self.max_attempts:
+                        bad_output_retries -= 1
+                        log.info("Groq model %s returned unreadable output; asking again", self.model)
+                        continue
+                    raise
             if r.status_code == 400 and self.use_schema:
                 # Not every Groq model takes a JSON schema, and some reject output that misses it. Plain JSON
                 # mode still has to pass parse_claims and every check after it.

@@ -241,3 +241,33 @@ def test_handover_lists_an_open_question_once():
     version = SimpleNamespace(number=1, approved_by="Sana", approved_at=datetime(2026, 11, 1), snapshot=snapshot)
     h = compose(version, SimpleNamespace(role="successor", clearances=["public"]))
     assert h.sections["questions"] == [] and len(h.missing) == 1
+
+
+# --- status reading (found on the second dataset, 2 Nov 2026) --------------------------------------------------------
+
+@pytest.mark.parametrize("statement, value, expected", [
+    ("The nightly job has been dead for weeks", "", "not_done"),          # "has been <x>" is not always done
+    ("Nightly DB dump is running to the S3 bucket, set it up today", "todo", "done"),  # the sentence beats the tag
+    ("Hosting is on Fly.io now, moved off the old VPS on Sunday", "", "done"),
+    ("Tanvi needs to set up the nightly DB dump today", "", "not_done"),
+    ("SSO is to be completed by 2026-12-15", "in_progress", "not_done"),  # future, despite "completed"
+    ("The migration is still running", "", "not_done"),
+    ("Card 'Retire old VPS' is in list 'Doing'", "in_progress", "not_done"),  # falls back to the tag
+])
+def test_status_reading(statement, value, expected):
+    from baton.verify.conflicts import _read_polarity
+    assert _read_polarity(cc(1, statement, value=value)) == expected
+
+
+def test_running_then_dead_is_opposite_status():
+    a = cc(1, "Nightly DB dump is running to the S3 bucket, set it up today", "nightly DB dump", value="todo")
+    b = cc(2, "Last dump is from 2 Feb, the nightly DB dump job has been dead for weeks", "nightly DB dump job",
+           when=(2026, 11, 1))
+    assert facet_check(a, b, ROSTER) == "opposite status"
+
+
+def test_open_question_has_no_status():
+    a = cc(1, "Moves auth data, events and attendance tables to Supabase Postgres (merged).", "database migration")
+    b = cc(2, "We need to check with Sana about keeping attendance data after the semester.", "attendance data",
+           "open_question")
+    assert facet_check(a, b, ROSTER) is None

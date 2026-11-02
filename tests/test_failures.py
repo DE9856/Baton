@@ -270,3 +270,29 @@ def test_rule_extractor_keeps_quotes_verbatim():
     chunk = {u.uid: u.text for u in units}
     for c in claims:
         assert ground_quote(c.evidence[0]["quote"], c.evidence[0]["id"], chunk).grounded, c.evidence
+
+
+def test_one_malformed_item_does_not_lose_the_chunk():
+    good = {"type": "status", "subject": "s", "statement": "Backup is done.", "value": "done", "record_id": "a", "quote": "q"}
+    for text in (json.dumps({"claims": ["junk", None, good]}), json.dumps([good])):
+        claims = parse_claims(text)
+        assert [c.statement for c in claims] == ["Backup is done."]
+
+
+def test_groq_asks_again_once_after_unreadable_output():
+    import httpx
+
+    from baton.extract.llm import GroqExtractor
+    good = json.dumps({"claims": [{"type": "status", "subject": "s", "statement": "Backup is done.", "value": "done",
+                                   "record_id": "a", "quote": "q"}]})
+    answers = iter(["not json", good])
+
+    def handler(request):
+        return httpx.Response(200, json={"choices": [{"finish_reason": "stop", "message": {"content": next(answers)}}]})
+
+    ex = GroqExtractor(model="m", api_key="k", client=httpx.Client(transport=httpx.MockTransport(handler)), sleep=lambda s: None)
+    assert [c.statement for c in ex.extract([], "whatsapp", "WA")] == ["Backup is done."]
+    always_bad = GroqExtractor(model="m", api_key="k", sleep=lambda s: None, client=httpx.Client(transport=httpx.MockTransport(
+        lambda r: httpx.Response(200, json={"choices": [{"finish_reason": "stop", "message": {"content": "not json"}}]}))))
+    with pytest.raises(ExtractionError):
+        always_bad.extract([], "whatsapp", "WA")

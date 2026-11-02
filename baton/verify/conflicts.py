@@ -29,12 +29,17 @@ _STOP = {"the", "a", "an", "is", "are", "was", "were", "be", "been", "to", "of",
          # A shared month says nothing about whether two claims concern the same thing.
          "jan", "january", "feb", "february", "mar", "march", "apr", "april", "may", "jun", "june", "jul", "july",
          "aug", "august", "sep", "sept", "september", "oct", "october", "nov", "november", "dec", "december"}
-_DONE = re.compile(r"\b(done|completed?|finished|configured|enabled|set up|are set|fixed|resolved|closed|merged|working|"
-                   r"delivered|deployed|live|(?:has|have) been \w+|can now)\b", re.I)
+_DONE = re.compile(r"\b(done|completed?|finished|configured|enabled|set up|set (?:it|this|that|them) up|are set|fixed|resolved|"
+                   r"closed|merged|working|delivered|deployed|live|(?:is|are) (?:now )?running|up and running|"
+                   r"moved (?:off|away from)|migrated (?:off|away from)|switched over|decommissioned|"
+                   r"(?:has|have) been \w+|can now)\b", re.I)
+# Something that was done but has since stopped. Checked first, so "has been dead" is not read as "has been <done>".
+_BROKEN = re.compile(r"\b(dead|broken|failing|crash(?:ed|ing)|stopped (?:working|running)|not (?:running|working)|"
+                     r"(?:has|have) been down|down since)\b", re.I)
 _NOT_DONE = re.compile(
     r"\b(never|not (?:yet|all|actually|been)\b|not (?:enabled|done|finished|fixed|configured|completed|functional|available|include[ds]?)|"
     r"(?:doesn't|does not|don't|do not) (?:include|have)|no \w+ (?:right now|exist)|in[ _]progress|still (?:open|working|being|in|under|waiting|awaiting)|"
-    r"to[ _]?do|started|pending|under development|waiting|awaiting|unresolved|remain\w*|yet to)\b",
+    r"to[ _]?do|started|pending|under development|waiting|awaiting|unresolved|remain\w*|yet to|still running|needs? to \w+|has to \w+|have to \w+|going to \w+|(?:is|are) to be \w+|(?:will|should|must) be \w+)\b",
     re.I,
 )
 
@@ -109,11 +114,15 @@ def _polarity(c: ConflictClaim) -> str | None:
 
 
 def _read_polarity(c: ConflictClaim) -> str | None:
-    text = f"{c.statement} {c.value} {c.quote}"
-    if _NOT_DONE.search(text):
-        return "not_done"
-    if _DONE.search(text):
-        return "done"
+    """The claim's own sentence decides. The model's value tag and the quote are only read when it says nothing,
+    because the tag is a guess ("todo" on "the dump is running, set it up today")."""
+    for text in (c.statement, c.value, c.quote):
+        if not text:
+            continue
+        if _BROKEN.search(text) or _NOT_DONE.search(text):
+            return "not_done"
+        if _DONE.search(text):
+            return "done"
     return None
 
 
@@ -149,7 +158,8 @@ def facet_check(a: ConflictClaim, b: ConflictClaim, roster: list[list[str]] | No
         da, db = _days(a), _days(b)
         if da and db and not da & db and (_is_schedule(a) and _is_schedule(b)):
             return "different dates"
-    if len(shared) >= 2 or same_subject:
+    # A question has no done or not-done state ("we need to check with Sana" is not unfinished work).
+    if (len(shared) >= 2 or same_subject) and "open_question" not in (a.type, b.type):
         pa, pb = _polarity(a), _polarity(b)
         if pa and pb and pa != pb:
             return "opposite status"
@@ -213,11 +223,17 @@ def find_cards(claims: list[ConflictClaim], nli, embedder, roster=None, only_inv
         return []
     # The cap applies here, to what NLI must check. Applied earlier, repeated statements would crowd out real conflicts.
     survivors = survivors[:CANDIDATE_CAP]
-    forward = nli.score([(_text(a), _text(b)) for a, b, _ in survivors])
-    backward = nli.score([(_text(b), _text(a)) for a, b, _ in survivors])
+    # NLI is sensitive to wording: the model-chosen subject label in front of a sentence can flip a clear
+    # contradiction to zero. So each pair is scored in both directions, with and without the labels.
+    pairs = []
+    for a, b, _ in survivors:
+        variants = {(_text(a), _text(b)), (a.statement, b.statement), (_text(a), b.statement), (a.statement, _text(b))}
+        pairs.append(sorted(variants))
+    flat = [(x, y) for vs in pairs for v in vs for x, y in (v, v[::-1])]
+    scores = iter(nli.score(flat))
     cards = []
-    for (a, b, facet), f, r in zip(survivors, forward, backward):
-        score = max(f.contradiction, r.contradiction)
+    for (a, b, facet), vs in zip(survivors, pairs):
+        score = max(next(scores).contradiction for _ in range(2 * len(vs)))
         if score >= CONTRADICTION_THRESHOLD:
             cards.append(Card(a, b, score, facet))
     return cards

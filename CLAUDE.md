@@ -12,7 +12,7 @@ Read this first. It says what needs doing, what exists, how to set it up on a ne
 
 - [ ] **1. Ask the organiser** for the deadlines, and whether Round 3 work built now counts (rules 1 and 4). *Round 1 is cleared. On 2 Nov a team member indicated that Round 3 work counts; record who confirmed it and when.*
 - [x] **2. Go live.** Done 2 Nov 2026: Supabase checked, GitHub pushed with CI passing, deployed to Azure (Hugging Face Docker Spaces now need a paid plan). See `docs/DEPLOY.md`.
-- [ ] **3. Second dataset with Groq: run, now decide.** `openai/gpt-oss-120b` found 12 of 13 facts but only 1 of 3 conflicts (missed backup and VPS); no leaks. Either improve conflict detection or report it in `docs/TESTING.md` as a limit. Groq retired `llama-3.3-70b-versatile`.
+- [x] **3. Second dataset with Groq.** First run (2 Nov): 12/13 facts, 1/3 conflicts. Conflict-status bugs found and fixed, with tests; four runs after: 3, 2, 3, 1 of 3, now tuned on this data. Recorded in `docs/TESTING.md`. An independent dataset is still the honest test.
 - [ ] **Before judging: open the live link a few minutes early** to wake it. It sleeps when idle to save the student credit and wakes in about 7 seconds (measured 2 Nov). For no wait at all, switch to always on with `az containerapp update -n baton -g baton-rg --min-replicas 1`, and back with `--min-replicas 0` afterwards.
 - [ ] **4. Choose three new Round 3 commitments.** The original three are already built. Proposals are in `docs/ROUND3_COMMITMENTS.md`.
 - [ ] **5. Have the team read the code.** Judges can question any member on any part (rule 16). Each member confirms their role and writes their own contribution (rule 14).

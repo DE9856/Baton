@@ -53,7 +53,7 @@ The answer key was written during the planning round: 23 facts, 3 conflicts, 7 c
 
 ## The second dataset: a less flattering, more honest number
 
-`eval/second_dataset/foodlink` is a different domain, with a different chat format and some Hinglish. **It was written by the same AI that wrote the rules, so it's not independent.** It was scored once, and the raw first-run output is kept in `first_run.txt`. The rules weren't changed to raise the score, except to fix a security bug.
+`eval/second_dataset/foodlink` is a different domain, with a different chat format and some Hinglish. **It was written by the same AI that wrote the rules, so it's not independent.** Its first runs, with keyword rules and then with Groq, are kept raw in `first_run.txt`. After the Groq first run, the conflict rules were changed (below), so it's no longer held out.
 
 | Keyword rules, first run | Result |
 |---|---|
@@ -62,7 +62,40 @@ The answer key was written during the planning round: 23 facts, 3 conflicts, 7 c
 | Canaries leaked to the successor | 0/5 |
 | Secrets masked | **Missed one**: `billing-password Kitchen!4471` reached the reviewer and the snapshot. Fixed afterwards, with a test |
 
-So on data it wasn't tuned on, the no-AI fallback finds much less, and in particular doesn't find conflicts. The checks still hold (no false claims, no leaks to the successor), but a judge uploading files without a Groq key gets a thin ledger. The real test is Groq on this dataset, then an independent dataset. Neither has happened.
+So on data it wasn't tuned on, the no-AI fallback finds much less, and in particular doesn't find conflicts. The checks still hold (no false claims, no leaks to the successor), but a judge uploading files without a Groq key gets a thin ledger.
+
+### Groq on the second dataset (2 Nov 2026)
+
+First real Groq run, model `openai/gpt-oss-120b` (Groq had retired `llama-3.3-70b-versatile`), before any change for this dataset. Raw output is in `first_run.txt`.
+
+| Groq, first run | Result |
+|---|---|
+| Facts | **12/13** (keyword rules: 9/13) |
+| Planted conflicts | **1/3** (dashboard date only) |
+| Canaries leaked to anyone who shouldn't see them | 0 |
+| Secrets in the stored snapshot | none |
+
+**The model's output varies between runs**, even at temperature 0, so one run isn't the whole story. Five runs of the same code gave conflicts 1, 3, 1, 1, 1 out of 3, and one run lost a whole chunk to malformed output.
+
+**Then the rules were changed, so this dataset is no longer held out.** Looking at why backup and VPS were missed found real bugs, not just gaps:
+
+- "The job has been dead for weeks" was read as *done*, because `has been <word>` counted as done.
+- The model's `value` tag beat the sentence itself: "dump is running, set it up today" tagged `todo` read as *not done*.
+- "moved off", "is running", "set it up" weren't recognised as done; "needs to", "is to be", "will be" weren't recognised as not done.
+- The contradiction model's score flipped from 0.99 to 0.00 depending on the subject label the extractor put in front of a sentence. Each pair is now scored with and without labels.
+- One malformed item lost a whole chunk; the parser now skips it, and Groq is asked again once.
+- Questions are excluded from status conflicts (the demo raised a false one on "we need to check with Sana").
+
+Each fix has a test, and the demo still gives exactly its 3 planted conflicts. Four fresh runs after the fixes:
+
+| Run after fixes | Facts | Conflicts | False alarms |
+|---|---|---|---|
+| 1 | 12/13 | 3/3 | 0 |
+| 2 | 11/13 | 2/3 (missed VPS) | 1: "different owners" on the driver onboarding form, from an extracted owner who was only mentioned |
+| 3 | 12/13 | 3/3 | 0 |
+| 4 | 10/13 | 1/3 | 0 |
+
+Average conflicts went from about 1.4/3 to about 2.3/3, with no leaks in any run. These after-fix numbers are **tuned on this dataset**, so treat them as optimistic. A miss now mostly means the extractor rewrote the sentence (for example "Tanvi needs to set up the dump" for "the dump is running, set it up today"), which no rule should turn into a conflict. The honest test is still an independent dataset.
 
 ## Other measurements
 

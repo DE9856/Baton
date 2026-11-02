@@ -3,3 +3,16 @@ Claims: 26, grounded 26, verified 26, needs review 0. Conflict cards: 0. Questio
 Successor: facts 9/13, missed backup_dead, gps_rootcause, handover_people, vps_reason. Conflicts 0/3. Leaked: none.
 Reviewer: leaked Kitchen!4471 (masking missed billing-password Kitchen!4471; this was then fixed).
 Secrets in the stored snapshot: Kitchen!4471 (same bug).
+
+First run with Groq, 2 Nov 2026, before any change for this dataset. llama-3.3-70b-versatile had been retired by Groq, so every chunk failed; the model was switched to openai/gpt-oss-120b with no rule change:
+Extractor: Groq (openai/gpt-oss-120b). Records: 37. Claims: 45, grounded 44, verified 41, needs review 1. Conflict cards shown to the reviewer: 1. Questions for the leaver: 7.
+Successor: facts 12/13, missed handover_people. Conflicts 1/3 (dashboard_date). Leaked: none. Secrets in the stored snapshot: none.
+
+Repeat runs the same day, same code, same model (the model's output varies between runs):
+Run 2: facts 12/13, conflicts 3/3 (backup, dashboard_date, vps).
+Run 3: one chunk (TR-c1 to TR-c5) failed: "output that does not match the schema (AttributeError)". Facts 11/13, conflicts 1/3.
+Run 4: facts 12/13, conflicts 1/3.
+Run 5: facts 12/13 (missed backup_dead), conflicts 1/3.
+
+After this, the conflict rules were changed using what these runs showed (see docs/TESTING.md), so later scores on this dataset are tuned on it.
+Four runs after the change: conflicts 3/3, 2/3, 3/3, 1/3; facts 12, 11, 12, 10 of 13; one false alarm (different owners, driver onboarding form) in run 2; no leaks.

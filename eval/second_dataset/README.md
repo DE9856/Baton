@@ -2,7 +2,7 @@
 
 The plan promises a second dataset **written by someone outside the team**, because the rules were developed against the first. That has not happened yet.
 
-`foodlink/` is a stopgap: a project in a different domain, with a different chat format and some Hinglish. **It was written by the same AI that wrote the rules, so it isn't independent.** It was written once and scored once, and the rules were not changed afterwards to improve its score.
+`foodlink/` is a stopgap: a project in a different domain, with a different chat format and some Hinglish. **It was written by the same AI that wrote the rules, so it isn't independent.** It was written once. Its first keyword-rules run and first Groq run were recorded before any change; after the Groq run (2 Nov 2026) the conflict rules were changed using what it showed, so it is no longer held out.
 
 ## How to get an independent one
 
