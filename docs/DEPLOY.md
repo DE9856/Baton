@@ -79,7 +79,7 @@ Hugging Face Docker Spaces now need a paid PRO plan, so Baton runs on Azure Cont
    az containerapp env create --name baton-env --resource-group baton-rg --location austriaeast --logs-destination none
    ```
 
-4. Deploy. This reads `.env`, sends the credentials as Azure secrets without printing them, and runs one always-on replica with 1 CPU and 2 GB. Jobs run in-process, so keep it to one replica. Run it again after each new image to roll out a new revision.
+4. Deploy. This reads `.env`, sends the credentials as Azure secrets without printing them, and runs one always-on replica with 1 CPU and 2 GB. Jobs run in-process, so keep it to one replica. To roll out a new image after the **image** workflow goes green, pass its commit tag so Azure sees a change: `AZURE_IMAGE=ghcr.io/de9856/baton:$(git rev-parse HEAD) python deploy/deploy_azure.py`.
 
    ```sh
    python deploy/deploy_azure.py --dry-run

@@ -52,8 +52,8 @@ def main() -> None:
         r = az("containerapp", "secret", "set", "-n", APP, "-g", GROUP, "--secrets", *secret_args)
         if r.returncode:
             sys.exit(r.stderr)
-        r = az("containerapp", "update", "-n", APP, "-g", GROUP, "--image", IMAGE,
-               "--revision-suffix", f"r{secrets.token_hex(3)}", "--set-env-vars", *env_args)
+        # Pass a commit tag (AZURE_IMAGE=ghcr.io/...:<sha>) so the image reference changes and a new revision rolls out.
+        r = az("containerapp", "update", "-n", APP, "-g", GROUP, "--image", IMAGE, "--set-env-vars", *env_args)
     else:
         r = az("containerapp", "create", "-n", APP, "-g", GROUP, "--environment", ENV, "--image", IMAGE,
                "--target-port", "7860", "--ingress", "external", "--cpu", "1.0", "--memory", "2.0Gi",
