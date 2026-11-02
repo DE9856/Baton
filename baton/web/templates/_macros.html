@@ -1,41 +1,68 @@
 {% macro label(name, who="") %}
-<span class="chip l-{{ name }}">{% if name == 'confirmed' and who %}Confirmed by {{ who }}{% else %}{{ LABELS.get(name, name) }}{% endif %}</span>
+<span class="pill g l-{{ name }}">{% if name == 'confirmed' and who %}Confirmed by {{ who }}{% else %}{{ LABELS.get(name, name) }}{% endif %}</span>
+{% endmacro %}
+
+{# The proof bar: how much of a body of lines code has proven. The segments are drawn from the same counts the
+   legend prints, so the bar and the figures are one set of numbers. #}
+{% macro proof(verified, confirmed, missing=0, other=0, noun='lines', side='', other_label='need review or were rejected') %}
+{% set total = verified + confirmed + missing + other %}
+<div class="panel proof" role="group" aria-label="How much is proven">
+  <div>
+    <div class="proof-figure">{{ verified }} <span class="of">of {{ total }} {{ noun }} verified</span></div>
+    <p class="proof-cap">Verified: code matched a source quote word for word and a checking model agreed. Everything else says whose word it is.</p>
+  </div>
+  {% if side %}<div class="proof-side">{{ side|safe }}</div>{% endif %}
+  <div class="proof-bar" aria-hidden="true">
+    {% if verified %}<i class="seg-verified" style="flex: {{ verified }}"></i>{% endif %}
+    {% if confirmed %}<i class="seg-confirmed" style="flex: {{ confirmed }}"></i>{% endif %}
+    {% if other %}<i class="seg-other" style="flex: {{ other }}"></i>{% endif %}
+    {% if missing %}<i class="seg-missing" style="flex: {{ missing }}"></i>{% endif %}
+  </div>
+  <ul class="proof-legend">
+    <li><span class="sw seg-verified"></span><span><b>{{ verified }}</b> verified by a source quote</span></li>
+    <li><span class="sw seg-confirmed"></span><span><b>{{ confirmed }}</b> a named person's word</span></li>
+    {% if other %}<li><span class="sw seg-other"></span><span><b>{{ other }}</b> {{ other_label }}</span></li>{% endif %}
+    {% if missing or noun == 'lines' %}<li><span class="sw seg-missing"></span><span><b>{{ missing }}</b> missing: nobody has answered</span></li>{% endif %}
+  </ul>
+</div>
 {% endmacro %}
 
 {% macro receipt_row(r, show_scores=False) %}
 <li class="receipt">
   <div class="rmeta">
-    <strong>{{ r.source }}</strong>{% if r.when %}, {{ r.when }}{% endif %}{% if r.author %}, {{ r.author }}{% endif %}
-    <code>{{ r.uid }}</code>
-    {% if r.link and (r.link.startswith('http://') or r.link.startswith('https://')) %}<a href="{{ r.link }}" rel="noopener noreferrer" target="_blank">open source</a>{% endif %}
+    <strong>{{ r.source }}</strong>{% if r.when %}<span>{{ r.when }}</span>{% endif %}{% if r.author %}<span>{{ r.author }}</span>{% endif %}
+    <span class="id" translate="no">{{ r.uid }}</span>
+    {% if r.link and (r.link.startswith('http://') or r.link.startswith('https://')) %}<a href="{{ r.link }}" rel="noopener noreferrer" target="_blank">Open source</a>{% endif %}
   </div>
   <blockquote>{{ r.quote }}</blockquote>
-  {% if show_scores %}<small class="muted">Quote check: {{ r.match|replace('_', ' ') }}{% if r.entailment is not none %}. Support score: {{ '%.2f'|format(r.entailment) }}{% endif %}</small>{% endif %}
+  {% if show_scores %}<small>Quote check: {{ r.match|replace('_', ' ') }}{% if r.entailment is not none %}. Support score: {{ '%.2f'|format(r.entailment) }}{% endif %}</small>{% endif %}
 </li>
 {% endmacro %}
 
-{# A claim row for the reviewer and the leaver, read from the live tables. #}
+{# A claim's receipt for the reviewer and the leaver, read from the live tables. #}
 {% macro claim_receipts(c, show_scores=True) %}
 <details class="receipts" {% if c.label in ('conflict', 'needs_review', 'unsupported') %}open{% endif %}>
-  <summary>Receipt</summary>
-  <ul>
+  <summary>Receipt{% if c.evidence|length > 1 %}s ({{ c.evidence|length }}){% endif %}</summary>
+  <ul class="receipt-list">
   {% for e in c.evidence %}
     {% if e.unit %}
     <li class="receipt">
       <div class="rmeta">
-        <strong>{{ e.unit.source.title }}</strong>{% if e.unit.ts %}, {{ e.unit.ts.strftime('%d %b %Y') }}{% endif %}, {{ e.unit.author }}
-        <code>{{ e.unit.uid }}</code>
-        {% if e.unit.link and (e.unit.link.startswith('http://') or e.unit.link.startswith('https://')) %}<a href="{{ e.unit.link }}" rel="noopener noreferrer" target="_blank">open source</a>{% endif %}
+        <strong>{{ e.unit.source.title }}</strong>{% if e.unit.ts %}<span>{{ e.unit.ts.strftime('%d %b %Y') }}</span>{% endif %}<span>{{ e.unit.author }}</span>
+        <span class="id" translate="no">{{ e.unit.uid }}</span>
+        {% if e.unit.link and (e.unit.link.startswith('http://') or e.unit.link.startswith('https://')) %}<a href="{{ e.unit.link }}" rel="noopener noreferrer" target="_blank">Open source</a>{% endif %}
       </div>
       <blockquote>{{ e.quote }}</blockquote>
-      {% if show_scores %}<small class="muted">Quote check: {{ e.match|replace('_', ' ') }}{% if e.match_reason %} ({{ e.match_reason }}){% endif %}{% if e.entailment is not none %}. Support score: {{ '%.2f'|format(e.entailment) }}{% endif %}{% if e.guard_missing %}. Not in the evidence: {{ e.guard_missing|join(', ') }}{% endif %}</small>{% endif %}
+      {% if show_scores %}<small>Quote check: {{ e.match|replace('_', ' ') }}{% if e.match_reason %} ({{ e.match_reason }}){% endif %}{% if e.entailment is not none %}. Support score {{ '%.2f'|format(e.entailment) }}{% endif %}{% if e.guard_missing %}. Not in the evidence: {{ e.guard_missing|join(', ') }}{% endif %}</small>{% endif %}
     </li>
     {% else %}
-    <li class="receipt"><blockquote class="bad">{{ e.quote or 'No quote was given.' }}</blockquote><small class="muted">Rejected: {{ e.match_reason }}</small></li>
+    <li class="receipt"><blockquote class="bad">{{ e.quote or 'No quote was given.' }}</blockquote><small>Rejected: {{ e.match_reason }}</small></li>
     {% endif %}
   {% else %}
-    <li class="muted">No source quote. {{ c.label_reason }}</li>
+    <li class="receipt"><small>No source quote. {{ c.label_reason }}</small></li>
   {% endfor %}
   </ul>
 </details>
 {% endmacro %}
+
+{% macro hidden_note() %}{% if hidden_sources %}{{ hidden_sources }} source{{ 's' if hidden_sources != 1 }} not shared with you{% if step != 'connect' %} (<a href="/p/{{ project.id }}/connect">request access</a>){% endif %}.{% endif %}{% endmacro %}

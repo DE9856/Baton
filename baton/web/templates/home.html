@@ -1,32 +1,59 @@
 {% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
 {% block content %}
-<section class="hero">
+<section class="home-hero">
   <div>
     <h1>Hand over the project, not just the files.</h1>
-    <p class="lead">Baton proves what your project's records can prove, asks the person leaving only about what they can't, and shows each person only what they may see.</p>
-    <div class="cta">
+    <p class="finding">Baton proves what your project's records can prove, asks the person leaving only about what they can't, and shows each person only what they may see.</p>
+    <div class="title-actions">
       <form method="post" action="/demo"><button type="submit" class="pass">Load the demo project</button></form>
-      <a role="button" class="secondary outline" href="/new">Start your own handover</a>
+      <a role="button" class="outline" href="/new">Start your own handover</a>
     </div>
   </div>
+
+  <figure class="stack" data-ui aria-label="What a successor sees: a line from the demo handover">
+    <div class="panel">
+      <div class="panel-head"><h2>Start here <span class="count">Tech lead handover · v1</span></h2><span class="muted"><small>Approved by Sana</small></span></div>
+      <div class="rows">
+        <div class="line">
+          <div class="labels">{{ ui.label('verified') }}<span class="pill g due">Due 20 Nov</span></div>
+          <div>
+            <p class="stmt">The campusconnect.in domain renewal is due on 20 Nov; it is on Arjun's GoDaddy account.</p>
+            <ul class="receipt-list">
+              <li class="receipt">
+                <div class="rmeta"><strong>WhatsApp: DevCircle Tech</strong><span>12 Oct 2026</span><span>Arjun</span></div>
+                <blockquote>Reminder: campusconnect.in domain renewal is due 20 Nov. It's on my GoDaddy account, I'll handle it</blockquote>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="line">
+          <div class="labels">{{ ui.label('missing') }}</div>
+          <p class="stmt">Who renews the domain after Arjun's last day? Nobody has said yet. Ask Arjun.</p>
+        </div>
+      </div>
+    </div>
+    <figcaption class="muted"><small>A line from the synthetic demo project, with its receipt.</small></figcaption>
+  </figure>
 </section>
 
-<ol class="legs" aria-label="How a handover works">
-  <li><b><span>1</span>Connect</b><p>Add exports any member can make: GitHub, WhatsApp, Trello, meeting notes.</p></li>
-  <li><b><span>2</span>Reconstruct and verify</b><p>AI proposes small claims. Code checks each quote and finds conflicts, gaps and secrets.</p></li>
-  <li><b><span>3</span>Gap interview</b><p>The person leaving answers about 10 questions, by tapping, typing or speaking.</p></li>
-  <li><b><span>4</span>Review</b><p>A reviewer resolves conflicts, decides the risky items and approves.</p></li>
-  <li><b><span>5</span>Handover</b><p>The next person gets a plan for their role, with a receipt behind each line.</p></li>
+<ol class="panel flow" aria-label="How a handover works">
+  <li><h3><span class="ic ic-plug" aria-hidden="true"></span>Connect</h3><p>Add exports any member can make: GitHub, WhatsApp, Trello, meeting notes.</p></li>
+  <li><h3><span class="ic ic-ledger" aria-hidden="true"></span>Reconstruct and verify</h3><p>AI proposes small claims. Code checks each quote and finds conflicts, gaps and secrets.</p></li>
+  <li><h3><span class="ic ic-message" aria-hidden="true"></span>Gap interview</h3><p>The person leaving answers about 10 questions, by tapping, typing or speaking.</p></li>
+  <li><h3><span class="ic ic-shield" aria-hidden="true"></span>Review</h3><p>A reviewer resolves conflicts, decides the risky items and approves.</p></li>
+  <li><h3><span class="ic ic-handover" aria-hidden="true"></span>Handover</h3><p>The next person gets a plan for their role, with a receipt behind each line.</p></li>
 </ol>
 
 {% if projects %}
-<section>
-  <h2>Your projects</h2>
-  <div class="tablewrap"><table><thead><tr><th>Project</th><th>Role</th><th>Last day</th></tr></thead><tbody>
+<section class="panel mt-lg">
+  <div class="panel-head"><h2>Your projects <span class="count">{{ projects|length }}</span></h2></div>
+  <div class="table-wrap"><table class="stackable"><thead><tr><th>Project</th><th>Role</th><th class="num">Last day</th></tr></thead><tbody>
   {% for p in projects %}
-  <tr><td><a href="/p/{{ p.id }}">{{ p.name }}</a></td><td>{{ p.role_title }}</td><td>{{ p.last_day.strftime('%d %b %Y') }}</td></tr>
+  <tr><td><a href="/p/{{ p.id }}">{{ p.name }}</a></td><td class="line2">{{ p.role_title }}</td><td class="num">{{ p.last_day.strftime('%d %b %Y') }}</td></tr>
   {% endfor %}
   </tbody></table></div>
 </section>
 {% endif %}
+<p class="muted mt-lg"><small>Baton {{ app_version }} · Team sky-flyers, WCC Forge 48. Use synthetic or permitted data only. Baton may miss things; check the Missing items with your team.</small></p>
 {% endblock %}

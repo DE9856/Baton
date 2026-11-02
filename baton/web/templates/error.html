@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>{{ 'You can\'t see this' if status == 403 else 'Not found' if status == 404 else 'Something went wrong' }}</h1>
-<p class="lead">{{ detail }}</p>
-<p><a href="/">Back to the start</a></p>
+<div class="errorpage">
+  <span class="ic {{ 'ic-lock' if status == 403 else 'ic-help' if status == 404 else 'ic-alert' }}" aria-hidden="true"></span>
+  <h1>{{ 'You can\'t see this' if status == 403 else 'Not found' if status == 404 else 'Something went wrong' }}</h1>
+  <p class="finding">{{ detail }}</p>
+  <p style="margin-top: 24px"><a role="button" class="outline" href="/"><span class="ic ic-arrow-left" aria-hidden="true"></span>Back to the start</a></p>
+</div>
 {% endblock %}

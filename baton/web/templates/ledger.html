@@ -2,28 +2,40 @@
 {% import "_macros.html" as ui with context %}
 {% block title %}Claim ledger · Baton{% endblock %}
 {% block content %}
-<h1>Claim ledger</h1>
-<p class="lead">What Baton reconstructed. {{ total }} claims you may see, each with its receipt. Labels are computed by rules from the checks, never from the AI's own confidence.</p>
-{% include "_job.html" %}
-<nav class="filters" aria-label="Filter claims by label">
-  <a href="?" class="chip {% if not active %}sel{% endif %}">All ({{ total }})</a>
-  {% for key, n in counts.items() %}<a href="?label={{ key }}" class="chip l-{{ key }} {% if active == key %}sel{% endif %}">{{ LABELS.get(key, key) }} ({{ n }})</a>{% endfor %}
-</nav>
-{% for c in claims %}
-<article class="claim lane-{{ c.label }}" id="{{ c.code }}">
-  <div class="claimhead">
-    {{ ui.label(c.label, c.answered_by) }}
-    <span class="chip kind">{{ TYPE_TITLES.get(c.type, c.type) }}</span>
-    <span class="chip aud">{{ AUDIENCE_LABELS.get(c.audience, c.audience) }}</span>
-    {% if c.cliff %}<span class="chip cliff">Departure cliff</span>{% endif %}
-    {% if c.due %}<span class="chip">Due {{ c.due.strftime('%d %b %Y') }}</span>{% endif %}
-    <code class="code">{{ c.code }}</code>
+{% set v = counts.get('verified', 0) %}{% set c = counts.get('confirmed', 0) %}
+<div class="title-row">
+  <div>
+    <h1>Claim ledger</h1>
+    <p class="finding"><b>{{ total }} claims</b> you may see, reconstructed from the sources. Labels are computed by rules from the checks, never from the AI's own confidence. {{ ui.hidden_note() }}</p>
   </div>
-  <p class="stmt">{{ c.statement }}</p>
-  {% if c.label not in ('verified', 'confirmed') and c.label_reason %}<small class="why">{{ c.label_reason }}</small>{% endif %}
-  {{ ui.claim_receipts(c) }}
-</article>
-{% else %}
-<p class="muted">No claims yet. Add sources and build the ledger on the <a href="/p/{{ project.id }}/connect">Connect</a> page.</p>
-{% endfor %}
+</div>
+{% include "_job.html" %}
+{% if total %}{{ ui.proof(v, c, other=total - v - c, noun='claims') }}{% endif %}
+
+<div class="panel mt">
+  <nav class="tabs" aria-label="Filter claims by label">
+    <a href="?" class="tab" {% if not active %}aria-current="page"{% endif %}>All <span class="count">{{ total }}</span></a>
+    {% for key, n in counts.items() %}<a href="?label={{ key }}" class="tab" {% if active == key %}aria-current="page"{% endif %}>{{ LABELS.get(key, key) }} <span class="count">{{ n }}</span></a>{% endfor %}
+  </nav>
+  <div class="rows">
+  {% for c in claims %}
+  <article class="claim" id="{{ c.code }}">
+    <div class="line">
+      <div class="labels">
+        {{ ui.label(c.label, c.answered_by) }}
+        {% if c.cliff %}<span class="pill g cliff">Departure cliff</span>{% endif %}
+      </div>
+      <div>
+        <p class="stmt">{{ c.statement }}</p>
+        <p class="meta">{{ TYPE_TITLES.get(c.type, c.type) }} · {{ AUDIENCE_LABELS.get(c.audience, c.audience) }}{% if c.due %} · due {{ c.due.strftime('%d %b %Y') }}{% endif %} · <span class="id">{{ c.code }}</span></p>
+        {% if c.label not in ('verified', 'confirmed') and c.label_reason %}<p class="why"><span class="ic ic-info" aria-hidden="true"></span><span>{{ c.label_reason }}</span></p>{% endif %}
+        {{ ui.claim_receipts(c) }}
+      </div>
+    </div>
+  </article>
+  {% else %}
+  <p class="empty-row"><span class="ic ic-ledger" aria-hidden="true"></span><span>{% if active %}No claims with this label.{% else %}No claims yet. Add sources and build the ledger on the <a href="/p/{{ project.id }}/connect">Connect</a> page.{% endif %}</span></p>
+  {% endfor %}
+  </div>
+</div>
 {% endblock %}

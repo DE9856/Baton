@@ -2,43 +2,56 @@
 {% import "_macros.html" as ui with context %}
 {% block title %}Ask Baton{% endblock %}
 {% block content %}
-<h1>Ask Baton</h1>
-<p class="lead">Ask about the approved handover. Baton answers only with claims you may see, each with its receipt, and says so when it doesn't know.</p>
+<div class="title-row">
+  <div>
+    <h1>Ask Baton</h1>
+    <p class="finding">Answers come only from the approved handover{% if version %} (<b>version {{ version.number }}</b>){% endif %}, limited to what you may see, each with its receipt. When Baton doesn't know, it says so.</p>
+  </div>
+</div>
 {% if not version %}
-<p class="muted">Nothing has been approved yet, so there is nothing to search.</p>
+<div class="panel formpanel"><p class="empty-row"><span class="ic ic-info" aria-hidden="true"></span>Nothing has been approved yet, so there is nothing to search.</p></div>
 {% else %}
-<form method="get" action="/p/{{ project.id }}/ask" class="askbar" role="search">
-  <input name="q" required maxlength="500" value="{{ question }}" placeholder="For example: who renews the domain?" aria-label="Your question" autofocus>
-  <button type="submit" class="small">Ask</button>
+<form method="get" action="/p/{{ project.id }}/ask" class="askbar" role="search" style="max-width: 720px">
+  <span class="ic ic-search" aria-hidden="true"></span>
+  <input name="q" required maxlength="500" value="{{ question }}" placeholder="For example: who renews the domain?" aria-label="Your question" {% if not question %}autofocus{% endif %}>
+  <button type="submit">Ask</button>
 </form>
 {% if answer %}
   {% if answer.abstained %}
-  <article class="claim lane-missing" role="status">
-    <div class="claimhead"><span class="chip l-missing">Not known</span></div>
-    <p class="stmt">{{ answer.reason }}</p>
-    <form method="post" action="/p/{{ project.id }}/ask/route" class="actions">
-      <input type="hidden" name="q" value="{{ answer.question }}">
-      <button type="submit" class="small secondary">Send this question to someone who may know</button>
-    </form>
-  </article>
+  <div class="panel mt-lg" role="status">
+    <div class="rows"><article class="claim">
+      <div class="row-head"><span class="pill g l-missing">Not known</span></div>
+      <p class="stmt">{{ answer.reason }}</p>
+      <form method="post" action="/p/{{ project.id }}/ask/route" class="actions">
+        <input type="hidden" name="q" value="{{ answer.question }}">
+        <button type="submit" class="small secondary"><span class="ic ic-send" aria-hidden="true"></span>Send this question to someone who may know</button>
+      </form>
+    </article></div>
+  </div>
   {% else %}
-  <h2>What the approved handover says</h2>
-  <ul class="lines">
-    {% for i in answer.items %}
-    <li class="line lane-{{ i.label }}">
-      <div class="claimhead">{{ ui.label(i.label, i.answered_by) }}{% if i.due %}<span class="chip">Due {{ i.due }}</span>{% endif %}</div>
-      <p class="stmt">{% if i|needs_subject %}<span class="subj">{{ i.subject }}:</span> {% endif %}{{ i.statement }}</p>
-      {% if i.receipts %}
-      <details class="receipts" open><summary>Receipt{% if i.receipts|length > 1 %}s ({{ i.receipts|length }} sources){% endif %}</summary>
-        <ul>{% for r in i.receipts %}{{ ui.receipt_row(r) }}{% endfor %}</ul></details>
-      {% elif i.answered_by %}<small class="muted">{{ i.answered_by }}'s word, {{ i.answered_at }}. Not independently sourced.</small>{% endif %}
-    </li>
-    {% endfor %}
-  </ul>
-  <form method="post" action="/p/{{ project.id }}/ask/route" class="actions">
-    <input type="hidden" name="q" value="{{ answer.question }}">
-    <button type="submit" class="small secondary outline">That doesn't answer it: ask someone</button>
-  </form>
+  <section class="panel mt-lg">
+    <div class="panel-head"><h2>What the approved handover says <span class="count">{{ answer.items|length }}</span></h2>
+      <form method="post" action="/p/{{ project.id }}/ask/route">
+        <input type="hidden" name="q" value="{{ answer.question }}">
+        <button type="submit" class="small outline">That doesn't answer it: ask someone</button>
+      </form></div>
+    <div role="status">
+    <ul class="rows">
+      {% for i in answer.items %}
+      <li class="line">
+        <div class="labels">{{ ui.label(i.label, i.answered_by) }}{% if i.due %}<span class="pill g due">Due {{ i.due }}</span>{% endif %}</div>
+        <div>
+          <p class="stmt">{% if i|needs_subject %}<span class="subj">{{ i.subject }}:</span> {% endif %}{{ i.statement }}</p>
+          {% if i.receipts %}
+          <details class="receipts" open><summary>Receipt{% if i.receipts|length > 1 %}s ({{ i.receipts|length }} sources){% endif %}</summary>
+            <ul class="receipt-list">{% for r in i.receipts %}{{ ui.receipt_row(r) }}{% endfor %}</ul></details>
+          {% elif i.answered_by %}<p class="meta">{{ i.answered_by }}'s word, {{ i.answered_at }}. Not independently sourced.</p>{% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    </div>
+  </section>
   {% endif %}
 {% endif %}
 {% endif %}

@@ -1,14 +1,26 @@
 {% extends "base.html" %}
 {% block title %}Audit log · Baton{% endblock %}
 {% block content %}
-<h1>Audit log</h1>
-<p class="lead">An append-only record of who connected, viewed, edited, approved and shared what. Entries can't be changed or deleted through the app.</p>
-<div class="tablewrap"><table>
-  <thead><tr><th>When</th><th>Who</th><th>What</th><th>On</th><th>Detail</th></tr></thead>
+<div class="title-row">
+  <div>
+    <h1>Audit log</h1>
+    <p class="finding"><b>{{ events|length }} entries</b>, newest first. An append-only record of who connected, viewed, edited, approved and shared what. Entries can't be changed or deleted through the app.</p>
+  </div>
+</div>
+<div class="panel"><div class="table-wrap"><table class="stackable">
+  <thead><tr><th>Who</th><th>What</th><th>On</th><th>Detail</th><th class="num">When</th></tr></thead>
   <tbody>
   {% for e in events %}
-  <tr><td><small>{{ e.at.strftime('%d %b %H:%M:%S') }}</small></td><td>{{ e.actor }}</td><td><code>{{ e.action }}</code></td><td>{{ e.target }}</td><td><small>{{ e.detail }}</small></td></tr>
+  <tr>
+    <td><span class="cellflex"><span class="avatar sm" style="--h: {{ e.actor|hue }}" aria-hidden="true">{{ e.actor|initials }}</span>{{ e.actor }}</span></td>
+    <td class="line2"><code>{{ e.action }}</code></td>
+    <td class="line2">{{ e.target or '—' }}</td>
+    <td class="line2 muted"><small>{{ e.detail or '—' }}</small></td>
+    <td class="num muted" style="white-space: nowrap"><small style="display: inline">{{ e.at.strftime('%d %b %H:%M:%S') }}</small></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5" class="muted">Nothing recorded yet.</td></tr>
   {% endfor %}
   </tbody>
-</table></div>
+</table></div></div>
 {% endblock %}

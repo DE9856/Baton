@@ -54,7 +54,7 @@ Hugging Face Spaces was the planned host; `deploy/deploy_space.py` is kept but n
 
 FastAPI, Starlette, Uvicorn, Jinja2, python-multipart, itsdangerous, SQLAlchemy, psycopg, python-dotenv, PyAV (with its bundled FFmpeg libraries), RapidFuzz, NumPy, python-docx, httpx, anthropic, PyTorch, Transformers, sentencepiece, protobuf, tiktoken, huggingface_hub, pytest, Playwright and axe-core (vendored in `tests/vendor/`, MPL 2.0, test only), under their own licences. Exact versions are in `requirements.txt` and `requirements-dev.txt`.
 
-Vendored in `baton/web/static/`: Pico.css 2.0.6 and htmx 2.0.4 (both MIT), and the fonts Barlow Condensed and Atkinson Hyperlegible, including its mono cut (SIL Open Font License). The Docker base image is `python:3.11-slim`; RLS tests use `postgres:16-alpine` and `supabase/postgres:15.8.1.060`.
+Vendored in `baton/web/static/`: htmx 2.0.4 (MIT), and the fonts Geist and Geist Mono (SIL Open Font License, variable Latin subsets from Fontsource). Interface icons in `app.css` are paths adapted from Lucide (ISC). The interface was redesigned on 2 Nov 2026 with Claude Code (Claude Opus 5.5) using the design-taste-frontend skill's app-screen rules (style: achromatic ledger), Emil Kowalski's design-engineering skill and the Vercel web-interface guidelines. The Docker base image is `python:3.11-slim`; RLS tests use `postgres:16-alpine` and `supabase/postgres:15.8.1.060`.
 
 No project template or boilerplate was used.
 

@@ -170,7 +170,7 @@ Follow these in order. The numbers are what you should see on the demo.
 - SQLite by default. Postgres with row-level security (`baton/rls.sql`), applied automatically on start.
 - Sign-in: name and `pass` on demos and sandboxes; Supabase accounts on real projects.
 - Docker image, GitHub Actions workflow, deployment scripts.
-- The relay-themed interface: track, baton, lane markings, torn-edge receipts. WCAG 2.1 A/AA automated checks on the main pages.
+- The "achromatic ledger" interface (redesigned 2 Nov 2026): a quiet sidebar with the project and the leaver's last-day countdown, no colour in the chrome, one blue for what code has proven, and a proof bar (verified / a person's word / missing) on the Ledger and Handover. Labels differ by glyph and shape as well as colour; light and dark follow the system. One stylesheet, `baton/web/static/app.css`, no CSS framework. WCAG 2.1 A/AA automated checks on the main pages.
 
 ## 6. Tests and what they show
 

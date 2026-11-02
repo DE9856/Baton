@@ -66,6 +66,10 @@ def create_app(database_url: str | None = None, extractor_factory=None, nli=None
                                  AUDIENCES=AUDIENCES, AUDIENCE_LABELS=permissions.AUDIENCE_LABELS, TAG_LABELS=TAG_LABELS,
                                  STEPS=STEPS, conflict_line=conflict_line, app_version=__version__)
     templates.env.filters["needs_subject"] = needs_subject
+    # A stable hue per person (identity, not data) and their initials, for the avatars in the shell and lists.
+    templates.env.filters["hue"] = lambda name: (sum(ord(c) * (i + 7) for i, c in enumerate(str(name or ""))) * 47) % 360
+    templates.env.filters["initials"] = lambda name: "".join(w[0] for w in str(name or "?").split()[:2]).upper() or "?"
+    templates.env.globals["today_date"] = lambda: datetime.now().date()
     engine = make_engine(database_url)
     Sessions = make_sessionmaker(engine)
     app.state.Sessions = Sessions
@@ -150,7 +154,18 @@ def create_app(database_url: str | None = None, extractor_factory=None, nli=None
             base["members"] = s.scalars(select(Member).where(Member.project_id == project.id).order_by(Member.id)).all()
             base["job"] = latest_job(s, project.id)
             base["open_q"] = _open_for(s, project.id, base["viewer"])
-            base["has_version"] = review.latest_version(s, project.id) is not None
+            latest = review.latest_version(s, project.id)
+            base["has_version"] = latest is not None
+            base["latest_version"] = latest
+            viewer = base["viewer"]
+            if viewer is not None:
+                audiences = s.scalars(select(Source.audience).where(Source.project_id == project.id)).all()
+                cleared = set(viewer.clearances or [])
+                base["hidden_sources"] = sum(1 for a in audiences if a not in cleared)
+                base["sources_n"] = len(audiences) - base["hidden_sources"]
+                if viewer.role == "reviewer":
+                    base["review_open"] = s.scalar(select(func.count(Conflict.id)).where(Conflict.project_id == project.id,
+                                                                                        Conflict.resolution == "")) or 0
         return templates.TemplateResponse(request, name, {**base, **ctx})
 
     def latest_job(s: Session, pid: int) -> Job | None:

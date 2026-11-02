@@ -1,89 +1,113 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f2f4f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <title>{% block title %}Baton{% endblock %}</title>
-<link rel="stylesheet" href="/static/pico.min.css">
-<link rel="stylesheet" href="/static/baton.css">
+<link rel="preload" href="/static/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/static/app.css?v={{ app_version }}-l">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23141414'/%3E%3Crect x='7' y='9' width='18' height='3' rx='1.5' fill='%231d5fbf'/%3E%3Crect x='7' y='15' width='18' height='3' rx='1.5' fill='%23fff'/%3E%3Crect x='7' y='21' width='11' height='3' rx='1.5' fill='%23fff' opacity='.55'/%3E%3C/svg%3E">
 <script src="/static/htmx.min.js" defer></script>
-<link rel="preload" href="/static/fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 </head>
+{% macro mark() %}<svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="currentColor"/><rect x="5" y="6.5" width="14" height="2.4" rx="1.2" fill="#1d5fbf"/><rect x="5" y="11" width="14" height="2.4" rx="1.2" fill="var(--surface)"/><rect x="5" y="15.5" width="8.5" height="2.4" rx="1.2" fill="var(--surface)" opacity=".55"/></svg>{% endmacro %}
 <body>
-<header class="topbar">
-  <div class="container topbar-in">
-    <a class="brand" href="/">Baton</a>
-    {% if project %}
-    <span class="pname">{{ project.name }}</span>
-    {% if viewer %}
-    <div class="viewer-form">
-      <span class="viewer-name">{{ viewer.name }} ({{ viewer.role }})</span>
-      {% if local_login %}
-      <form method="post" action="/p/{{ project.id }}/logout"><button type="submit" class="small secondary outline">Switch user</button></form>
-      {% endif %}
-    </div>
-    {% endif %}
-    {% endif %}
-    {% if auth_enabled %}
-    <div class="account">
-      {% if user %}
-      <small>{{ user.email }}</small>
-      <form method="post" action="/signout"><button type="submit" class="small secondary outline">Sign out</button></form>
-      {% else %}
-      <a href="/signin">Sign in</a>
-      {% endif %}
-    </div>
-    {% endif %}
-  </div>
-</header>
+<a class="skip" href="#main">Skip to content</a>
 {% if project and viewer %}
-{% set baton = {"i": none} %}
-<nav class="steps" aria-label="Workflow steps">
-  <div class="container track-in">
-    <ol>
-      {% for key, title in STEPS %}
-      <li class="{% if step == key %}on{% endif %}">
-        <a href="/p/{{ project.id }}/{{ key }}" {% if step == key %}aria-current="page"{% endif %}>
-          <span class="num">{{ loop.index }}</span>{{ title }}{% if key == 'interview' and open_q %}<span class="badge" aria-label="{{ open_q }} open questions">{{ open_q }}</span>{% endif %}
-        </a>
-      </li>
-      {% if step == key %}{% set _ = baton.update({'i': loop.index0}) %}{% endif %}
-      {% endfor %}
-      {% if baton.i is not none %}<span class="baton" id="baton" data-i="{{ baton.i }}" style="--i:{{ baton.i }}" aria-hidden="true"></span>{% endif %}
-    </ol>
-    <div class="track-side">
-      <a href="/p/{{ project.id }}/ask" {% if request.url.path.endswith('/ask') %}aria-current="page"{% endif %}>Ask Baton</a>
-      {% if viewer and viewer.role == 'reviewer' %}<a href="/p/{{ project.id }}/audit" {% if request.url.path.endswith('/audit') %}aria-current="page"{% endif %}>Audit log</a>{% endif %}
+{% set leaver = members|selectattr('role', 'equalto', 'leaver')|first %}
+{% set days_left = (project.last_day - today_date()).days %}
+{% set where = (STEPS|selectattr(0, 'equalto', step)|map(attribute=1)|first) or ('Ask Baton' if request.url.path.endswith('/ask') else 'Audit log' if request.url.path.endswith('/audit') else 'Source') %}
+<input type="checkbox" id="nav-toggle" class="nav-toggle sr" aria-label="Show navigation">
+<header class="mobilebar">
+  <a class="brand" href="/" aria-label="Baton home" style="padding:0">{{ mark() }}</a>
+  <span class="where">{{ where }}</span>
+  <label for="nav-toggle" class="menu-btn" title="Menu"><span class="ic ic-menu" aria-hidden="true"></span><span class="sr">Menu</span></label>
+</header>
+<div class="app">
+  <aside class="sidebar" aria-label="Project">
+    <a class="brand" href="/">{{ mark() }}Baton</a>
+    <div class="scope">
+      <span class="scope-name">{{ project.name }}</span>
+      <span class="scope-sub">{{ project.role_title }} handover</span>
+      <div class="scope-day">
+        <span>{{ (leaver.name.split(' ')[0] ~ ' leaves') if leaver else 'Last day' }}</span>
+        <span><b>{{ project.last_day.strftime('%d %b') }}</b> · {% if days_left > 1 %}<span class="{{ 'soon' if days_left <= 7 }}">{{ days_left }} days</span>{% elif days_left == 1 %}<span class="soon">tomorrow</span>{% elif days_left == 0 %}<span class="soon">today</span>{% else %}passed{% endif %}</span>
+      </div>
     </div>
-  </div>
-</nav>
-<script>
-/* The one motion on the page: the baton travels from the last leg you were on to this one. */
-(function () {
-  var b = document.getElementById("baton");
-  if (!b) return;
-  var key = "baton-leg", now = b.dataset.i, last = null;
-  try { last = sessionStorage.getItem(key); sessionStorage.setItem(key, now); } catch (e) { return; }
-  if (last === null || last === now || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  b.style.setProperty("--i", last);
-  requestAnimationFrame(function () { requestAnimationFrame(function () { b.classList.add("moving"); b.style.setProperty("--i", now); }); });
-})();
-</script>
-{% endif %}
-<main class="container">
-  {% for m in messages %}<div class="flash {{ m.kind }}" role="status">{{ m.text }}</div>{% endfor %}
-  {% if project and project.is_demo and viewer %}
-  <aside class="guide" aria-label="What to do next">
-    {% if viewer.role == 'leaver' %}<strong>You are Arjun, who is leaving.</strong> Answer a few questions in the <a href="/p/{{ project.id }}/interview">gap interview</a>, then use Switch user to sign in as Sana and review.
-    {% elif viewer.role == 'reviewer' %}<strong>You are Sana, the reviewer.</strong> Resolve conflicts and approve in the <a href="/p/{{ project.id }}/review">review console</a>, then use Switch user to sign in as Meera.
-    {% elif viewer.role == 'successor' %}<strong>You are Meera, taking over.</strong> Your <a href="/p/{{ project.id }}/handover">handover</a> shows only what you may see. Open a receipt on any line.
-    {% else %}<strong>You are {{ viewer.name }}.</strong> Compare the <a href="/p/{{ project.id }}/handover">handover</a> with Meera's: each person sees only what they are cleared for.{% endif %}
+    <nav class="steps nav-group" aria-label="Workflow steps">
+      <div class="nav-label">Handover</div>
+      <ol>
+        {% set icons = {'connect': 'plug', 'ledger': 'ledger', 'interview': 'message', 'review': 'shield', 'handover': 'handover'} %}
+        {% for key, title in STEPS %}
+        <li class="{% if step == key %}on{% endif %}">
+          <a class="nav-item" href="/p/{{ project.id }}/{{ key }}" {% if step == key %}aria-current="page"{% endif %}>
+            <span class="ic ic-{{ icons[key] }}" aria-hidden="true"></span><span>{{ title }}</span>
+            {%- if key == 'connect' %}{% if job and job.state in ('queued', 'running') %}<span class="spinner" role="img" aria-label="A run is in progress"></span>{% elif sources_n %}<span class="nav-meta" aria-label="{{ sources_n }} sources">{{ sources_n }}</span>{% endif %}{% endif %}
+            {%- if key == 'interview' and open_q %}<span class="nav-count" aria-label="{{ open_q }} open questions">{{ open_q }}</span>{% endif %}
+            {%- if key == 'review' and review_open %}<span class="nav-count" aria-label="{{ review_open }} conflicts to resolve">{{ review_open }}</span>{% endif %}
+            {%- if key == 'handover' and latest_version %}<span class="nav-meta" aria-label="version {{ latest_version.number }}">v{{ latest_version.number }}</span>{% endif %}
+          </a>
+        </li>
+        {% endfor %}
+      </ol>
+    </nav>
+    <div class="nav-group">
+      <div class="nav-label">Tools</div>
+      <ul class="nav-list">
+        <li><a class="nav-item" href="/p/{{ project.id }}/ask" {% if request.url.path.endswith('/ask') %}aria-current="page"{% endif %}><span class="ic ic-search" aria-hidden="true"></span><span>Ask Baton</span></a></li>
+        {% if viewer.role == 'reviewer' %}<li><a class="nav-item" href="/p/{{ project.id }}/audit" {% if request.url.path.endswith('/audit') %}aria-current="page"{% endif %}><span class="ic ic-scroll" aria-hidden="true"></span><span>Audit log</span></a></li>{% endif %}
+      </ul>
+    </div>
+    <div class="sidebar-foot">
+      <div class="user">
+        <span class="avatar" style="--h: {{ viewer.name|hue }}" aria-hidden="true">{{ viewer.name|initials }}</span>
+        <span class="user-text"><span class="user-name">{{ viewer.name }} ({{ viewer.role }})</span><span class="user-sub">{{ viewer.title or viewer.role|capitalize }}</span></span>
+      </div>
+      {% if local_login %}
+      <form method="post" action="/p/{{ project.id }}/logout"><button type="submit" class="small secondary"><span class="ic ic-switch" aria-hidden="true"></span>Switch user</button></form>
+      {% endif %}
+      {% if auth_enabled and user %}
+      <form method="post" action="/signout"><button type="submit" class="small secondary">Sign out</button></form>
+      {% endif %}
+      <p class="foot-note">Baton {{ app_version }} · synthetic or permitted data only. Baton may miss things; check the Missing items with your team.</p>
+    </div>
   </aside>
-  {% endif %}
-  {% block content %}{% endblock %}
-</main>
-<footer class="container foot">
-  <small>Baton {{ app_version }}. Team sky-flyers, WCC Forge 48. Use synthetic or permitted data only. Baton may miss things; check the Missing items with your team.</small>
-</footer>
+  <main class="canvas" id="main">
+    <div class="canvas-in">
+      {% for m in messages %}<div class="notice {{ m.kind }}" role="status"><div>{{ m.text }}</div></div>{% endfor %}
+      {% if project.is_demo %}
+      <div class="notice" role="note"><div>
+      {% if viewer.role == 'leaver' %}<b>Demo: you are Arjun, who is leaving.</b> Answer a few questions in the <a href="/p/{{ project.id }}/interview">gap interview</a>, then use Switch user to sign in as Sana and review.
+      {% elif viewer.role == 'reviewer' %}<b>Demo: you are Sana, the reviewer.</b> {% if latest_version and not review_open %}Version {{ latest_version.number }} is shared. Switch user to Meera to read it, or try <a href="/p/{{ project.id }}/connect">Simulate new activity</a>.{% else %}Resolve conflicts and approve in the <a href="/p/{{ project.id }}/review">review console</a>, then switch user to Meera.{% endif %}
+      {% elif viewer.role == 'successor' %}<b>Demo: you are Meera, taking over.</b> {% if latest_version %}Read “Start here”, open a receipt on any line, then acknowledge the section.{% else %}Nothing is shared yet. Switch user to Sana and approve a version.{% endif %}
+      {% else %}<b>Demo: you are {{ viewer.name }}.</b> Compare the <a href="/p/{{ project.id }}/handover">handover</a> with Meera's: each person sees only what they are cleared for.{% endif %}
+      </div></div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</div>
+{% else %}
+<div class="app bare">
+  <header class="topbar">
+    <a class="brand" href="/" style="padding:0">{{ mark() }}Baton</a>
+    {% if project %}<span class="muted">{{ project.name }}</span>{% endif %}
+    <div class="right">
+      {% if auth_enabled %}
+        {% if user %}<span>{{ user.email }}</span><form method="post" action="/signout"><button type="submit" class="small secondary">Sign out</button></form>
+        {% else %}<a href="/signin">Sign in</a>{% endif %}
+      {% endif %}
+    </div>
+  </header>
+  <main class="canvas" id="main">
+    <div class="canvas-in centred">
+      {% for m in messages %}<div class="notice {{ m.kind }}" role="status" style="margin-top: 24px"><div>{{ m.text }}</div></div>{% endfor %}
+      {{ self.content() }}
+    </div>
+  </main>
+</div>
+{% endif %}
 </body>
 </html>

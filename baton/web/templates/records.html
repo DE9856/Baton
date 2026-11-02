@@ -1,20 +1,24 @@
 {% extends "base.html" %}
 {% block title %}{{ source.title }} · Baton{% endblock %}
 {% block content %}
-<p><a href="/p/{{ project.id }}/connect">Back to sources</a></p>
-<h1>{{ source.title }}</h1>
-<p class="muted">Audience: {{ AUDIENCE_LABELS.get(source.audience, source.audience) }}. Authorised by {{ source.authorised_by }}. {{ source.notes|join(' ') }}</p>
-<div class="tablewrap"><table>
-  <thead><tr><th>Record</th><th>When</th><th>Who</th><th>Text</th></tr></thead>
+<a class="crumb" href="/p/{{ project.id }}/connect"><span class="ic ic-arrow-left" aria-hidden="true" style="width: 14px; height: 14px"></span>Sources</a>
+<div class="title-row">
+  <div>
+    <h1>{{ source.title }}</h1>
+    <p class="finding"><b>{{ shown|length }} records</b> · visible to {{ AUDIENCE_LABELS.get(source.audience, source.audience) }} · authorised by {{ source.authorised_by }}. {{ source.notes|join(' ') }}</p>
+  </div>
+</div>
+<div class="panel"><div class="table-wrap"><table class="stackable">
+  <thead><tr><th>Record</th><th>Who</th><th>Text</th><th class="num">When</th></tr></thead>
   <tbody>
   {% for u, ok in shown %}
     <tr id="{{ u.uid }}">
-      <td><code>{{ u.uid }}</code></td>
-      <td><small>{{ u.ts.strftime('%d %b %Y %H:%M') if u.ts else 'undated' }}</small></td>
-      <td>{{ u.author }}</td>
-      <td class="prewrap">{% if ok %}{{ u.text }}{% else %}<span class="chip l-withheld">Withheld</span> <small class="muted">Contains {{ u.sensitivity|map('replace', '_', ' ')|join(', ') }}. Only the reviewer can read this record.</small>{% endif %}</td>
+      <td><span class="id" translate="no">{{ u.uid }}</span></td>
+      <td class="line2" style="white-space: nowrap">{{ u.author }}</td>
+      <td class="line2 prewrap" style="color: var(--text)">{% if ok %}{{ u.text }}{% else %}<span class="pill g l-withheld">Withheld</span> <small>Contains {{ u.sensitivity|map('replace', '_', ' ')|join(', ') }}. Only the reviewer can read this record.</small>{% endif %}</td>
+      <td class="num" style="white-space: nowrap"><small class="muted" style="display: inline">{{ u.ts.strftime('%Y-%m-%d %H:%M') if u.ts else '—' }}</small></td>
     </tr>
   {% endfor %}
   </tbody>
-</table></div>
+</table></div></div>
 {% endblock %}

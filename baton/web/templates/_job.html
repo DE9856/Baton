@@ -1,18 +1,24 @@
 {% if job and (job.state != 'done' or show_done or job.stats.incomplete or job.stats.nli_available == false) %}
-<div id="job" class="job job-{{ job.state }}" {% if job.state in ('queued', 'running') %}hx-get="/p/{{ project.id }}/job" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %} aria-live="polite">
+<div id="job" class="panel job job-{{ job.state }}" {% if job.state in ('queued', 'running') %}hx-get="/p/{{ project.id }}/job" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %} aria-live="polite">
   {% if job.state in ('queued', 'running') %}
-    <strong>Working: {{ job.step }}</strong>
-    <progress value="{{ job.progress }}" max="100">{{ job.progress }}%</progress>
-    <small class="muted">The first run also loads the checking models, which takes a minute or so.</small>
+    <div class="job-head"><span class="spinner" aria-hidden="true"></span><strong>Working: {{ job.step }}</strong><span class="muted num">{{ job.progress }}%</span></div>
+    <progress value="{{ job.progress }}" max="100" aria-label="Run progress">{{ job.progress }}%</progress>
+    <p><small>The first run also loads the checking models, which takes a minute or so.</small></p>
     <noscript><a href="">Refresh to update</a></noscript>
   {% elif job.state == 'failed' %}
-    <strong>The run failed.</strong> {{ job.error }} Answers and approved versions are kept. Please run it again.
+    <div class="job-head"><span class="ic ic-alert" aria-hidden="true"></span><strong>The run failed.</strong></div>
+    <p>{{ job.error }} Answers and approved versions are kept. Please run it again.</p>
   {% else %}
-    <strong>Run finished.</strong>
-    {{ job.stats.claims }} claims proposed, {{ job.stats.grounded }} with a real quote, {{ job.stats.conflicts }} conflicts, {{ job.stats.questions.leaver }} questions for the person leaving.
-    {% if job.stats.incomplete %}<div class="flash error">This result is incomplete: {{ job.stats.failed_chunks|length }} part(s) of the sources could not be read by the AI model ({{ job.stats.extraction_errors|first }}). Those records produced no claims. Run again to retry.</div>{% endif %}
-    {% if job.stats.nli_available == false %}<div class="flash error">The checking model could not be loaded, so every claim stays in Needs review.</div>{% endif %}
-    <a href="/p/{{ project.id }}" role="button" class="small pass">Continue</a>
+    <div class="job-head"><span class="ic ic-check-circle" aria-hidden="true" style="color: var(--positive)"></span><strong>Run finished.</strong>
+      <a href="/p/{{ project.id }}" role="button" class="small pass">Continue</a></div>
+    <ul class="stats">
+      <li><b>{{ job.stats.claims }}</b> claims proposed</li>
+      <li><b>{{ job.stats.grounded }}</b> with a real quote</li>
+      <li><b>{{ job.stats.conflicts }}</b> conflicts</li>
+      <li><b>{{ job.stats.questions.leaver }}</b> questions for the person leaving</li>
+    </ul>
+    {% if job.stats.incomplete %}<div class="notice error"><div>This result is incomplete: {{ job.stats.failed_chunks|length }} part(s) of the sources could not be read by the AI model ({{ job.stats.extraction_errors|first }}). Those records produced no claims. Run again to retry.</div></div>{% endif %}
+    {% if job.stats.nli_available == false %}<div class="notice error"><div>The checking model could not be loaded, so every claim stays in Needs review.</div></div>{% endif %}
   {% endif %}
 </div>
 {% endif %}

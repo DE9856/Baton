@@ -1,33 +1,30 @@
 {% extends "base.html" %}
 {% block title %}New handover · Baton{% endblock %}
 {% block content %}
-<h1>Start a handover</h1>
-<form method="post" action="/new" class="narrow">
-  <label>Project name <input name="name" required maxlength="200" placeholder="e.g. Club website"></label>
-  <label>Role being handed over <input name="role_title" value="Tech lead" maxlength="100"></label>
+<div class="title-row" style="margin-top: 40px"><div><h1>Start a handover</h1>
+<p class="finding">Name the role, the three people involved and the last day. You add sources on the next page.</p></div></div>
+<form method="post" action="/new" class="panel formpanel" style="max-width: 720px">
   {% if not user %}
-  <div class="flash warn" role="note"><strong>No account: this is a private sandbox.</strong> Only this browser can open it. Each person signs in with their name and the password <strong>pass</strong>, so use test data only.
-  {% if auth_enabled %}<a href="/signin">Sign in</a> to create a real handover where each person signs in.{% endif %}</div>
+  <div class="notice warn" role="note"><div><strong>No account: this is a private sandbox.</strong> Only this browser can open it. Each person signs in with their name and the password <strong>pass</strong>, so use test data only.
+  {% if auth_enabled %}<a href="/signin">Sign in</a> to create a real handover where each person signs in.{% endif %}</div></div>
   {% endif %}
-  <div class="grid">
-    <label>Who is leaving? <input name="leaver" required maxlength="120"></label>
-    <label>Who takes over? <input name="successor" required maxlength="120"></label>
+  <div class="grid2f">
+    <div class="field"><label for="f-name">Project name</label><input id="f-name" name="name" required maxlength="200" placeholder="e.g. Club website"></div>
+    <div class="field"><label for="f-role">Role being handed over</label><input id="f-role" name="role_title" value="Tech lead" maxlength="100"></div>
+    <div class="field"><label for="f-leaver">Who is leaving?</label><input id="f-leaver" name="leaver" required maxlength="120" autocomplete="off"></div>
+    <div class="field"><label for="f-succ">Who takes over?</label><input id="f-succ" name="successor" required maxlength="120" autocomplete="off"></div>
+    {% if user %}
+    <div class="field"><label for="f-le">Leaver's email</label><input id="f-le" type="email" name="leaver_email" required maxlength="200" spellcheck="false"></div>
+    <div class="field"><label for="f-se">Successor's email</label><input id="f-se" type="email" name="successor_email" required maxlength="200" spellcheck="false"></div>
+    {% endif %}
+    <div class="field"><label for="f-rev">Who reviews the handover?</label><input id="f-rev" name="reviewer" required maxlength="120" autocomplete="off">
+      <small>Whoever the team makes responsible, usually the president or the leaver's lead. They are cleared to see every source.</small></div>
+    <div class="field"><label for="f-day">Last day of the person leaving</label><input id="f-day" type="date" name="last_day" required min="{{ today }}"></div>
   </div>
-  {% if user %}
-  <div class="grid">
-    <label>Their email <input type="email" name="leaver_email" required maxlength="200"></label>
-    <label>Their email <input type="email" name="successor_email" required maxlength="200"></label>
-  </div>
-  {% endif %}
-  <label>Who reviews the handover?
-    <input name="reviewer" required maxlength="120">
-    <small>Whoever the team makes responsible, usually the president or the leaver's lead. They are cleared to see every source.</small>
-  </label>
-  {% if user %}<label>Reviewer's email <input type="email" name="reviewer_email" required maxlength="200">
-    <small>One of the three must be your own, {{ user.email }}. Each person signs in with their address to get their view.</small></label>{% endif %}
-  <label>Last day of the person leaving <input type="date" name="last_day" required min="{{ today }}"></label>
+  {% if user %}<div class="field"><label for="f-re">Reviewer's email</label><input id="f-re" type="email" name="reviewer_email" required maxlength="200" spellcheck="false">
+    <small>One of the three must be your own, {{ user.email }}. Each person signs in with their address to get their view.</small></div>{% endif %}
   <label class="check"><input type="checkbox" name="confirm_authorised" value="1" required>
     I'm allowed to use this project's data. I won't upload confidential workplace material without permission.</label>
-  <button type="submit">Create handover</button>
+  <div class="formactions" style="margin-top: 20px"><button type="submit" class="pass">Create handover</button></div>
 </form>
 {% endblock %}

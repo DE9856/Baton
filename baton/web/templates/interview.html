@@ -1,104 +1,129 @@
 {% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
 {% block title %}Gap interview · Baton{% endblock %}
 {% block content %}
-<h1>Gap interview</h1>
-{% include "_job.html" %}
-{% if questions %}
-<p class="lead">{{ viewer.name }}, the sources couldn't answer these, so they're the only questions we have for you. Answers are saved under your name and date, and shown as your word, never as verified fact.</p>
-<div class="interview-progress">
-  <span>{{ questions|length - open_count }} of {{ questions|length }} answered</span>
-  <progress value="{{ questions|length - open_count }}" max="{{ questions|length }}" aria-label="Questions answered"></progress>
-  {% if open_count %}<small class="muted">About {{ (open_count * 1.5)|round|int }} minutes left</small>{% endif %}
+{% set answered = questions|length - open_count %}
+{% set kinds = {'ownership':'Ownership after you leave','coverage':'Undocumented process','credential':'Credential','rationale':'Missing reason','unclear':'Your successor asks'} %}
+<div class="title-row">
+  <div>
+    <h1>Gap interview</h1>
+    {% if questions %}
+    <p class="finding">{% if open_count %}<b>{{ open_count }} of {{ questions|length }} questions open</b>, about {{ (open_count * 1.5)|round|int }} minutes.{% else %}<b>All {{ questions|length }} answered.</b> Thank you.{% endif %} The sources couldn't answer these, so they're the only questions for you. Answers are saved under your name and date, and shown as your word, never as verified fact.</p>
+    {% else %}
+    <p class="finding">No questions for {{ viewer.name if viewer else 'you' }}.
+    {% if viewer and viewer.role == 'teammate' %}If someone passes you a question, it will appear here.{% endif %}
+    {% if viewer and viewer.role == 'successor' %}Your place to start is the <a href="/p/{{ project.id }}/handover">handover</a>.{% endif %}
+    {% if viewer and viewer.role == 'reviewer' %}Your questions are in the <a href="/p/{{ project.id }}/review#questions">review console</a>.{% endif %}</p>
+    {% endif %}
+  </div>
 </div>
-{% for q in questions %}
-<article class="question {% if q.status != 'open' %}done{% endif %}" id="q{{ q.id }}">
-  <div class="claimhead"><span class="chip kind">{{ {'ownership':'Ownership after you leave','coverage':'Undocumented process','credential':'Credential','rationale':'Missing reason','unclear':'Your successor asks'}.get(q.kind, q.kind) }}</span>
-    {% if q.status == 'answered' %}<span class="chip l-confirmed">Answered</span>{% endif %}</div>
-  <p class="qtext">{{ q.text }}</p>
-  {% set rel = related.get(q.id) %}
-  {% if rel and rel.evidence and rel.evidence[0].unit %}
-    <small class="muted">Why we ask: {{ rel.evidence[0].unit.source.title }}, {{ rel.evidence[0].unit.author }}: &ldquo;{{ rel.evidence[0].quote }}&rdquo;</small>
-  {% endif %}
-  {% if q.status == 'open' %}
-    <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/answer">
+{% include "_job.html" %}
+
+{% if questions %}
+{% set ns = namespace(current=none) %}
+{% for q in questions %}{% if ns.current is none and q.status == 'open' %}{% set ns.current = q.id %}{% endif %}{% endfor %}
+<div class="inbox">
+  <nav class="panel qindex" aria-label="Questions">
+    <div class="qhead"><h2>Questions</h2><span class="muted num">{{ answered }}/{{ questions|length }}</span></div>
+    <div style="padding: 0 var(--card-pad) 12px"><progress value="{{ answered }}" max="{{ questions|length }}" aria-label="Questions answered" style="margin-top: 0"></progress></div>
+    <ol class="rows">
+      {% for q in questions %}
+      <li><a class="qlink {% if q.id == ns.current %}current{% endif %} {% if q.status != 'open' %}answered{% endif %}" href="#q{{ q.id }}" {% if q.id == ns.current %}aria-current="step"{% endif %}>
+        <span class="st {% if q.status != 'open' %}done{% endif %}" aria-hidden="true"></span>
+        <span class="qt">{{ q.text }}</span>
+        <span class="qk">{{ kinds.get(q.kind, q.kind) }}{% if q.status != 'open' %} · answered{% endif %}</span>
+      </a></li>
+      {% endfor %}
+    </ol>
+  </nav>
+
+  <div class="questions">
+  {% for q in questions %}
+  <article class="panel question {% if q.status != 'open' %}done{% endif %} {% if q.id == ns.current %}current{% endif %}" id="q{{ q.id }}">
+    {% if q.status == 'answered' %}<div class="row-head" style="margin-bottom: 8px">{{ ui.label('confirmed', '') }}<span class="kind">Answered</span></div>{% endif %}
+    <p class="qtext">{{ q.text }}</p>
+    {% set rel = related.get(q.id) %}
+    <small class="whyask">{{ kinds.get(q.kind, q.kind) }}{% if q.status == 'open' and rel and rel.evidence and rel.evidence[0].unit %}. Why we ask: {{ rel.evidence[0].unit.source.title }}, {{ rel.evidence[0].unit.author }}: “{{ rel.evidence[0].quote }}”{% endif %}</small>
+    {% if q.status == 'open' %}
       {% if q.kind == 'ownership' %}
-      <div class="taps" role="group" aria-label="One-tap answers">
-        {% for m in people if q.audience in m.clearances and m.role != 'reviewer' and m.title != 'Just joined the club' %}
-        <button type="submit" name="text" value="{{ m.name }} takes this over after my last day." class="small secondary outline">{{ m.name.split(' ')[0] }} takes it over</button>
-        {% endfor %}
+      <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/answer">
+        <div class="taps" role="group" aria-label="One-tap answers">
+          {% for m in people if q.audience in m.clearances and m.role != 'reviewer' and m.title != 'Just joined the club' %}
+          <button type="submit" name="text" value="{{ m.name }} takes this over after my last day." class="small outline"><span class="avatar sm" style="--h: {{ m.name|hue }}; width: 18px; height: 18px; font-size: 9px" aria-hidden="true">{{ m.name|initials }}</span>{{ m.name.split(' ')[0] }} takes it over</button>
+          {% endfor %}
+        </div>
+      </form>
+      {% endif %}
+      {% set note = notes.get(q.id) %}
+      {% if note %}
+      <div class="draft">
+        <small class="muted">Your recording{% if note.transcript %} and a draft of what you said. It counts only when you save it{% endif %}.</small>
+        {% if note.data %}<audio controls preload="none" src="/p/{{ project.id }}/voice/{{ note.id }}" aria-label="Your recording"></audio>{% endif %}
       </div>
       {% endif %}
-    </form>
-    {% set note = notes.get(q.id) %}
-    {% if note %}
-    <div class="draft">
-      <small class="muted">Your recording{% if note.transcript %} and a draft of what you said. It counts only when you save it{% endif %}.</small>
-      {% if note.data %}<audio controls preload="none" src="/p/{{ project.id }}/voice/{{ note.id }}" aria-label="Your recording"></audio>{% endif %}
-    </div>
+      <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/answer" class="actions">
+        <label class="sr" for="a{{ q.id }}">Your answer</label>
+        {% if note and note.data %}<input type="hidden" name="voice_note_id" value="{{ note.id }}">{% endif %}
+        <textarea id="a{{ q.id }}" name="text" rows="3" maxlength="2000" placeholder="Answer in your own words…">{{ note.transcript if note else '' }}</textarea>
+        <button type="submit">Save answer</button>
+      </form>
+      <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/voice" enctype="multipart/form-data" class="actions voice" data-voice-form style="margin-top: 8px">
+        <button type="button" class="outline" data-record hidden><span class="ic ic-mic" aria-hidden="true"></span><span data-label>Record a voice answer</span></button>
+        <small class="muted" data-voice-status role="status"></small>
+      </form>
+      <details class="more">
+        <summary>Not you? Or attach a recording</summary>
+        <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/reassign" class="actions">
+          <label for="r{{ q.id }}" class="muted" style="font-weight: 400">Pass it to</label>
+          <select id="r{{ q.id }}" name="to">
+            {% for m in people if q.audience in m.clearances %}<option value="{{ m.id }}">{{ m.name }}</option>{% endfor %}
+          </select>
+          <button type="submit" class="small secondary"><span class="ic ic-send" aria-hidden="true"></span>Pass it on</button>
+        </form>
+        <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/voice" enctype="multipart/form-data" class="actions">
+          <label class="fileattach"><span class="muted">Recording</span>
+            <input type="file" name="file" accept="audio/*" onchange="this.form.submit()" aria-label="Attach a voice recording">
+          </label>
+          <noscript><button type="submit" class="small secondary">Upload</button></noscript>
+        </form>
+      </details>
+    {% else %}
+      <blockquote style="margin-top: 10px">{{ q.answer }}</blockquote>
+      <p class="meta">{{ q.answered_by }}, {{ q.answered_at.strftime('%d %b %Y') if q.answered_at else '' }}</p>
     {% endif %}
-    <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/answer" class="actions">
-      <label class="sr" for="a{{ q.id }}">Your answer</label>
-      {% if note and note.data %}<input type="hidden" name="voice_note_id" value="{{ note.id }}">{% endif %}
-      <textarea id="a{{ q.id }}" name="text" rows="2" maxlength="2000" placeholder="Answer in your own words">{{ note.transcript if note else '' }}</textarea>
-      <button type="submit" class="small">Save answer</button>
-    </form>
-    <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/voice" enctype="multipart/form-data" class="actions voice" data-voice-form>
-      <button type="button" class="small secondary outline" data-record hidden>Record a voice answer</button>
-      <small class="muted" data-voice-status role="status"></small>
-    </form>
-    <details class="more">
-      <summary>Not you? Or attach a recording</summary>
-      <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/reassign" class="actions">
-        <label for="r{{ q.id }}"><small>Pass it to</small></label>
-        <select id="r{{ q.id }}" name="to">
-          {% for m in people if q.audience in m.clearances %}<option value="{{ m.id }}">{{ m.name }}</option>{% endfor %}
-        </select>
-        <button type="submit" class="small secondary outline">Pass it on</button>
-      </form>
-      <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/voice" enctype="multipart/form-data" class="actions">
-        <label class="fileattach"><small>Recording</small>
-          <input type="file" name="file" accept="audio/*" onchange="this.form.submit()" aria-label="Attach a voice recording">
-        </label>
-        <noscript><button type="submit" class="small secondary outline">Upload</button></noscript>
-      </form>
-    </details>
-  {% else %}
-    <blockquote>{{ q.answer }}</blockquote>
-    <small class="muted">{{ q.answered_by }}, {{ q.answered_at.strftime('%d %b %Y') if q.answered_at else '' }}</small>
-  {% endif %}
-</article>
-{% endfor %}
+  </article>
+  {% endfor %}
+  </div>
+</div>
 <script src="/static/voice.js" defer></script>
-{% else %}
-<p class="lead">No questions for {{ viewer.name if viewer else 'you' }}.
-{% if viewer and viewer.role == 'teammate' %}If someone passes you a question, it will appear here.{% endif %}
-{% if viewer and viewer.role == 'successor' %}Your place to start is the <a href="/p/{{ project.id }}/handover">handover</a>.{% endif %}
-{% if viewer and viewer.role == 'reviewer' %}Your questions are in the <a href="/p/{{ project.id }}/review#questions">review console</a>.{% endif %}</p>
 {% endif %}
 
 {% if about_you %}
-<section id="about">
-  <h2>What the sources say about you</h2>
-  <p class="muted"><small>Please check these. If one is wrong, say why, and it goes back to the reviewer.</small></p>
-  <details><summary>Show {{ about_you|length }} claims</summary>
+<section id="about" class="panel mt-lg">
+  <div class="panel-head"><h2>What the sources say about you <span class="count">{{ about_you|length }}</span></h2><p>Please check these. If one is wrong, say why, and it goes back to the reviewer.</p></div>
+  <div class="rows">
+  <details class="disclose"><summary>Show {{ about_you|length }} claims</summary>
+  <div class="rows">
   {% for c in about_you %}
-  <article class="claim compact">
-    <div class="claimhead">
-      {% if c.leaver_check == 'confirmed' %}<span class="chip l-confirmed">You confirmed this</span>
-      {% elif c.leaver_check == 'disputed' %}<span class="chip l-conflict">You disputed this</span>{% endif %}
-      <code class="code">{{ c.code }}</code>
+  <article class="claim">
+    <div class="row-head">
+      {% if c.leaver_check == 'confirmed' %}<span class="pill g ok">You confirmed this</span>
+      {% elif c.leaver_check == 'disputed' %}<span class="pill g l-conflict">You disputed this</span>{% endif %}
+      <span class="id">{{ c.code }}</span>
     </div>
     <p class="stmt">{{ c.statement }}</p>
     {% if not c.leaver_check %}
     <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/check" class="actions">
-      <button name="action" value="confirm" type="submit" class="small secondary outline">That's right</button>
-      <input name="note" maxlength="300" placeholder="What's wrong with it?" aria-label="What is wrong with this claim">
-      <button name="action" value="dispute" type="submit" class="small secondary outline">That's wrong</button>
+      <button name="action" value="confirm" type="submit" class="small secondary"><span class="ic ic-check" aria-hidden="true"></span>That's right</button>
+      <input name="note" maxlength="300" placeholder="What’s wrong with it?" aria-label="What is wrong with this claim">
+      <button name="action" value="dispute" type="submit" class="small outline">That's wrong</button>
     </form>
     {% endif %}
   </article>
   {% endfor %}
+  </div>
   </details>
+  </div>
 </section>
 {% endif %}
 {% endblock %}

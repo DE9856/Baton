@@ -2,204 +2,232 @@
 {% import "_macros.html" as ui with context %}
 {% block title %}Review · Baton{% endblock %}
 {% block content %}
-<h1>Review console</h1>
-{% include "_job.html" %}
 {% set open_conf = conflicts|selectattr('resolution', 'equalto', '')|list %}
 {% set pending_decide = decide|selectattr('review_state', 'equalto', 'pending')|list %}
-<div class="tiles" role="list">
-  <a class="tile" role="listitem" href="#onepass"><b>{{ one_pass_pending }}</b> routine, one-pass</a>
-  <a class="tile" role="listitem" href="#conflicts"><b>{{ open_conf|length }}</b> conflicts to resolve</a>
-  <a class="tile" role="listitem" href="#decide"><b>{{ pending_decide|length }}</b> risky items to decide</a>
-  <a class="tile" role="listitem" href="#needs"><b>{{ needs|length }}</b> need review (optional)</a>
-  <a class="tile" role="listitem" href="#questions"><b>{{ questions|length }}</b> open questions</a>
-  <span class="tile" role="listitem"><b>{{ leaver_open }}/{{ leaver_total }}</b> interview answers awaited</span>
+{% set next_v = (versions[0].number + 1) if versions else 1 %}
+<div class="title-row">
+  <div>
+    <h1>Review</h1>
+    <p class="finding">{% if blockers %}<span class="warn">Not ready to share version {{ next_v }}.</span> {{ blockers|length }} thing{{ 's' if blockers|length != 1 }} still need{{ 's' if blockers|length == 1 }} a decision.{% else %}<b>Ready to share version {{ next_v }}.</b>{% endif %} Nothing reaches the successor until you approve it{% if versions %}; version {{ versions[0].number }} was approved by {{ versions[0].approved_by }} on {{ versions[0].approved_at.strftime('%d %b') }}{% endif %}.</p>
+  </div>
 </div>
-{% if access %}
-<section id="access">
-  <h2>Access requests</h2>
-  {% for r in access %}
-  <article class="claim">
-    <p class="stmt"><strong>{{ member_map[r.member_id].name }}</strong> asks to see <strong>{{ AUDIENCE_LABELS.get(r.audience, r.audience) }}</strong> sources.{% if r.reason %} &ldquo;{{ r.reason }}&rdquo;{% endif %}</p>
-    <form method="post" action="/p/{{ project.id }}/access/{{ r.id }}/decide" class="actions">
-      <button name="decision" value="grant" type="submit" class="small secondary outline">Grant</button>
-      <button name="decision" value="deny" type="submit" class="small secondary outline">Deny</button>
-    </form>
-  </article>
-  {% endfor %}
-</section>
-{% endif %}
+{% include "_job.html" %}
 
-<section class="approvebar {% if not blockers %}ready{% endif %}">
+<nav class="kpis" aria-label="What needs your attention">
+  <a class="kpi {% if open_conf %}bad{% endif %}" href="#conflicts"><div class="kpi-label">Conflicts to resolve</div><div class="kpi-value {% if not open_conf %}zero{% endif %}">{{ open_conf|length }}</div></a>
+  <a class="kpi {% if pending_decide %}warn{% endif %}" href="#decide"><div class="kpi-label">Risky items to decide</div><div class="kpi-value {% if not pending_decide %}zero{% endif %}">{{ pending_decide|length }}</div></a>
+  <a class="kpi" href="#onepass"><div class="kpi-label">Routine, one pass</div><div class="kpi-value {% if not one_pass_pending %}zero{% endif %}">{{ one_pass_pending }}</div></a>
+  <a class="kpi" href="#questions"><div class="kpi-label">Open questions for you</div><div class="kpi-value {% if not questions %}zero{% endif %}">{{ questions|length }}</div></a>
+  <div class="kpi"><div class="kpi-label">Interview answers awaited</div><div class="kpi-value {% if not leaver_open %}zero{% endif %}">{{ leaver_open }} <span class="of">of {{ leaver_total }}</span></div></div>
+</nav>
+
+<section class="panel ready {{ 'not-ready' if blockers else 'is-ready' }} mt" aria-labelledby="approve-status">
+  <div>
   {% if blockers %}
-    <p><strong>Not ready to share yet.</strong></p>
+    <h2 id="approve-status"><span class="ic ic-alert" aria-hidden="true"></span>Not ready to share yet.</h2>
     <ul>{% for b in blockers %}<li>{{ b }}</li>{% endfor %}</ul>
   {% else %}
-    <p><strong>Ready.</strong> Approving creates an immutable version and shares the handover. Needs-review claims stay hidden unless you fix them, and unanswered questions appear as Missing.</p>
-    <form method="post" action="/p/{{ project.id }}/approve"><button type="submit" class="pass">Approve and share version {{ (versions[0].number + 1) if versions else 1 }}</button></form>
+    <h2 id="approve-status"><span class="ic ic-check-circle" aria-hidden="true"></span>Ready.</h2>
+    <p>Approving creates an immutable version and shares the handover. Needs-review claims stay hidden unless you fix them, and unanswered questions appear as Missing.</p>
   {% endif %}
+  </div>
+  {% if not blockers %}<form method="post" action="/p/{{ project.id }}/approve"><button type="submit" class="pass">Approve and share version {{ next_v }}</button></form>{% endif %}
 </section>
 
-<section id="conflicts">
-  <h2>Conflicts: sources disagree</h2>
-  <p class="muted"><small>Never auto-resolved. The newer source is suggested. Both receipts stay on record.</small></p>
-  {% for cf in conflicts %}
-  <article class="conflict">
-    <header><span class="chip l-conflict">Conflict</span> <strong>{{ cf.subject }}</strong> <small class="muted">({{ cf.facet }})</small>
-      {% if cf.resolution %}<span class="chip l-verified">Resolved by {{ cf.resolved_by }}</span>{% endif %}</header>
-    <div class="sides">
-      {% for side, ids, name in [('a', cf.side_a, 'Older source'), ('b', cf.side_b, 'Newer source')] %}
-      <div class="side {% if cf.resolution == side %}won{% endif %}">
-        <h4>{{ name }}{% if side == 'b' %} <small class="muted">(suggested)</small>{% endif %}</h4>
-        {% for i in ids %}{% set c = by_id.get(i) %}{% if c %}
-          <p class="stmt">{{ c.statement }}</p>
-          {{ ui.claim_receipts(c) }}
-        {% endif %}{% endfor %}
+<div class="split mt-lg">
+<div class="stack">
+  <section id="conflicts" class="panel">
+    <div class="panel-head"><h2>Conflicts <span class="count">{{ open_conf|length }} open of {{ conflicts|length }}</span></h2><p>Sources disagree. Never resolved automatically: the newer source is suggested, and both receipts stay on record.</p></div>
+    <div class="rows">
+    {% for cf in conflicts %}
+    <article class="conflict {% if cf.resolution %}row-done{% endif %}">
+      <div class="row-head"><span class="pill g l-conflict">Conflict</span><strong>{{ cf.subject }}</strong><span class="kind">{{ cf.facet }}</span>
+        {% if cf.resolution %}<span class="pill g ok">Resolved by {{ cf.resolved_by }}</span>{% endif %}</div>
+      <div class="sides">
+        {% for side, ids, name in [('a', cf.side_a, 'Older source'), ('b', cf.side_b, 'Newer source')] %}
+        <div class="side {% if cf.resolution == side %}won{% endif %}">
+          <h4>{{ name }}{% if side == 'b' and not cf.resolution %} · suggested{% endif %}</h4>
+          {% for i in ids %}{% set c = by_id.get(i) %}{% if c %}
+            <p class="stmt">{{ c.statement }}</p>
+            {{ ui.claim_receipts(c) }}
+          {% endif %}{% endfor %}
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
+      {% if not cf.resolution %}
+      <form method="post" action="/p/{{ project.id }}/conflicts/{{ cf.id }}/resolve" class="actions">
+        <input name="note" placeholder="Note (optional)…" maxlength="300" aria-label="Note about this decision">
+        <button name="choice" value="b" type="submit" class="small">Newer source is correct</button>
+        <button name="choice" value="a" type="submit" class="small secondary">Older source is correct</button>
+        <button name="choice" value="neither" type="submit" class="small outline">Neither</button>
+      </form>
+      {% elif cf.note %}<p class="meta">Note: {{ cf.note }}</p>{% endif %}
+    </article>
+    {% else %}<p class="empty-row"><span class="ic ic-check-circle" aria-hidden="true"></span>No conflicts found.</p>{% endfor %}
     </div>
-    {% if not cf.resolution %}
-    <form method="post" action="/p/{{ project.id }}/conflicts/{{ cf.id }}/resolve" class="actions">
-      <input name="note" placeholder="Note (optional)" maxlength="300" aria-label="Note about this decision">
-      <button name="choice" value="b" type="submit" class="small">Newer source is correct</button>
-      <button name="choice" value="a" type="submit" class="small secondary outline">Older source is correct</button>
-      <button name="choice" value="neither" type="submit" class="small secondary outline">Neither</button>
-    </form>
-    {% elif cf.note %}<small class="muted">Note: {{ cf.note }}</small>{% endif %}
-  </article>
-  {% else %}<p class="muted">No conflicts found.</p>{% endfor %}
-</section>
+  </section>
 
-<section id="decide">
-  <h2>Decide one by one</h2>
-  <p class="muted"><small>Sensitive items, departure-cliff items, answers from the interview and possibly outdated items.</small></p>
-  {% for c in decide %}
-  <article class="claim lane-{{ c.label }} {% if c.review_state != 'pending' %}done{% endif %}">
-    <div class="claimhead">
-      {{ ui.label(c.label, c.answered_by) }}
-      <span class="chip kind">{{ TYPE_TITLES.get(c.type, c.type) }}</span>
-      {% if c.cliff %}<span class="chip cliff">Departure cliff</span>{% endif %}
-      {% for t in c.sens_tags %}<span class="chip l-withheld">{{ TAG_LABELS.get(t, t) }}</span>{% endfor %}
-      {% if c.leaver_check == 'confirmed' %}<span class="chip l-confirmed">Leaver confirmed</span>{% endif %}
-      {% if c.review_state != 'pending' %}<span class="chip">{{ c.review_state|capitalize }} by {{ c.reviewed_by }}</span>{% endif %}
-      <code class="code">{{ c.code }}</code>
-    </div>
-    <p class="stmt">{{ c.statement }}</p>
-    {% if c.check_flag %}<div class="flash warn" role="note">{{ c.check_flag }}</div>{% endif %}
-    {% if c.voice_note_id %}<audio controls preload="none" src="/p/{{ project.id }}/voice/{{ c.voice_note_id }}" aria-label="The spoken answer"></audio>{% endif %}
-    {{ ui.claim_receipts(c) }}
-    {% if c.review_state == 'pending' %}
-    <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/decide" class="actions">
+  <section id="decide" class="panel">
+    <div class="panel-head"><h2>Decide one by one <span class="count">{{ pending_decide|length }} pending of {{ decide|length }}</span></h2><p>Sensitive items, departure-cliff items, answers from the interview and possibly outdated items.</p></div>
+    <div class="rows">
+    {% for c in decide %}
+    <article class="claim {% if c.review_state != 'pending' %}row-done{% endif %}">
+      <div class="row-head">
+        {{ ui.label(c.label, c.answered_by) }}
+        {% if c.cliff %}<span class="pill g cliff">Departure cliff</span>{% endif %}
+        {% for t in c.sens_tags %}<span class="pill g l-withheld">{{ TAG_LABELS.get(t, t) }}</span>{% endfor %}
+        {% if c.leaver_check == 'confirmed' %}<span class="pill g ok">Leaver confirmed</span>{% endif %}
+        {% if c.review_state != 'pending' %}<span class="pill">{{ c.review_state|capitalize }} by {{ c.reviewed_by }}</span>{% endif %}
+        <span class="kind">{{ TYPE_TITLES.get(c.type, c.type) }}</span>
+        <span class="id">{{ c.code }}</span>
+      </div>
+      <p class="stmt">{{ c.statement }}</p>
+      {% if c.check_flag %}<div class="notice warn" role="note" style="margin: 10px 0 0"><div>{{ c.check_flag }}</div></div>{% endif %}
+      {% if c.voice_note_id %}<audio controls preload="none" src="/p/{{ project.id }}/voice/{{ c.voice_note_id }}" aria-label="The spoken answer"></audio>{% endif %}
+      {{ ui.claim_receipts(c) }}
+      {% if c.review_state == 'pending' %}
+      <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/decide" class="actions">
+        {% if c.label == 'withheld' %}
+        <button name="action" value="reject" type="submit" class="small"><span class="ic ic-lock" aria-hidden="true"></span>Keep withheld</button>
+        {% else %}
+        <button name="action" value="approve" type="submit" class="small">Approve</button>
+        <button name="action" value="reject" type="submit" class="small outline">Reject</button>
+        {% endif %}
+      </form>
       {% if c.label == 'withheld' %}
-      <button name="action" value="reject" type="submit" class="small">Keep withheld</button>
+      <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/sanitise" class="actions">
+        <input name="text" placeholder="Shareable version, without the sensitive part…" maxlength="500" aria-label="Shareable version">
+        <select name="audience" aria-label="Who may see the shareable version">{% for k, v in AUDIENCES %}<option value="{{ k }}" {% if k == 'tech-team' %}selected{% endif %}>{{ v }}</option>{% endfor %}</select>
+        <button type="submit" class="small secondary">Publish shareable version</button>
+      </form>
       {% else %}
-      <button name="action" value="approve" type="submit" class="small">Approve</button>
-      <button name="action" value="reject" type="submit" class="small secondary outline">Reject</button>
+      <details class="more"><summary>Edit the wording</summary>
+        <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/decide" class="actions">
+          <input type="hidden" name="action" value="edit">
+          <input name="text" value="{{ c.statement }}" aria-label="New wording">
+          <button type="submit" class="small secondary"><span class="ic ic-pen" aria-hidden="true"></span>Save as my word</button>
+        </form>
+      </details>
       {% endif %}
-    </form>
-    {% if c.label == 'withheld' %}
-    <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/sanitise" class="actions">
-      <input name="text" placeholder="Shareable version, without the sensitive part" maxlength="500" aria-label="Shareable version">
-      <select name="audience" aria-label="Who may see the shareable version">{% for k, v in AUDIENCES %}<option value="{{ k }}" {% if k == 'tech-team' %}selected{% endif %}>{{ v }}</option>{% endfor %}</select>
-      <button type="submit" class="small secondary outline">Publish shareable version</button>
-    </form>
+      {% endif %}
+    </article>
+    {% else %}<p class="empty-row"><span class="ic ic-check-circle" aria-hidden="true"></span>Nothing to decide.</p>{% endfor %}
+    </div>
+  </section>
+
+  <section id="questions" class="panel">
+    <div class="panel-head"><h2>Open questions routed to you <span class="count">{{ questions|length }}</span></h2><p>Anything left here appears in the handover as Missing, with your name as the person to ask.</p></div>
+    <div class="rows">
+    {% for q in questions %}
+    <article class="claim">
+      <div class="row-head"><span class="pill g l-missing">{{ 'Triage' if q.route == 'triage' else 'For you' }}</span><span class="kind">{{ q.kind|replace('_',' ')|capitalize }}</span></div>
+      <p class="stmt">{{ q.text }}</p>
+      <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/answer" class="actions">
+        <input type="hidden" name="next" value="review">
+        <input name="text" placeholder="Your answer…" maxlength="1000" aria-label="Your answer">
+        <button type="submit" class="small secondary">Answer</button>
+        <button type="submit" class="small outline" formaction="/p/{{ project.id }}/questions/{{ q.id }}/dismiss" formnovalidate>Not relevant</button>
+      </form>
+    </article>
+    {% else %}<p class="empty-row"><span class="ic ic-check-circle" aria-hidden="true"></span>No open questions.</p>{% endfor %}
+    </div>
+  </section>
+
+  <section id="needs" class="panel">
+    <div class="panel-head"><h2>Needs review <span class="count">{{ needs|length }} optional</span></h2><p>The automatic check didn't confirm these, so the successor won't see them unless you approve or rewrite them. Approving makes a claim your word, not Verified.</p></div>
+    <div class="rows">
+    <details class="disclose"><summary>Show {{ needs|length }} claims</summary>
+    <div class="rows">
+    {% for c in needs %}
+    <article class="claim {% if c.review_state != 'pending' %}row-done{% endif %}">
+      <div class="row-head">{{ ui.label(c.label, c.answered_by) }}<span class="kind">{{ TYPE_TITLES.get(c.type, c.type) }}</span>
+        {% if c.review_state != 'pending' %}<span class="pill">{{ c.review_state|capitalize }} by {{ c.reviewed_by }}</span>{% endif %}<span class="id">{{ c.code }}</span></div>
+      <p class="stmt">{{ c.statement }}</p>
+      <p class="why"><span class="ic ic-info" aria-hidden="true"></span><span>{{ c.label_reason }}</span></p>
+      {{ ui.claim_receipts(c) }}
+      {% if c.review_state == 'pending' %}
+      <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/decide" class="actions">
+        {% if c.label != 'unsupported' %}<button name="action" value="approve" type="submit" class="small secondary">Approve as my word</button>{% endif %}
+        <button name="action" value="reject" type="submit" class="small outline">Reject</button>
+      </form>
+      <details class="more"><summary>Rewrite</summary>
+        <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/decide" class="actions">
+          <input type="hidden" name="action" value="edit">
+          <input name="text" value="{{ c.statement }}" aria-label="New wording">
+          <button type="submit" class="small secondary"><span class="ic ic-pen" aria-hidden="true"></span>Save as my word</button>
+        </form>
+      </details>
+      {% endif %}
+    </article>
+    {% endfor %}
+    </div>
+    </details>
+    </div>
+  </section>
+
+  <section id="onepass" class="panel">
+    <div class="panel-head"><h2>Routine verified claims <span class="count">{{ one_pass|length }}</span></h2>
+      {% if one_pass_pending %}<form method="post" action="/p/{{ project.id }}/review/one-pass"><button type="submit" class="small"><span class="ic ic-check" aria-hidden="true"></span>Approve all {{ one_pass_pending }} in one pass</button></form>
+      {% else %}<span class="pill g ok">All approved</span>{% endif %}
+      <p>A quote was matched by code, the NLI check supported it, and every value appears in the source. None are sensitive, conflicting or tied to the departure.</p></div>
+    <div class="rows">
+    <details class="disclose"><summary>Show {{ one_pass|length }} claims</summary>
+    <div class="rows">
+    {% for c in one_pass %}
+    <article class="claim">
+      <div class="row-head">{{ ui.label('verified') }}<span class="kind">{{ TYPE_TITLES.get(c.type, c.type) }}</span><span class="id">{{ c.code }}</span></div>
+      <p class="stmt">{{ c.statement }}</p>
+      {{ ui.claim_receipts(c) }}
+      {% if c.review_state == 'pending' %}
+      <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/decide" class="actions"><button name="action" value="reject" class="small outline" type="submit">Reject this one</button></form>
+      {% endif %}
+    </article>
+    {% endfor %}
+    </div>
+    </details>
+    </div>
+  </section>
+</div>
+
+<aside class="rail" aria-label="Versions and access">
+  <section id="versions" class="panel">
+    <div class="panel-head"><h2>Versions <span class="count">{{ versions|length }}</span></h2></div>
+    <div class="rows">
+    {% for v in versions %}
+    <div>
+      <div class="vrow"><strong>Version {{ v.number }}</strong><span class="muted">{{ v.approved_at.strftime('%d %b %Y, %H:%M') }}</span></div>
+      <p class="meta">Approved by {{ v.approved_by }} · <span class="id" title="sha256">{{ v.content_hash[:12] }}</span></p>
+      {% if v.diff.added or v.diff.removed or v.diff.changed %}
+      <details class="more" style="margin-top: 8px"><summary>{{ v.diff.added|length }} added, {{ v.diff.removed|length }} removed, {{ v.diff.changed|length }} changed</summary>
+        <ul class="difflist">
+          {% for x in v.diff.added %}<li class="d-add">+ {{ x }}</li>{% endfor %}
+          {% for x in v.diff.removed %}<li class="d-del">&minus; {{ x }}</li>{% endfor %}
+          {% for x in v.diff.changed %}<li>{{ x.from }} &rarr; {{ x.to }}</li>{% endfor %}
+        </ul>
+      </details>
+      {% endif %}
+    </div>
     {% else %}
-    <details><summary><small>Edit the wording</small></summary>
-      <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/decide" class="actions">
-        <input type="hidden" name="action" value="edit">
-        <input name="text" value="{{ c.statement }}" aria-label="New wording">
-        <button type="submit" class="small secondary outline">Save as my word</button>
+    <p class="empty-row"><span class="ic ic-info" aria-hidden="true"></span>Nothing approved yet. Version 1 is created when you approve.</p>
+    {% endfor %}
+    </div>
+  </section>
+  <section id="access" class="panel">
+    <div class="panel-head"><h2>Access requests <span class="count">{{ access|length }}</span></h2></div>
+    <div class="rows">
+    {% for r in access %}
+    <div>
+      <p><strong>{{ member_map[r.member_id].name }}</strong> asks to see <strong>{{ AUDIENCE_LABELS.get(r.audience, r.audience) }}</strong> sources.{% if r.reason %} “{{ r.reason }}”{% endif %}</p>
+      <form method="post" action="/p/{{ project.id }}/access/{{ r.id }}/decide" class="actions">
+        <button name="decision" value="grant" type="submit" class="small">Grant</button>
+        <button name="decision" value="deny" type="submit" class="small outline">Deny</button>
       </form>
-    </details>
-    {% endif %}
-    {% endif %}
-  </article>
-  {% else %}<p class="muted">Nothing to decide.</p>{% endfor %}
-</section>
-
-<section id="questions">
-  <h2>Open questions routed to you</h2>
-  <p class="muted"><small>Anything left here appears in the handover as Missing, with your name as the person to ask.</small></p>
-  {% for q in questions %}
-  <article class="claim lane-missing">
-    <div class="claimhead"><span class="chip l-missing">{{ 'Triage' if q.route == 'triage' else 'For you' }}</span><span class="chip kind">{{ q.kind|replace('_',' ') }}</span></div>
-    <p class="stmt">{{ q.text }}</p>
-    <form method="post" action="/p/{{ project.id }}/questions/{{ q.id }}/answer" class="actions">
-      <input type="hidden" name="next" value="review">
-      <input name="text" placeholder="Your answer" maxlength="1000" aria-label="Your answer">
-      <button type="submit" class="small secondary">Answer</button>
-      <button type="submit" class="small secondary outline" formaction="/p/{{ project.id }}/questions/{{ q.id }}/dismiss" formnovalidate>Not relevant</button>
-    </form>
-  </article>
-  {% else %}<p class="muted">No open questions.</p>{% endfor %}
-</section>
-
-<section id="needs">
-  <h2>Needs review (optional)</h2>
-  <p class="muted"><small>The automatic check didn't confirm these, so the successor won't see them unless you approve or rewrite them. Approving makes a claim your word, not Verified.</small></p>
-  <details><summary>Show {{ needs|length }} claims</summary>
-  {% for c in needs %}
-  <article class="claim lane-{{ c.label }} {% if c.review_state != 'pending' %}done{% endif %}">
-    <div class="claimhead">{{ ui.label(c.label, c.answered_by) }}<span class="chip kind">{{ TYPE_TITLES.get(c.type, c.type) }}</span><code class="code">{{ c.code }}</code>
-      {% if c.review_state != 'pending' %}<span class="chip">{{ c.review_state|capitalize }} by {{ c.reviewed_by }}</span>{% endif %}</div>
-    <p class="stmt">{{ c.statement }}</p>
-    <small class="why">{{ c.label_reason }}</small>
-    {{ ui.claim_receipts(c) }}
-    {% if c.review_state == 'pending' %}
-    <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/decide" class="actions">
-      {% if c.label != 'unsupported' %}<button name="action" value="approve" type="submit" class="small secondary outline">Approve as my word</button>{% endif %}
-      <button name="action" value="reject" type="submit" class="small secondary outline">Reject</button>
-    </form>
-    <details><summary><small>Rewrite</small></summary>
-      <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/decide" class="actions">
-        <input type="hidden" name="action" value="edit">
-        <input name="text" value="{{ c.statement }}" aria-label="New wording">
-        <button type="submit" class="small secondary outline">Save as my word</button>
-      </form>
-    </details>
-    {% endif %}
-  </article>
-  {% endfor %}
-  </details>
-</section>
-
-<section id="onepass">
-  <h2>Routine verified claims</h2>
-  <p class="muted"><small>A quote was matched by code, the NLI check supported it, and every value appears in the source. None are sensitive, conflicting or tied to the departure.</small></p>
-  {% if one_pass_pending %}
-  <form method="post" action="/p/{{ project.id }}/review/one-pass"><button type="submit">Approve all {{ one_pass_pending }} in one pass</button></form>
-  {% else %}<p class="chip l-verified">All approved</p>{% endif %}
-  <details><summary>Show {{ one_pass|length }} claims</summary>
-  {% for c in one_pass %}
-  <article class="claim lane-verified compact">
-    <div class="claimhead"><span class="chip kind">{{ TYPE_TITLES.get(c.type, c.type) }}</span><code class="code">{{ c.code }}</code></div>
-    <p class="stmt">{{ c.statement }}</p>
-    {{ ui.claim_receipts(c) }}
-    {% if c.review_state == 'pending' %}
-    <form method="post" action="/p/{{ project.id }}/claims/{{ c.id }}/decide"><button name="action" value="reject" class="small secondary outline" type="submit">Reject this one</button></form>
-    {% endif %}
-  </article>
-  {% endfor %}
-  </details>
-</section>
-
-{% if versions %}
-<section id="versions">
-  <h2>Version history</h2>
-  {% for v in versions %}
-  <article class="claim">
-    <strong>Version {{ v.number }}</strong>, approved by {{ v.approved_by }} on {{ v.approved_at.strftime('%d %b %Y %H:%M') }}
-    <small class="muted"><code>sha256 {{ v.content_hash[:12] }}</code></small>
-    {% if v.diff.added or v.diff.removed or v.diff.changed %}
-    <details><summary><small>Changes: {{ v.diff.added|length }} added, {{ v.diff.removed|length }} removed, {{ v.diff.changed|length }} changed</small></summary>
-      <ul>
-        {% for x in v.diff.added %}<li class="d-add">+ {{ x }}</li>{% endfor %}
-        {% for x in v.diff.removed %}<li class="d-del">&minus; {{ x }}</li>{% endfor %}
-        {% for x in v.diff.changed %}<li>{{ x.from }} &rarr; {{ x.to }}</li>{% endfor %}
-      </ul>
-    </details>
-    {% endif %}
-  </article>
-  {% endfor %}
-</section>
-{% endif %}
+    </div>
+    {% else %}
+    <p class="empty-row">No one is waiting for access.</p>
+    {% endfor %}
+    </div>
+  </section>
+</aside>
+</div>
 {% endblock %}

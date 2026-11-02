@@ -1,41 +1,36 @@
 {% extends "base.html" %}
 {% import "_macros.html" as ui with context %}
-{% macro line(i) %}
-<li class="line lane-{{ i.label }}">
-  <div class="claimhead">{{ ui.label(i.label, i.answered_by) }}
-    {% if i.cliff %}<span class="chip cliff">Departure cliff</span>{% endif %}
-    {% if i.due %}<span class="chip">Due {{ i.due }}</span>{% endif %}
-  </div>
-  <p class="stmt">{% if i|needs_subject %}<span class="subj">{{ i.subject }}:</span> {% endif %}{{ i.statement }}</p>
-  {% if i.receipts %}
-  <details class="receipts"><summary>Receipt{% if i.receipts|length > 1 %}s ({{ i.receipts|length }} sources){% endif %}</summary>
-    <ul>{% for r in i.receipts %}{{ ui.receipt_row(r) }}{% endfor %}</ul></details>
-  {% elif i.answered_by %}
-  <small class="muted">{{ i.answered_by }}'s word, {{ i.answered_at }}. Not independently sourced.</small>
-  {% if i.voice_note_id %}<audio controls preload="none" src="/p/{{ project.id }}/voice/{{ i.voice_note_id }}" aria-label="{{ i.answered_by }}'s spoken answer"></audio>{% endif %}
-  {% endif %}
-</li>
+{% macro receipts(i, open=False) %}
+{% if i.receipts %}
+<details class="receipts" {% if open %}open{% endif %}><summary>Receipt{% if i.receipts|length > 1 %}s ({{ i.receipts|length }} sources){% endif %}</summary>
+  <ul class="receipt-list">{% for r in i.receipts %}{{ ui.receipt_row(r) }}{% endfor %}</ul></details>
+{% elif i.answered_by %}
+<p class="meta">{{ i.answered_by }}'s word, {{ i.answered_at }}. Not independently sourced.</p>
+{% if i.voice_note_id %}<audio controls preload="none" src="/p/{{ project.id }}/voice/{{ i.voice_note_id }}" aria-label="{{ i.answered_by }}'s spoken answer"></audio>{% endif %}
+{% endif %}
 {% endmacro %}
-{% macro planline(i) %}
-<li class="line plan-line lane-{{ i.label }}">
-  {{ ui.label(i.label, i.answered_by) }}
-  {% if i.due %}<span class="chip">Due {{ i.due }}</span>{% endif %}
-  <p class="stmt">{% if i|needs_subject %}<span class="subj">{{ i.subject }}:</span> {% endif %}{{ i.statement }}</p>
-  {% if i.receipts %}
-  <details class="receipts"><summary>Receipt</summary><ul>{% for r in i.receipts %}{{ ui.receipt_row(r) }}{% endfor %}</ul></details>
-  {% endif %}
+{% macro line(i) %}
+<li class="line">
+  <div class="labels">{{ ui.label(i.label, i.answered_by) }}
+    {% if i.cliff %}<span class="pill g cliff">Departure cliff</span>{% endif %}
+    {% if i.due %}<span class="pill g due">Due {{ i.due }}</span>{% endif %}
+  </div>
+  <div>
+    <p class="stmt">{% if i|needs_subject %}<span class="subj">{{ i.subject }}:</span> {% endif %}{{ i.statement }}</p>
+    {{ receipts(i) }}
+  </div>
 </li>
 {% endmacro %}
 {% macro sectionfoot(key) %}
 <footer class="ack">
-  {% if key in acks %}<span class="chip l-verified">Acknowledged</span>
+  {% if key in acks %}<span class="pill g ok">Acknowledged</span>
   {% else %}
-  <form method="post" action="/p/{{ project.id }}/ack/{{ key }}"><button type="submit" class="small secondary">Acknowledge</button></form>
+  <form method="post" action="/p/{{ project.id }}/ack/{{ key }}"><button type="submit" class="small"><span class="ic ic-check" aria-hidden="true"></span>Acknowledge</button></form>
   {% endif %}
-  <details><summary><small>{% if key in unclear %}Marked unclear. Ask something else?{% else %}Something is unclear{% endif %}</small></summary>
+  <details><summary>{% if key in unclear %}Marked unclear. Ask something else?{% else %}Something is unclear{% endif %}</summary>
     <form method="post" action="/p/{{ project.id }}/unclear/{{ key }}" class="actions">
-      <input name="text" required maxlength="500" placeholder="What is unclear?" aria-label="What is unclear?">
-      <button type="submit" class="small secondary outline">Send question</button>
+      <input name="text" required maxlength="500" placeholder="What is unclear? e.g. which account pays for hosting" aria-label="What is unclear?">
+      <button type="submit" class="small secondary"><span class="ic ic-send" aria-hidden="true"></span>Send question</button>
     </form>
   </details>
 </footer>
@@ -43,106 +38,129 @@
 {% block title %}Handover · Baton{% endblock %}
 {% block content %}
 {% if not h %}
-<h1>Handover</h1>
+<div class="title-row"><div><h1>Handover</h1>
+<p class="finding">Nothing is shared until a named reviewer approves it, and no version has been approved yet.</p></div>
+{% if viewer and viewer.role == 'reviewer' %}<a role="button" class="pass" href="/p/{{ project.id }}/review">Go to the review console</a>{% endif %}</div>
 {% include "_job.html" %}
-<p class="lead">Nothing is shared until a named reviewer approves it, and no version has been approved yet.</p>
-{% if viewer and viewer.role == 'reviewer' %}<a role="button" class="pass" href="/p/{{ project.id }}/review">Go to the review console</a>
-{% else %}<p class="muted">To continue the demo, use Switch user to sign in as Sana, the reviewer.</p>{% endif %}
+{% if not (viewer and viewer.role == 'reviewer') %}<div class="panel formpanel"><p class="empty-row"><span class="ic ic-info" aria-hidden="true"></span>To continue the demo, use Switch user to sign in as Sana, the reviewer.</p></div>{% endif %}
 {% else %}
-<div class="hhead">
-  <div>
-    <h1>{{ h.role_title }} handover</h1>
-    <p class="muted">Prepared for {{ viewer.name }}. Approved by {{ h.approved_by }}, {{ h.approved_at }}, version {{ h.version }}. Last day of the person leaving: {{ h.last_day.strftime('%d %b %Y') }}.</p>
-  </div>
-  <div class="hactions">
-    <span class="chip">{{ acks|length }} of {{ SECTIONS|length }} sections acknowledged</span>
-    <a role="button" class="small secondary outline" href="/p/{{ project.id }}/export.md">Export</a>
-  </div>
-</div>
-<div class="legend" role="note">
-  <span class="line lane-verified legend-item">{{ ui.label('verified') }} Proven by a checked source quote.</span>
-  <span class="line lane-confirmed legend-item">{{ ui.label('confirmed') }} A named person's word, not independently sourced.</span>
-  <span class="line lane-missing legend-item">{{ ui.label('missing') }} Nobody has answered yet; ask the person named.</span>
-</div>
-<p class="muted"><small>You see {{ h.total_items }} items, limited to what your role may see. Baton may miss things. Check the Missing items with your team.</small></p>
-
-<form method="get" action="/p/{{ project.id }}/ask" class="askbar" role="search">
-  <input name="q" required maxlength="500" placeholder="Ask about this handover, for example: who renews the domain?" aria-label="Ask Baton a question">
-  <button type="submit" class="small">Ask Baton</button>
-</form>
-
-{% if changes and (changes.added or changes.removed) %}
-<section id="changes" class="changed">
-  <h2>What changed in version {{ h.version }}</h2>
-  <ul>
-    {% for c in changes.added %}<li class="d-add">New: {{ c.statement }}</li>{% endfor %}
-    {% for c in changes.removed %}<li class="d-del">No longer stated: {{ c.statement }}</li>{% endfor %}
-  </ul>
-</section>
-{% endif %}
-
-{% if h.conflicts %}
-<section id="conflicts">
-  <h2>Sources disagreed here</h2>
-  {% for cf in h.conflicts %}
-  <article class="conflict resolved">
-    <p class="stmt">{{ cf.winner_text|join(' / ') or 'Neither side was correct.' }}</p>
-    <small class="muted">Resolved by {{ cf.resolved_by }}{% if cf.note %}: {{ cf.note }}{% endif %}</small>
-    <details class="receipts"><summary>See both sides</summary>
-      <ul>
-      {% for r in cf.winner_quotes %}{{ ui.receipt_row(r) }}{% endfor %}
-      {% for r in cf.loser_quotes %}<li class="receipt overruled"><div class="rmeta"><span class="chip">Overruled</span> <strong>{{ r.source }}</strong>, {{ r.when }} <code>{{ r.uid }}</code></div><blockquote>{{ r.quote }}</blockquote></li>{% endfor %}
-      </ul>
-    </details>
-  </article>
-  {% endfor %}
-</section>
-{% endif %}
-
+{% set counts = {} %}
+{% set ns = namespace(v=0) %}
 {% for key, title in SECTIONS %}
-<section id="{{ key }}" class="hsection">
-  {% set primary = key in ('start_here', 'plan') %}
   {% if key == 'questions' %}{% set n = (h.missing|length) + ((h.sections.get(key) or [])|length) %}
   {% elif key == 'timeline' %}{% set n = h.timeline|length %}
   {% elif key == 'plan' %}{% set n = h.plan.values()|map('length')|sum %}
   {% else %}{% set n = (h.sections.get(key) or [])|length %}{% endif %}
-  <details class="hdetails" {% if primary %}open{% endif %}>
-  <summary><h2>{{ title }} <small class="muted">({{ n }})</small>{% if key in acks %} <span class="chip l-verified">Acknowledged</span>{% endif %}</h2></summary>
-  {% if key == 'plan' %}
-    {% for name, rows in h.plan.items() %}{% if rows %}
-    <h3>{{ name }}</h3>
-    <ul class="lines">{% for i in rows %}{{ planline(i) }}{% endfor %}</ul>
-    {% endif %}{% endfor %}
-  {% elif key == 'timeline' %}
-    <ol class="timeline">
-      {% set ns = namespace(marked=false) %}
-      {% for row in h.timeline %}
-        {% if not ns.marked and row.date >= h.last_day %}
-        <li class="tl-cliff"><b>{{ h.last_day.strftime('%d %b') }}</b> <strong>Last day of the person leaving: anything below can fall off the cliff</strong></li>
-        {% set ns.marked = true %}
-        {% endif %}
-        <li class="{{ 'tl-due' if row.is_deadline }} {{ 'tl-risk' if row.item.cliff }}"><b>{{ row.date.strftime('%d %b') }}</b> {{ row.item.statement }}</li>
-      {% endfor %}
-      {% if not ns.marked %}<li class="tl-cliff"><b>{{ h.last_day.strftime('%d %b') }}</b> <strong>Last day of the person leaving</strong></li>{% endif %}
-    </ol>
-  {% elif key == 'questions' %}
-    {% if h.missing %}
-    <ul class="lines">
-      {% for q in h.missing %}
-      <li class="line lane-missing"><div class="claimhead">{{ ui.label('missing') }}<span class="chip">Ask {{ q.ask }}</span></div><p class="stmt">{{ q.text }}</p></li>
-      {% endfor %}
-    </ul>
-    {% endif %}
-    {% set rows = h.sections.get(key) or [] %}
-    {% if rows %}<ul class="lines">{% for i in rows %}{{ line(i) }}{% endfor %}</ul>{% endif %}
-    {% if not h.missing and not rows %}<p class="muted">Nothing open.</p>{% endif %}
-  {% else %}
-    {% set rows = h.sections.get(key) or [] %}
-    {% if rows %}<ul class="lines">{% for i in rows %}{{ line(i) }}{% endfor %}</ul>{% else %}<p class="muted">Nothing here for your role.</p>{% endif %}
-  {% endif %}
-  {{ sectionfoot(key) }}
-  </details>
-</section>
+  {% set _ = counts.update({key: n}) %}
 {% endfor %}
+{% for rows in h.sections.values() %}{% for i in rows %}{% if i.label == 'verified' %}{% set ns.v = ns.v + 1 %}{% endif %}{% endfor %}{% endfor %}
+{% set verified = [ns.v, h.total_items]|min %}
+<div class="title-row">
+  <div>
+    <h1>{{ h.role_title }} handover</h1>
+    <p class="finding">Prepared for {{ viewer.name }}. <b>Version {{ h.version }}</b>, approved by {{ h.approved_by }} on {{ h.approved_at }}. {{ h.total_items }} items, limited to what your role may see. {{ ui.hidden_note() }}</p>
+  </div>
+  <div class="title-actions"><a role="button" class="outline" href="/p/{{ project.id }}/export.md"><span class="ic ic-download" aria-hidden="true"></span>Export</a></div>
+</div>
+
+{{ ui.proof(verified, h.total_items - verified, missing=h.missing|length, noun='lines', side='Last day of the person leaving<br><b>' ~ h.last_day.strftime('%d %b %Y') ~ '</b>') }}
+
+<div class="split mt">
+  <div class="stack">
+    {% if changes and (changes.added or changes.removed) %}
+    <section id="changes" class="panel changed">
+      <div class="panel-head"><h2>What changed in version {{ h.version }}</h2></div>
+      <div class="panel-body"><ul>
+        {% for c in changes.added %}<li class="d-add">New: {{ c.statement }}</li>{% endfor %}
+        {% for c in changes.removed %}<li class="d-del">No longer stated: {{ c.statement }}</li>{% endfor %}
+      </ul></div>
+    </section>
+    {% endif %}
+
+    {% if h.conflicts %}
+    <section id="conflicts" class="panel">
+      <div class="panel-head"><h2>Sources disagreed here <span class="count">{{ h.conflicts|length }}</span></h2><p>A reviewer chose one side. Both receipts stay on record.</p></div>
+      <div class="rows">
+      {% for cf in h.conflicts %}
+      <article class="conflict resolved">
+        <p class="stmt" style="margin-top: 0">{{ cf.winner_text|join(' / ') or 'Neither side was correct.' }}</p>
+        <p class="meta">Resolved by {{ cf.resolved_by }}{% if cf.note %}: {{ cf.note }}{% endif %}</p>
+        <details class="receipts"><summary>See both sides</summary>
+          <ul class="receipt-list">
+          {% for r in cf.winner_quotes %}{{ ui.receipt_row(r) }}{% endfor %}
+          {% for r in cf.loser_quotes %}<li class="receipt overruled"><div class="rmeta"><span class="pill">Overruled</span><strong>{{ r.source }}</strong><span>{{ r.when }}</span><span class="id">{{ r.uid }}</span></div><blockquote>{{ r.quote }}</blockquote></li>{% endfor %}
+          </ul>
+        </details>
+      </article>
+      {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% for key, title in SECTIONS %}
+    <section id="{{ key }}" class="hsection">
+      <details class="panel hsec" {% if key in ('start_here', 'plan') %}open{% endif %}>
+      <summary><h2>{{ title }} <span class="count">{{ counts[key] }}</span>{% if key in acks %} <span class="pill g ok">Acknowledged</span>{% endif %}</h2><span class="chev" aria-hidden="true"></span></summary>
+      {% if key == 'plan' %}
+        {% for name, rows in h.plan.items() %}{% if rows %}
+        <h3 class="plan-head">{{ name }}</h3>
+        <ul class="rows">{% for i in rows %}{{ line(i) }}{% endfor %}</ul>
+        {% endif %}{% endfor %}
+      {% elif key == 'timeline' %}
+        <ol class="timeline">
+          {% set tl = namespace(marked=false) %}
+          {% for row in h.timeline %}
+            {% if not tl.marked and row.date >= h.last_day %}
+            <li class="tl-cliff"><b>{{ h.last_day.strftime('%d %b') }}</b> <strong>Last day of the person leaving: anything below can fall off the cliff</strong></li>
+            {% set tl.marked = true %}
+            {% endif %}
+            <li class="{{ 'tl-due' if row.is_deadline }} {{ 'tl-risk' if row.item.cliff }}"><b>{{ row.date.strftime('%d %b') }}</b> <span>{{ row.item.statement }}</span></li>
+          {% endfor %}
+          {% if not tl.marked %}<li class="tl-cliff"><b>{{ h.last_day.strftime('%d %b') }}</b> <strong>Last day of the person leaving</strong></li>{% endif %}
+        </ol>
+      {% elif key == 'questions' %}
+        {% set rows = h.sections.get(key) or [] %}
+        {% if h.missing or rows %}
+        <ul class="rows">
+          {% for q in h.missing %}
+          <li class="line"><div class="labels">{{ ui.label('missing') }}</div><div><p class="stmt">{{ q.text }}</p><p class="meta">Ask {{ q.ask }}</p></div></li>
+          {% endfor %}
+          {% for i in rows %}{{ line(i) }}{% endfor %}
+        </ul>
+        {% else %}<p class="empty-row" style="padding: 16px var(--card-pad)">Nothing open.</p>{% endif %}
+      {% else %}
+        {% set rows = h.sections.get(key) or [] %}
+        {% if rows %}<ul class="rows">{% for i in rows %}{{ line(i) }}{% endfor %}</ul>{% else %}<p class="empty-row" style="padding: 16px var(--card-pad)">Nothing here for your role.</p>{% endif %}
+      {% endif %}
+      {{ sectionfoot(key) }}
+      </details>
+    </section>
+    {% endfor %}
+  </div>
+
+  <aside class="rail" aria-label="Handover tools">
+    <div class="panel formpanel">
+      <h2>{{ acks|length }} of {{ SECTIONS|length }} sections acknowledged</h2>
+      <progress value="{{ acks|length }}" max="{{ SECTIONS|length }}" aria-label="Sections acknowledged"></progress>
+      <form method="get" action="/p/{{ project.id }}/ask" class="askbar" role="search" style="margin-top: 16px">
+        <span class="ic ic-search" aria-hidden="true"></span>
+        <input name="q" required maxlength="500" placeholder="e.g. who renews the domain?" aria-label="Ask Baton a question">
+        <button type="submit" class="secondary">Ask Baton</button>
+      </form>
+    </div>
+    <nav class="panel formpanel toc-panel" aria-label="Sections">
+      <h2 style="margin-bottom: 8px">Sections</h2>
+      <ol class="toc">
+        {% for key, title in SECTIONS %}
+        <li><a href="#{{ key }}"><span>{{ title }}</span><span class="count {% if key in acks %}acked{% endif %}">{% if key in acks %}<span class="ic ic-check" role="img" aria-label="acknowledged" style="width: 14px; height: 14px"></span>{% endif %}{{ counts[key] }}</span></a></li>
+        {% endfor %}
+      </ol>
+    </nav>
+  </aside>
+</div>
+<script>
+/* Following a section link opens that section. */
+document.querySelectorAll(".toc a").forEach(function (a) { a.addEventListener("click", function () { var d = document.querySelector(a.getAttribute("href") + " > details"); if (d) d.open = true; }); });
+</script>
 {% endif %}
 {% endblock %}

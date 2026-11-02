@@ -5,6 +5,7 @@
     var button = form.querySelector("[data-record]");
     var status = form.querySelector("[data-voice-status]");
     if (!button) return;
+    var label = button.querySelector("[data-label]") || button;
     button.hidden = false;
     var recorder = null;
     var parts = [];
@@ -12,9 +13,10 @@
     var timer = null;
 
     function say(text) { status.textContent = text; }
+    function setLabel(text, recording) { label.textContent = text; button.classList.toggle("recording", !!recording); }
 
     function send(blob) {
-      say("Transcribing on the server. This can take a little while.");
+      say("Transcribing on the server…");
       button.disabled = true;
       var data = new FormData();
       data.append("file", blob, "answer.webm");
@@ -35,12 +37,12 @@
         recorder.onstop = function () {
           clearInterval(timer);
           stream.getTracks().forEach(function (t) { t.stop(); });
-          button.textContent = "Record a voice answer";
+          setLabel("Record a voice answer", false);
           send(new Blob(parts, { type: recorder.mimeType || "audio/webm" }));
         };
         recorder.start();
         seconds = 0;
-        button.textContent = "Stop and send";
+        setLabel("Stop and send", true);
         say("Recording: 0 s");
         timer = setInterval(function () {
           seconds += 1;
