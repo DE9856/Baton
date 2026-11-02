@@ -6,10 +6,12 @@ Read this first. It says what needs doing, what exists, how to set it up on a ne
 
 **Round 2 is not submittable yet.** It's roughly 70% done, and Round 3 roughly 60%. These percentages are a judgment as of 1 Nov 2026, not a measurement. The code is close to finished; most of what's left needs accounts or other people.
 
+**Where we stopped (2 Nov 2026):** Supabase and Groq are paused on purpose, to come back to later. No Baton project exists on Supabase yet, and Groq has no key. See "Resuming Supabase" in section 7.
+
 **Do these in order:**
 
-- [ ] **1. Ask the organiser** for the deadlines, and whether Round 3 work built now counts. This could affect eligibility (rules 1 and 4). Also confirm the Round 1 plan was actually submitted: the PDF is dated 31 Oct, but the team's checklist still listed it as a to-do.
-- [ ] **2. Fill in `.env`** with Groq, Supabase, Hugging Face and GitHub (section 7), then deploy and publish with `docs/DEPLOY.md`. These steps have never run for real, so expect some fixes.
+- [ ] **1. Ask the organiser** for the deadlines, and whether Round 3 work built now counts. This could affect eligibility (rules 1 and 4). Also confirm the Round 1 plan was actually submitted: the PDF is dated 31 Oct, but the team's checklist still listed it as a to-do. *On 2 Nov a team member indicated that Round 3 work counts; record who confirmed it and when. The deadlines and the Round 1 submission are still open.*
+- [ ] **2. Fill in `.env`** with Groq, Supabase, Hugging Face and GitHub (section 7), then deploy and publish with `docs/DEPLOY.md`. These steps have never run for real, so expect some fixes. *GitHub and Hugging Face don't have to wait for Supabase and Groq. `deploy/deploy_space.py` currently requires the Supabase values, so a demo-only deploy needs a small change first: no real accounts, data lost on restart, and only the app's own permission checks, all of which must be disclosed.*
 - [ ] **3. Run Groq on the second dataset** as soon as the key is in: `python eval/evaluate_dataset.py eval/second_dataset/foodlink`. This is the biggest unknown. Keyword rules found 0 of 3 conflicts there, so a weak result may need fixing before submission.
 - [ ] **4. Choose three new Round 3 commitments.** The original three are already built. Proposals are in `docs/ROUND3_COMMITMENTS.md`.
 - [ ] **5. Have the team read the code.** Judges can question any member on any part (rule 16). Each member confirms their role and writes their own contribution (rule 14).
@@ -39,7 +41,7 @@ Read this first. It says what needs doing, what exists, how to set it up on a ne
 
 **Baton** turns a departing member's authorised project trail into a verified, permission-safe handover. It proves what the sources can prove, asks the person leaving only about what they can't, and shows each person only what they may see.
 
-Team sky-flyers (CMR Institute of Technology, Bengaluru), WCC Forge 48, Challenge 01: Prevent Critical Knowledge From Leaving With People. Last updated 1 Nov 2026, version 0.3.0, branch `round2-build`.
+Team sky-flyers (CMR Institute of Technology, Bengaluru), WCC Forge 48, Challenge 01: Prevent Critical Knowledge From Leaving With People. Last updated 2 Nov 2026, version 0.3.0, branch `round2-build`.
 
 ## 1. Status in brief
 
@@ -202,6 +204,13 @@ Copy `.env.example` to `.env`, fill it in, and follow `docs/DEPLOY.md`. **Never 
 | Supabase | `BATON_DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Database and sign-in |
 | GitHub | `GITHUB_TOKEN`, `GITHUB_REPO` | `python deploy/publish_github.py` |
 | Hugging Face | `HF_TOKEN`, `HF_SPACE` | `python deploy/deploy_space.py` |
+
+**Resuming Supabase.** The code is ready and has passed all 248 tests on Supabase's own database image, but it has never run on a hosted project, so its pooler, network speed, REST API exposure and real sign-in are untested. A first attempt to create the project through Supabase's API on 2 Nov got a 403, because the personal access token was limited to one existing project, `dayflow-hrms`, and couldn't see the organisation. Either:
+
+- Create the project by hand and fill in the three values, following `docs/DEPLOY.md`; or
+- Generate a new access token covering the organisation, add it to `.env` as `SUPABASE_ACCESS_TOKEN`, and create the project through the API. Delete the token afterwards, and remove that line from `.env`. Don't touch `dayflow-hrms`, which is a separate project.
+
+`.env` may hold a leftover `SUPABASE_DB_PASSWORD` line from that attempt. It belongs to no project and can be replaced. Keep Confirm email on, for the reason in `docs/DEPLOY.md`.
 
 After filling in Supabase, run `python deploy/check_supabase.py`. Run each deploy script with `--dry-run` first. Expect some fixes, since none of this has been run for real. Then run `python eval/evaluate_dataset.py eval/second_dataset/foodlink` with the Groq key: that's the most important number not yet known.
 
