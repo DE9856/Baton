@@ -34,7 +34,7 @@ Written during this build: `eval/second_dataset/foodlink/` (a stopgap dataset by
 | `sentence-transformers/all-MiniLM-L6-v2` | Selecting related claims | Local, CPU | Apache 2.0 |
 | `openai/whisper-tiny` | Transcribes voice answers into an editable draft | Local, CPU | MIT |
 | Qwen2.5-7B | Produced the recorded demo extraction; optional local mode through Ollama | Offline | Check the model's own licence before relying on it |
-| A Groq-hosted model (default `llama-3.3-70b-versatile`, configurable) | Extraction of uploads when `GROQ_API_KEY` is set. **Not yet used in any run** | Hosted, Groq API | The chosen model's and Groq's terms |
+| A Groq-hosted model (default `openai/gpt-oss-120b`, configurable; `llama-3.3-70b-versatile` was the earlier default until Groq retired it) | Extraction of uploads when `GROQ_API_KEY` is set. First real run on 2 Nov 2026, on the second dataset | Hosted, Groq API | The chosen model's and Groq's terms (gpt-oss: Apache 2.0) |
 | Claude (`claude-haiku-5-5`) | Optional alternative extractor. **Not yet used in any run** | Hosted, Anthropic API | Anthropic terms |
 
 ## External services

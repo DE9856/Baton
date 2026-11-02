@@ -109,7 +109,7 @@ class GroqExtractor(Extractor):
     max_wait = 65.0
 
     def __init__(self, model: str | None = None, api_key: str | None = None, client: httpx.Client | None = None, sleep=time.sleep):
-        self.model = model or os.environ.get("BATON_EXTRACT_MODEL") or "llama-3.3-70b-versatile"
+        self.model = model or os.environ.get("BATON_EXTRACT_MODEL") or "openai/gpt-oss-120b"
         self.api_key = api_key or os.environ.get("GROQ_API_KEY", "")
         self.label = f"Groq ({self.model})"
         self.client = client or httpx.Client(timeout=120)
