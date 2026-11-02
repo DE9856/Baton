@@ -4,7 +4,7 @@ Baton turns a departing member's authorised project trail into a verified, permi
 
 Team sky-flyers, WCC Forge 48, Challenge 01: Prevent Critical Knowledge From Leaving With People.
 
-**New here, or moving to a new system?** Start with [CLAUDE.md](CLAUDE.md): what's built, setup requirements, a full run-through and what's left.
+**New here?** Follow *Try it* below to run Baton locally, then see the documents listed at the end for architecture, testing and deployment.
 
 ## Try it
 
@@ -61,7 +61,7 @@ To use your own data, choose **Start your own handover**. Without an account it'
 - [APIs, models, datasets, libraries and AI assistance](docs/DISCLOSURES.md)
 - [Round 3 features and commitments](docs/ROUND3_COMMITMENTS.md)
 - [Privacy, security, accessibility and responsible design](docs/PRIVACY_SECURITY_ACCESSIBILITY.md)
-- [Final report draft and roadmap](docs/FINAL_REPORT.md)
+- [Final report and roadmap](docs/FINAL_REPORT.md)
 - [Going live](docs/DEPLOY.md)
 - [Usability test script](docs/USABILITY_TEST.md)
 

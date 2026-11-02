@@ -9,3 +9,10 @@ __pycache__/
 test-results/
 # Holds team members' phone numbers. Goes in the zip, never in git.
 docs/reference/
+# AI assistant files and design-tool working files: kept locally, not published.
+.claude/
+.agents/
+CLAUDE.md
+PRODUCT.md
+.impeccable/
+.taste-skill/

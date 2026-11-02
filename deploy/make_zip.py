@@ -1,6 +1,6 @@
 """Zips the project to send to another system: python deploy/make_zip.py [output.zip]
 
-Includes exactly what git tracks, the history in .git, and docs/reference/. By construction that leaves out .venv,
+Includes exactly what git tracks, the history in .git, docs/reference/ and the git-ignored CLAUDE.md handoff file. By construction that leaves out .venv,
 .env, local data and caches. Standard library only, and it checks the result before finishing.
 Commit first: uncommitted changes to tracked files are included as they are on disk, but new files are not.
 """
@@ -28,6 +28,7 @@ def main() -> None:
     files = [ROOT / f for f in project_files()]
     for folder in (".git", "docs/reference"):
         files += [p for p in (ROOT / folder).rglob("*") if p.is_file()]
+    files.append(ROOT / "CLAUDE.md")  # the team handoff file is git-ignored but travels in the zip
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as z:
         for path in files:
             if path.exists():  # a tracked file deleted on disk is skipped

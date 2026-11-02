@@ -47,8 +47,8 @@ The plan named Hugging Face Spaces, with Railway as the paid fallback. In Novemb
 | Usability test with 5 club members | Club members | Script is in [USABILITY_TEST.md](USABILITY_TEST.md) |
 | Try voice on a real phone, with a real voice | A person | Not done |
 | Narrated demo video | The team | Silent walkthrough recorded |
-| Choose three new Round 3 commitments; check with the organiser | The team | Proposals written |
-| Each member states their role and contribution | Each member | Not done |
+| Choose three new Round 3 commitments; check with the organiser | The team | Chosen 2 Nov 2026: multilingual chats (Hinglish, Hindi, Tamil, Telugu, Kannada), annual rotation, live connectors. Organiser check still to do |
+| Each member states their role and contribution | Each member | Done: in [FINAL_REPORT.md](FINAL_REPORT.md) |
 
 ## Changes from the plan, and why
 

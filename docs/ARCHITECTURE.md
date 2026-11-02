@@ -2,7 +2,7 @@
 
 ## Overview
 
-One Python service: FastAPI, server-rendered Jinja2 pages, HTMX for progress, Pico.css, and background jobs in a thread in the same process. The NLI and embedding models load once, on CPU.
+One Python service: FastAPI, server-rendered Jinja2 pages, HTMX for progress, one hand-written stylesheet (no CSS framework), and background jobs in a thread in the same process. The NLI and embedding models load once, on CPU.
 
 ```
  Exports                   Pipeline (baton/pipeline.py)                         People
