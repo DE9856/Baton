@@ -21,11 +21,15 @@
 
 Ask Baton, Living handover and Voice gap interview are in the product, at a team member's direction. See [ROUND3_COMMITMENTS.md](ROUND3_COMMITMENTS.md), including why the team must check this with the organiser and choose three new commitments.
 
+## Hosting changed from the plan
+
+The plan named Hugging Face Spaces, with Railway as the paid fallback. In November 2026 Hugging Face began requiring a paid PRO subscription for Docker Spaces, so the Space could not be created on a free account. Baton runs instead on **Azure Container Apps** under Azure for Students credit, in Austria East (the allowed region nearest the Supabase database in Ireland). It is the same Dockerfile and the same image, built by GitHub Actions and published to `ghcr.io/de9856/baton`. Groq's original default model, `llama-3.3-70b-versatile`, had also been retired, so the default is now `openai/gpt-oss-120b`.
+
 ## Milestones
 
 | Milestone | Exit test | State |
 |---|---|---|
-| M1 Skeleton | A judge can load the demo and see its records | **Passes locally and in the Docker image.** No public deployment yet |
+| M1 Skeleton | A judge can load the demo and see its records | **Passes**, locally, in the Docker image and live on Azure Container Apps (https://baton.happyground-10a16bb3.austriaeast.azurecontainerapps.io) since 2 Nov 2026 |
 | M2 Ledger | Verified claims with working receipts | **Passes** |
 | M3 Trust and flow | Full workflow end to end on the demo | **Passes**, in a browser and in the container on Postgres |
 | M4 Harden and ship | Submission complete | **Partly.** What's left is below |
@@ -34,10 +38,10 @@ Ask Baton, Living handover and Voice gap interview are in the product, at a team
 
 | Task | Needs | State |
 |---|---|---|
-| Fill in `.env` and run the steps in [DEPLOY.md](DEPLOY.md) | Your accounts | Scripts written, not yet run for real |
-| First real Groq run, and compare with the recorded run | Groq key | Not done |
-| First real Supabase run: database, sign-in, RLS | Supabase project | Tested on local Postgres and a fake sign-in server only |
-| CI's first run on GitHub | Repository | Not done |
+| Fill in `.env` and run the steps in [DEPLOY.md](DEPLOY.md) | Your accounts | **Done 2 Nov 2026.** Live on Azure; the deployed smoke test passes |
+| First real Groq run, and compare with the recorded run | Groq key | Second dataset run on 2 Nov with `openai/gpt-oss-120b`: 12/13 facts, 1/3 conflicts. Comparison with the recorded demo run not done |
+| First real Supabase run: database, sign-in, RLS | Supabase project | **Done 2 Nov 2026.** `deploy/check_supabase.py` passes on the hosted project (eu-west-1) |
+| CI's first run on GitHub | Repository | **Done 2 Nov 2026.** Passes on `main` and `round2-build` |
 | Team reads and reviews the code; two reviewers on security code | The team | Not done |
 | Independent second dataset | Someone outside the team | Brief is in `eval/second_dataset/README.md` |
 | Usability test with 5 club members | Club members | Script is in [USABILITY_TEST.md](USABILITY_TEST.md) |

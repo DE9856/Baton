@@ -25,7 +25,7 @@ docker build -t baton .
 docker run -p 7860:7860 -e BATON_SECRET=change-me baton
 ```
 
-To go live on Supabase, Groq, GitHub and Hugging Face, follow [docs/DEPLOY.md](docs/DEPLOY.md).
+Live at https://baton.happyground-10a16bb3.austriaeast.azurecontainerapps.io. To deploy your own copy on Supabase, Groq, GitHub and Azure, follow [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ### A five-minute walkthrough
 

@@ -95,7 +95,7 @@ visible(claim, viewer) = claim.audience in viewer.clearances
 | `baton/web/` | FastAPI routes, templates, CSS |
 | `baton/db.py` | The evidence model |
 | `eval/` | Gold-set scoring, second dataset, held-out checks, scale test, deployment smoke test |
-| `deploy/` | Scripts to publish to GitHub and deploy to Hugging Face |
+| `deploy/` | Scripts to check Supabase, publish to GitHub and deploy to Azure Container Apps (`deploy_azure.py`). `deploy_space.py` is the older Hugging Face route |
 
 ## Performance
 

@@ -43,9 +43,12 @@ Written during this build: `eval/second_dataset/foodlink/` (a stopgap dataset by
 |---|---|
 | GitHub REST API | Reads public or token-readable issues and PRs when a user enters a repository. Read-only; a token is used once and never stored |
 | Hugging Face Hub | Model downloads at build time or first run |
+| Supabase | Hosted Postgres and Auth (eu-west-1) |
+| Azure Container Apps | Hosts the live app (Austria East), on Azure for Students credit |
+| GitHub Actions and GitHub Container Registry | CI, and building and publishing the public Docker image |
 | Groq or Anthropic API | Only if a key is configured. Receives one chunk of one source per call, with recognised credentials already masked |
 
-Written for, but not yet run against: Supabase (Postgres and Auth), Hugging Face Spaces, GitHub Actions.
+Hugging Face Spaces was the planned host; `deploy/deploy_space.py` is kept but no longer used, because Docker Spaces now need a paid plan.
 
 ## Libraries and templates
 
