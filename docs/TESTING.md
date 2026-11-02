@@ -25,13 +25,12 @@ All pass on 2 Nov 2026: 237 on SQLite (the 11 Postgres tests skip there) and all
 
 To repeat the full suite on Supabase's image, clone a template database so each test gets its auth schema and default grants, and set `BATON_TEST_POSTGRES_TEMPLATE` to its name.
 
-## Not tested against the real thing
+## Run against the real services (2 Nov 2026)
 
-These need your credentials, so they've only run against fake servers or a local stand-in:
-
-- **Groq:** no real call yet, so extraction quality on real output is unknown.
-- **Supabase:** the database is tested on Supabase's own image locally, not on a hosted project, so its pooler, network speed, REST API and possibly newer version are all untested. Supabase Auth has run only against a fake server. `deploy/check_supabase.py` covers these once a project exists.
-- **Hugging Face Space, GitHub Actions:** the scripts and workflow have never run. The Docker image they use has.
+- **Groq:** real runs with `openai/gpt-oss-120b` on the second dataset; results are below under "Groq on the second dataset". A real Groq run on the demo data, to compare with the recorded run the demo replays, has not been done yet.
+- **Supabase:** the live deployment uses a hosted Supabase Postgres project (eu-west-1), with row-level security applied on start. `deploy/check_supabase.py` passes all its checks against it. Signing in with a real Supabase account (`--account`) is wired up but has not been exercised by real users.
+- **GitHub Actions and Azure:** CI runs the test suite on every push, the image workflow builds and publishes the Docker image, and Azure Container Apps runs it. `eval/smoke_deployed.py` against the live link passes: a full pipeline run, and 0 of 7 planted secrets leak to the successor or a new member.
+- **Hugging Face Spaces:** no longer used (Docker Spaces now need a paid plan); the script is kept but has not run.
 
 ## Gold-set evaluation
 

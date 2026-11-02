@@ -8,7 +8,7 @@
 |---|---|---|---|
 | 1 | Source connectors | Working | GitHub URL or JSON, WhatsApp, Trello, notes (.md, .txt, .docx), one-click demo. GitHub URL checked once against the live API |
 | 2 | Audience and consent | Working | Audience, authoriser and consent note per source; alias matching; clearances per person |
-| 3 | Claim extraction | Partly | Groq and Claude adapters are tested against fake servers only. **No real hosted call yet.** The demo replays a real recorded LLM run; uploads without a key use keyword rules |
+| 3 | Claim extraction | Working | Groq runs for real (`openai/gpt-oss-120b`; 12 of 13 facts on the second dataset's first run). The Claude adapter is tested against a fake server only. The demo replays a real recorded LLM run; uploads without a key use keyword rules |
 | 4 | Verification engine | Working | Grounding, NLI, value guard, rule-based labels |
 | 5 | Reconciliation and timeline | Working | Conflicts, staleness, departure cliff, timeline |
 | 6 | Sensitive-content guard | Working | Secrets masked at ingestion, tags, rotation tasks, shareable versions. Regex-based, so it can miss things |
@@ -46,7 +46,7 @@ The plan named Hugging Face Spaces, with Railway as the paid fallback. In Novemb
 | Independent second dataset | Someone outside the team | Brief is in `eval/second_dataset/README.md` |
 | Usability test with 5 club members | Club members | Script is in [USABILITY_TEST.md](USABILITY_TEST.md) |
 | Try voice on a real phone, with a real voice | A person | Not done |
-| Narrated demo video | The team | Silent walkthrough recorded |
+| Demo video | The team | Only if the organiser asks for one; a silent walkthrough of an earlier interface exists |
 | Choose three new Round 3 commitments; check with the organiser | The team | Chosen 2 Nov 2026: multilingual chats (Hinglish, Hindi, Tamil, Telugu, Kannada), annual rotation, live connectors. Organiser check still to do |
 | Each member states their role and contribution | Each member | Done: in [FINAL_REPORT.md](FINAL_REPORT.md) |
 
