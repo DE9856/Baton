@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import select, text
 
 from baton import permissions, review
-from baton.db import AuditEvent, Claim, ClaimEvidence, Conflict, EvidenceUnit, GapQuestion, Member, Source, Version, make_engine, make_sessionmaker
+from baton.db import AuditEvent, Base, Claim, ClaimEvidence, Conflict, EvidenceUnit, GapQuestion, Member, Source, Version, make_engine, make_sessionmaker
 from baton.demo.loader import load_demo
 from baton.extract import ReplayExtractor
 from baton.pipeline import run_pipeline
@@ -56,6 +56,28 @@ def test_rls_is_on(db):
         assert permissions.rls_active(s)
         n = s.execute(text("select count(*) from pg_policies where policyname like 'baton_%'")).scalar()
         assert n >= 14
+
+
+def test_viewer_is_identified_for_every_version_of_auth_uid(db):
+    """Some Supabase versions read request.jwt.claim.sub, others request.jwt.claims. Plain Postgres alone wouldn't catch this."""
+    Session, pid = db
+    with Session() as s:
+        meera = member(s, pid, "Meera Iyer")
+        with permissions.rls_scope(s, meera):
+            assert s.execute(text("select current_setting('request.jwt.claim.sub')")).scalar() == meera.user_id
+            assert s.execute(text("select current_setting('request.jwt.claims')::json ->> 'sub'")).scalar() == meera.user_id
+        s.rollback()
+
+
+def test_every_table_is_protected(db):
+    """A table added to db.py but not to rls.sql would be open to anyone with Supabase's public key."""
+    Session, _ = db
+    with Session() as s:
+        for table in Base.metadata.sorted_tables:
+            name = f"public.{table.name}"
+            assert s.execute(text("select relrowsecurity from pg_class where oid = to_regclass(:t)"), {"t": name}).scalar(), table.name
+            assert s.execute(text("select has_table_privilege('authenticated', :t, 'SELECT')"), {"t": name}).scalar(), table.name
+            assert not s.execute(text("select has_table_privilege('authenticated', :t, 'INSERT,UPDATE,DELETE')"), {"t": name}).scalar(), table.name
 
 
 def test_database_alone_hides_restricted_claims(db):
@@ -140,6 +162,29 @@ def test_viewers_cannot_write_directly(db):
             with permissions.rls_scope(s, sana):
                 s.execute(text("update claims set label = 'verified'"))
         s.rollback()
+
+
+def test_grants_supabase_adds_by_default_are_taken_back(tmp_path):
+    """Supabase gives anon and authenticated full rights on new tables and functions. Re-applying rls.sql must remove them."""
+    url = fresh_db_url(tmp_path)
+    engine = make_engine(url)
+    with engine.begin() as conn:
+        if not conn.execute(text("select 1 from pg_roles where rolname = 'anon'")).first():
+            conn.execute(text("create role anon nologin"))
+        conn.execute(text("grant all on all tables in schema public to anon, authenticated"))
+        conn.execute(text("grant all on all sequences in schema public to anon, authenticated"))
+        conn.execute(text("grant execute on all functions in schema public to anon, authenticated"))
+        assert conn.execute(text("select has_table_privilege('anon', 'public.claims', 'SELECT')")).scalar()
+    engine.dispose()
+    engine = make_engine(url)
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            name = f"public.{table.name}"
+            assert not conn.execute(text("select has_table_privilege('anon', :t, 'SELECT,INSERT,UPDATE,DELETE')"), {"t": name}).scalar(), table.name
+            assert not conn.execute(text("select has_table_privilege('authenticated', :t, 'INSERT,UPDATE,DELETE')"), {"t": name}).scalar(), table.name
+        assert not conn.execute(text("select has_function_privilege('anon', 'baton_handover_for(integer,integer)', 'execute')")).scalar()
+        assert not conn.execute(text("select has_sequence_privilege('authenticated', pg_get_serial_sequence('claims', 'id'), 'USAGE')")).scalar()
+    engine.dispose()
 
 
 def test_versions_and_audit_are_immutable_in_the_database(db):

@@ -11,22 +11,26 @@ Measured on 1 Nov 2026. Reproduce with the commands in the README.
 | `test_sensitive.py` | 29 | Masking, false positives, classification |
 | `test_rules.py` | 34 | Facet check, staleness, departure cliff, routing, the permission rule, re-runs |
 | `test_failures.py` | 29 | Bad uploads, API failures, crashes, the NLI model being down, restart, HTML escaping, adapters |
-| `test_round3.py` | 46 | Sign-in, sandboxes, leaver confirmation, access requests, Ask, re-sync, voice uploads, Groq (fake servers) |
+| `test_round3.py` | 52 | Sign-in, sandboxes, leaver confirmation, access requests, Ask, re-sync, voice uploads, Groq (fake servers) |
 | `test_workflow.py` | 15 | The product over HTTP with real models, including a canary check on every page for every person |
 | `test_round3_models.py` | 7 | Ask, re-sync and speech with real models |
-| `test_postgres.py` | 8 | Row-level security on real Postgres, including with the app's own checks deliberately broken |
+| `test_postgres.py` | 11 | Row-level security on real Postgres, including with the app's own checks deliberately broken and with Supabase's default grants |
 | `test_browser.py` | 2 | A first-time walkthrough in a real browser; voice with a simulated microphone; WCAG checks on 6 pages; phone width |
 
-All pass on 1 Nov 2026: 231 on SQLite (the 8 Postgres tests skip there), all 239 on Postgres 16 with row-level security active, and 2 in the browser. The SQLite and browser runs were also repeated from a fresh clone with a new environment.
+All pass on 2 Nov 2026: 237 on SQLite (the 11 Postgres tests skip there) and all 248 on a copy of Supabase's own database image, `supabase/postgres:15.8.1.060`, as its non-superuser `postgres` role, with its auth schema and default grants. Plain Postgres 16 last ran the 11 Postgres tests, not the full suite, before the viewer identity fix below. The 2 browser tests also pass on SQLite on 2 Nov. The fresh-clone runs date from 1 Nov and predate the 2 Nov changes.
 
-**Deployment check:** `eval/smoke_deployed.py` passes against the Docker image limited to 2 CPUs and connected to Postgres, with row-level security active: 21 s to run the pipeline, about 860 MB of memory.
+**What Supabase's image found that plain Postgres couldn't:** its `auth.uid()` reads `request.jwt.claim.sub`, while Baton set only `request.jwt.claims`. Every viewer was unrecognised, so every read came back empty. This failed safely, but the handover would have been blank. Baton now sets both. Plain Postgres passed because its stand-in `auth.uid()` was written to match Baton.
+
+**Deployment check:** `eval/smoke_deployed.py` passes against the Docker image limited to 2 CPUs and connected to Postgres, with row-level security active: 21 s to run the pipeline, about 860 MB of memory. On 2 Nov it also passed with the app running directly on Windows against Supabase's image: 27 s, 0 of 7 canaries leaked. The database was on the same machine, so this says nothing about speed over a real network.
+
+To repeat the full suite on Supabase's image, clone a template database so each test gets its auth schema and default grants, and set `BATON_TEST_POSTGRES_TEMPLATE` to its name.
 
 ## Not tested against the real thing
 
 These need your credentials, so they've only run against fake servers or a local stand-in:
 
 - **Groq:** no real call yet, so extraction quality on real output is unknown.
-- **Supabase:** Postgres behaviour is tested on Postgres 16 locally; Supabase Auth only against a fake server.
+- **Supabase:** the database is tested on Supabase's own image locally, not on a hosted project, so its pooler, network speed, REST API and possibly newer version are all untested. Supabase Auth has run only against a fake server. `deploy/check_supabase.py` covers these once a project exists.
 - **Hugging Face Space, GitHub Actions:** the scripts and workflow have never run. The Docker image they use has.
 
 ## Gold-set evaluation

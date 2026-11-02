@@ -45,7 +45,7 @@ To use your own data, choose **Start your own handover**. Without an account it'
 |---|---|
 | Parsers, grounding, NLI + value guard, conflicts, sensitive guard, gaps, review, handover, Ask Baton, living handover | Real, tested |
 | Voice answers | Real: browser recording to local Whisper. Tested with a synthetic voice only |
-| Database | SQLite by default. Postgres with row-level security is tested on local Postgres; **not yet run on a real Supabase project** |
+| Database | SQLite by default. Postgres with row-level security is tested on local Postgres and Supabase's own database image; **not yet run on a real Supabase project** |
 | Sign-in | Code uses Supabase Auth's API. Tested against a fake server only |
 | Hosted extraction | Groq adapter tested against a fake server only. **No real Groq call has been made yet** |
 | Demo extraction | Replays a real LLM run from the planning round |

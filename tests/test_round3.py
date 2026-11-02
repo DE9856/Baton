@@ -72,6 +72,20 @@ def test_sign_in_failures_are_readable(auth_app):
         SupabaseAuth("https://x", "k", httpx.Client(transport=httpx.MockTransport(boom))).sign_in("a@b.c", "p")
 
 
+@pytest.mark.parametrize("status, body, expected", [
+    (400, {"error_code": "invalid_credentials", "msg": "Invalid login credentials"}, "don't match"),
+    (400, {"error_code": "email_address_invalid", "msg": "Email address is invalid"}, "can't be used"),
+    (400, {"error_code": "email_not_confirmed", "msg": "Email not confirmed"}, "confirm your email"),
+    (400, {"error_code": "email_address_not_authorized", "msg": "Email address not authorized"}, "not authorized"),
+    (422, {"error_code": "weak_password", "msg": "Password should be at least 6 characters."}, "at least 6"),
+    (429, {"error_code": "over_email_send_rate_limit", "msg": "email rate limit exceeded"}, "Too many attempts"),
+])
+def test_supabase_errors_keep_their_meaning(status, body, expected):
+    client = httpx.Client(transport=httpx.MockTransport(lambda req: httpx.Response(status, json=body)))
+    with pytest.raises(AuthError, match=expected):
+        SupabaseAuth("https://x", "k", client).sign_up("a@b.c", "p")
+
+
 def test_signup_with_email_confirmation_says_so(tmp_path):
     app = create_app(fresh_db_url(tmp_path), nli=WordOverlapNLI(), embedder=False, inline_jobs=True, auth=fake_auth(confirm=True))
     with TestClient(app) as c:

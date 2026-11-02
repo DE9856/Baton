@@ -26,11 +26,22 @@ create or replace function baton_member_id(project integer) returns integer
 language sql stable security definer set search_path = public, auth as $$
   select m.id from members m where m.user_id = auth.uid()::text and m.project_id = project limit 1 $$;
 
-do $$ declare t text; begin
+-- Supabase grants anon and authenticated full rights on every new table in public, and exposes them over its REST API
+-- using a key that is meant to be public. Those grants are taken back here: anon gets nothing, authenticated only reads.
+do $$ declare t text; r text; seq text; begin
   foreach t in array array['projects','members','sources','evidence_units','claims','claim_evidence','conflicts','gap_questions',
                            'versions','acknowledgements','audit_events','jobs','access_requests','voice_notes'] loop
     execute format('alter table %I enable row level security', t);
     execute format('revoke all on table %I from public', t);
+    seq := pg_get_serial_sequence(t, 'id');
+    foreach r in array array['anon', 'authenticated'] loop
+      if exists (select 1 from pg_roles where rolname = r) then
+        execute format('revoke all on table %I from %I', t, r);
+        if seq is not null then
+          execute format('revoke all on sequence %s from %I', seq, r);
+        end if;
+      end if;
+    end loop;
     execute format('grant select on table %I to authenticated', t);
   end loop;
 end $$;
@@ -88,12 +99,25 @@ language sql stable security definer set search_path = public, auth as $$
           and (not (item ->> 'sensitive')::boolean or baton_is_reviewer(project))), '[]'::jsonb))
   from versions v where v.project_id = project and v.number = version_number and baton_is_member(project) $$;
 
-grant execute on function baton_clearances(integer), baton_is_reviewer(integer), baton_is_member(integer), baton_source_audience(integer),
-  baton_member_id(integer), baton_handover_for(integer, integer) to authenticated;
-
 -- Immutable even for the app's own connection: approved versions and audit events can't be changed or removed.
 create or replace function baton_forbid_change() returns trigger language plpgsql as $$
   begin raise exception '% is append-only', tg_table_name; end $$;
+
+-- New functions are callable by everyone by default, and on Supabase by anon over the REST API.
+do $$ declare f text; r text; begin
+  foreach f in array array['baton_clearances(integer)', 'baton_is_reviewer(integer)', 'baton_is_member(integer)', 'baton_source_audience(integer)',
+                           'baton_member_id(integer)', 'baton_handover_for(integer, integer)', 'baton_forbid_change()'] loop
+    execute format('revoke all on function %s from public', f);
+    foreach r in array array['anon', 'authenticated'] loop
+      if exists (select 1 from pg_roles where rolname = r) then
+        execute format('revoke all on function %s from %I', f, r);
+      end if;
+    end loop;
+  end loop;
+end $$;
+grant execute on function baton_clearances(integer), baton_is_reviewer(integer), baton_is_member(integer), baton_source_audience(integer),
+  baton_member_id(integer), baton_handover_for(integer, integer) to authenticated;
+
 drop trigger if exists baton_versions_immutable on versions;
 create trigger baton_versions_immutable before update or delete on versions for each row execute function baton_forbid_change();
 drop trigger if exists baton_audit_immutable on audit_events;

@@ -32,8 +32,10 @@ class SupabaseAuth:
         if r.status_code >= 400:
             message = str(data.get("msg") or data.get("error_description") or data.get("message") or "")
             code = str(data.get("error_code") or data.get("error") or "")
-            if "invalid" in code or "invalid" in message.lower():
+            if code in ("invalid_credentials", "invalid_grant") or "invalid login" in message.lower():
                 raise AuthError("That email and password don't match.")
+            if code == "email_address_invalid":
+                raise AuthError("That email address can't be used. Please try a different one.")
             if "confirm" in code or "not confirmed" in message.lower():
                 raise AuthError("Please confirm your email first, using the link we sent you.")
             if r.status_code == 429:

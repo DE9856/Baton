@@ -96,7 +96,7 @@ To check the install:
 
 ```sh
 pip install -r requirements-dev.txt
-pytest -m "not browser"         # expect 231 passed, 8 skipped
+pytest -m "not browser"         # expect 237 passed, 11 skipped
 ```
 
 A fresh clone was tested this way on 1 Nov 2026.
@@ -173,11 +173,11 @@ Follow these in order. The numbers are what you should see on the demo.
 
 ```sh
 pip install -r requirements-dev.txt
-pytest -m "not browser"                     # 231 passed, 8 skipped
+pytest -m "not browser"                     # 237 passed, 11 skipped
 playwright install chromium
 pytest -m browser                           # 2 passed: walkthrough, voice, accessibility
 docker run -d -e POSTGRES_PASSWORD=test -p 55432:5432 postgres:16-alpine
-BATON_TEST_POSTGRES_URL=postgresql://postgres:test@localhost:55432/postgres pytest -m "not browser"   # 239 passed
+BATON_TEST_POSTGRES_URL=postgresql://postgres:test@localhost:55432/postgres pytest -m "not browser"   # 248 expected
 python eval/evaluate.py                     # gold set: 23/23 facts, 3/3 conflicts, 0/7 leaks
 python eval/evaluate_dataset.py eval/second_dataset/foodlink
 python eval/ask_eval.py
@@ -203,7 +203,7 @@ Copy `.env.example` to `.env`, fill it in, and follow `docs/DEPLOY.md`. **Never 
 | GitHub | `GITHUB_TOKEN`, `GITHUB_REPO` | `python deploy/publish_github.py` |
 | Hugging Face | `HF_TOKEN`, `HF_SPACE` | `python deploy/deploy_space.py` |
 
-Run each script with `--dry-run` first. Expect some fixes, since none of this has been run for real. Then run `python eval/evaluate_dataset.py eval/second_dataset/foodlink` with the Groq key: that's the most important number not yet known.
+After filling in Supabase, run `python deploy/check_supabase.py`. Run each deploy script with `--dry-run` first. Expect some fixes, since none of this has been run for real. Then run `python eval/evaluate_dataset.py eval/second_dataset/foodlink` with the Groq key: that's the most important number not yet known.
 
 ## 8. What's left
 

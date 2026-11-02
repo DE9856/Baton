@@ -287,7 +287,8 @@ def make_engine(url: str | None = None):
     if url.startswith("sqlite"):
         kwargs = {"connect_args": {"check_same_thread": False, "timeout": 30}}
     else:
-        kwargs = {"pool_pre_ping": True, "pool_size": 5, "max_overflow": 5}
+        # Supabase's pooler reuses server connections, so prepared statements can't be relied on. A bad host fails in 15 s, not minutes.
+        kwargs = {"pool_pre_ping": True, "pool_size": 5, "max_overflow": 5, "connect_args": {"prepare_threshold": None, "connect_timeout": 15}}
     engine = create_engine(url, **kwargs)
     if url.startswith("sqlite"):
         @event.listens_for(engine, "connect")
@@ -324,14 +325,16 @@ def _add_missing_columns(engine) -> None:
 def _apply_rls(engine) -> None:
     sql = (Path(__file__).parent / "rls.sql").read_text("utf-8")
     with engine.begin() as conn:
-        # Supabase provides these. A plain Postgres gets small equivalents so the same policies can be tested.
+        # Supabase provides these and doesn't let the app change its auth schema, so it is left alone when it's there.
+        # A plain Postgres gets small equivalents so the same policies can be tested.
         if not conn.execute(text("select 1 from pg_roles where rolname = 'authenticated'")).first():
             conn.execute(text("create role authenticated nologin"))
-        conn.execute(text("create schema if not exists auth"))
-        conn.execute(text("grant usage on schema auth, public to authenticated"))
+        conn.execute(text("grant usage on schema public to authenticated"))
         has_uid = conn.execute(text("select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace "
                                     "where n.nspname = 'auth' and p.proname = 'uid'")).first()
         if not has_uid:
+            conn.execute(text("create schema if not exists auth"))
+            conn.execute(text("grant usage on schema auth to authenticated"))
             conn.execute(text("create function auth.uid() returns uuid language sql stable as "
                               "$$ select nullif(nullif(current_setting('request.jwt.claims', true), '')::json ->> 'sub', '')::uuid $$"))
         conn.connection.driver_connection.execute(sql)  # no parameters, so the driver leaves % in the SQL alone

@@ -67,7 +67,9 @@ def fresh_db_url(path) -> str:
     name = f"t_{uuid.uuid4().hex[:12]}"
     engine = sqlalchemy.create_engine(server.replace("postgresql://", "postgresql+psycopg://", 1), isolation_level="AUTOCOMMIT")
     with engine.connect() as conn:
-        conn.execute(sqlalchemy.text(f"create database {name}"))
+        # A template lets the tests run on a copy of Supabase's image, keeping its auth schema and default grants.
+        template = os.environ.get("BATON_TEST_POSTGRES_TEMPLATE")
+        conn.execute(sqlalchemy.text(f"create database {name}" + (f" template {template}" if template else "")))
     engine.dispose()
     return server.rsplit("/", 1)[0] + f"/{name}"
 

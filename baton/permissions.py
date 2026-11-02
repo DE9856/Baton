@@ -42,8 +42,9 @@ def rls_scope(s: Session, viewer: Member):
     if not rls_active(s):
         yield
         return
-    s.execute(text("select set_config('request.jwt.claims', :claims, true)"),
-              {"claims": json.dumps({"sub": viewer.user_id, "role": "authenticated"})})
+    # auth.uid() reads one or the other, depending on the Supabase version. Unset, it finds nobody and every read comes back empty.
+    s.execute(text("select set_config('request.jwt.claims', :claims, true), set_config('request.jwt.claim.sub', :sub, true)"),
+              {"claims": json.dumps({"sub": viewer.user_id, "role": "authenticated"}), "sub": viewer.user_id})
     s.execute(text("set local role authenticated"))
     yield  # after an error the transaction is rolled back, which ends the role change too
     s.execute(text("reset role"))
